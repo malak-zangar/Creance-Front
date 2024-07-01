@@ -1,48 +1,21 @@
-import { useState } from "react";
-import axios from "axios";
-import FormData from "form-data";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
-
-
+import Main from "./layouts/Main";
+import Profile from "./pages/Profile";
+import Aboutus from "./pages/Aboutus";
+import Home from "./pages/Home";
 
 function App() {
-  const [apiResponse, setApiResponse] = useState(null);
-
-  const handleCreatePipeline = async () => {
-    // debugger;
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
-  
-    let data = new FormData();
-  
-    data.append("url", "https://gitlab.com/houssam1270108/myapp1234.git");
-    data.append("sonar_url", "http://109.205.176.62:9001");
-    data.append("jenkins_url", "http://109.205.176.62:8080/");
-    data.append("jenkins_username", "houssam");
-    data.append("branchName", "main");
-    data.append("credentialsId", "gitlab_token");
-  
-    let config = {
-      method: "post",
-      maxBodyLength: Infinity,
-      url: `${apiUrl}create_pipelinee`,
-      data: data,
-    };
-  
-    axios
-      .request(config)
-      .then((response) => {
-        setApiResponse(JSON.stringify(response.data));
-      })
-      .catch((error) => {
-        setApiResponse(error);
-      });
-  };
-
   return (
-    <div>
-      <button onClick={handleCreatePipeline}>Execute</button>
-      <h4><pre>{JSON.stringify(apiResponse, null, 2)}</pre></h4>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Main />}>
+          <Route index element={<Home />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="about" element={<Aboutus />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
