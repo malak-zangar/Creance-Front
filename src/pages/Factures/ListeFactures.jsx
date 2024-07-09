@@ -1,17 +1,14 @@
-import { useState, useEffect ,useRef} from "react";
-import { Table, Button, Typography, Space ,Input} from "antd";
-import axios from "axios";
+import { useState,useRef, useEffect } from "react";
+import { SearchOutlined, FolderOpenOutlined ,FileDoneOutlined} from '@ant-design/icons';
+import { Button, Input, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { AddClientForm } from "../../components/Modals/AddClientForm";
-import {
-  UserOutlined,
-  FolderOpenOutlined,
-  ExportOutlined,SearchOutlined
-} from "@ant-design/icons";
+import { AddFactureForm } from "../../components/Modals/AddFactureForm";
 
-const ListeClients = () => {
-  const [data, setData] = useState([]);
+
+function ListeFactures() {
+    const [data, setData] = useState([]);
 
   const navigate = useNavigate();
 
@@ -129,48 +126,106 @@ const ListeClients = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:5551/user/getAll")
+      .get("http://localhost:5551/facture/getAll")
       .then((response) => {
         setData(
-          response.data.map((client) => ({
-            key: client.id,
-            username: client.username,
-            email: client.email,
-            phone: client.phone,
-            adresse: client.adresse,
-            actif: client.actif,
+          response.data.map((facture) => ({
+            key: facture.id,
+            numero: facture.numero,
+            date: facture.date,
+            delai: facture.delai,
+            montant: facture.montant,
+            montantEncaisse:facture.montantEncaisse,
+            actionRecouvrement:facture.actionRecouvrement,
+            actif: facture.actif,
+            client_id:facture.client_id,
+            client : facture.client,
+            solde:facture.solde,
+            echeance:facture.echeance,
+            retard: facture.retard,
+            statut:facture.statut,
+            dateFinalisation:facture.dateFinalisation
           }))
         );
       })
       .catch((error) => {
-        console.error("There was an error fetching the clients!", error);
+        console.error("There was an error fetching the factures!", error);
       });
   };
 
   const columns = [
     {
+      title: "Numéro",
+      dataIndex: "numero",
+      ...getColumnSearchProps('numero'),
+
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      ...getColumnSearchProps('date'),
+
+    },
+    {
       title: "Client",
-      dataIndex: "username",
-      ...getColumnSearchProps('username'),
+      dataIndex: "client",
+      ...getColumnSearchProps('client'),
 
-    },
-    {
-      title: "Email",
-      dataIndex: "email",
-      ...getColumnSearchProps('email'),
-
-    },
-    {
-      title: "Téléphone",
-      dataIndex: "phone",
       
     },
     {
-      title: "Adresse",
-      dataIndex: "adresse",
-      ...getColumnSearchProps('adresse'),
-
-    },
+        title: "Montant",
+        dataIndex: "montant",
+        ...getColumnSearchProps('montant'),
+  
+      },
+      {
+        title: "Délai",
+        dataIndex: "delai",
+        ...getColumnSearchProps('delai'),
+      },
+      {
+        title: "Montant encaisse",
+        dataIndex: "montantEncaisse",
+        ...getColumnSearchProps('montantEncaisse'),
+  
+      },
+      {
+        title: "Solde",
+        dataIndex: "solde",
+        ...getColumnSearchProps('solde'),
+  
+      },
+      {
+        title: "Echéance ",
+        dataIndex: "echeance",
+        ...getColumnSearchProps('echeance'),
+  
+      },
+      {
+        title: "Retard ",
+        dataIndex: "retard",
+        ...getColumnSearchProps('retard'),
+  
+      },
+      {
+        title: "Statut ",
+        dataIndex: "statut",
+        ...getColumnSearchProps('statut'),
+  
+      },
+      {
+        title: "Action Recouvrement ",
+        dataIndex: "actionRecouvrement",
+        ...getColumnSearchProps('actionRecouvrement'),
+  
+      },
+      {
+        title: "Date Finalisation ",
+        dataIndex: "dateFinalisation",
+        ...getColumnSearchProps('dateFinalisation'),
+  
+      },
     {
       title: "Actif",
       dataIndex: "actif",
@@ -180,57 +235,25 @@ const ListeClients = () => {
 
   const ToListArchive = () => {
     console.log("Button ToListArchive clicked");
-    navigate("/clients/archive");
+    navigate("/factures/archive");
   };
 
   const ToListActif = () => {
     console.log("Button ToListActif clicked");
-    navigate("/clients/actif");
-  };
-
-  const Export = async () => {
-    console.log("Button Export clicked");
-    try {
-      const response = await fetch("http://localhost:5551/user/export/csv", {
-        method: "GET",
-        headers: {
-          "Content-Type": "text/csv",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = "users.csv";
-
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
-    }
+    navigate("/factures/actif");
   };
 
   return (
     <div>
-      <Typography.Title level={2}>Liste de tous les clients </Typography.Title>
+      <Typography.Title level={2}>Liste de toutes les factures  </Typography.Title>
 
       <Space className="mb-4">
-        <AddClientForm />
-        <Button icon={<UserOutlined />} type="default" onClick={ToListActif}>
-          Clients actifs
+        <AddFactureForm />
+        <Button icon={<FileDoneOutlined />} type="default" onClick={ToListActif}>
+          Factures actives
         </Button>
         <Button icon={<FolderOpenOutlined />} onClick={ToListArchive}>
           Archive
-        </Button>
-        <Button icon={<ExportOutlined />} onClick={Export}>
-          Exporter
         </Button>
       </Space>
       <Table
@@ -243,6 +266,6 @@ const ListeClients = () => {
       />
     </div>
   );
-};
+}
 
-export default ListeClients;
+export default ListeFactures

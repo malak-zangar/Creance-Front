@@ -1,172 +1,265 @@
-import { useState, useEffect } from 'react';
-import { Table, Button, Modal, Form, Input } from 'antd';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-
-
-const handleDelete = (key) => {
-  console.log('Update record with key: ', key);
-  axios.put(`http://localhost:5551/user/archiveClient/${key}`)
-  .then(response => {
-    console.log('Client archived successfully:', response.data);
-  })
-  .catch(error => {
-    console.error('There was an error archiving the client!', error);
-  });
-};
-
-const handleUpdate = (key) => {
-    console.log('delete record with key: ', key);
-  };
-
-const columns = [
-  {
-    title: 'Client',
-    dataIndex: 'username',
-  },
-  {
-    title: 'Email',
-    dataIndex: 'email',
-  },
-  {
-    title: 'Téléphone',
-    dataIndex: 'phone',
-  },
-  {
-    title: 'Adresse',
-    dataIndex: 'adresse',
-  },
-
-  {
-    title: 'Action',
-    dataIndex: 'action',
-    render: (_, record) => (
-      <><Button onClick={() => handleUpdate(record.key)} style={{ marginRight: 8 }}>Modifier</Button>
-      <Button onClick={() => handleDelete(record.key)} >Archiver</Button></>
-
-    ),
-  },
-];
+import { useState,useRef, useEffect } from "react";
+import { SearchOutlined, FolderOpenOutlined ,ExportOutlined} from '@ant-design/icons';
+import { Button, Input, Space, Table, Typography } from 'antd';
+import Highlighter from 'react-highlight-words';
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import UpdateClientForm from "../../components/Modals/UpdateClientForm";
+import { AddClientForm } from "../../components/Modals/AddClientForm";
 
 const ActifClients = () => {
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [data, setData] = useState([]);
-  const [showAddForm, setShowAddForm] = useState(false); // État pour afficher le formulaire d'ajout
   const navigate = useNavigate();
+  const [searchText, setSearchText] = useState('');
+  const [searchedColumn, setSearchedColumn] = useState('');
+  const searchInput = useRef(null);
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText('');
+  };
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div
+        style={{
+          padding: 8,
+        }}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{
+            marginBottom: 8,
+            display: 'block',
+          }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({
+                closeDropdown: false,
+              });
+              setSearchText(selectedKeys[0]);
+              setSearchedColumn(dataIndex);
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close();
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => (
+      <SearchOutlined
+        style={{
+          color: filtered ? '#1677ff' : undefined,
+        }}
+      />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: (text) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{
+            backgroundColor: '#ffc069',
+            padding: 0,
+          }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ''}
+        />
+      ) : (
+        text
+      ),
+  });
 
-  const handleAddClient = (values) => {
-    axios.post('http://localhost:5551/user/create', values)
-      .then(response => {
-        console.log('Client added successfully:', response.data);
-        setShowAddForm(false); 
-        fetchData(); 
+  const handleDelete = (key) => {
+    console.log("deleted record with key: ", key);
+    axios
+      .put(`http://localhost:5551/user/archiveClient/${key}`)
+      .then((response) => {
+        console.log("Client archived successfully:", response.data);
+        fetchData();
       })
-      .catch(error => {
-        console.error('Error adding client:', error);
+      .catch((error) => {
+        console.error("There was an error archiving the client!", error);
       });
   };
 
   const fetchData = () => {
-    axios.get('http://localhost:5551/user/getAllActif')
-      .then(response => {
-        setData(response.data.map(client => ({
-          key: client.id,
-          username: client.username,
-          email: client.email,
-          phone: client.phone,
-          adresse: client.adresse,
-        })));
+    axios
+      .get("http://localhost:5551/user/getAllActif")
+      .then((response) => {
+        setData(
+          response.data.map((client) => ({
+            key: client.id,
+            username: client.username,
+            email: client.email,
+            phone: client.phone,
+            adresse: client.adresse,
+          }))
+        );
       })
-      .catch(error => {
-        console.error('There was an error fetching the clients!', error);
+      .catch((error) => {
+        console.error("There was an error fetching the clients!", error);
       });
   };
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 1000); 
-
-    return () => clearInterval(interval);
   }, []);
 
-  const onSelectChange = (newSelectedRowKeys) => {
-    console.log('selectedRowKeys changed: ', newSelectedRowKeys);
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
-
-
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: onSelectChange,
-    selections: [
-
-    ],
-  };
 
   const ToListArchive = () => {
-    console.log('Button ToListArchive clicked');
-    navigate('/ArchivedClients');
+    console.log("Button ToListArchive clicked");
+    navigate("/clients/archive");
   };
 
-  return(
-    <div style={{ textAlign: 'center'}}> 
-    <div style={{ fontWeight: 'bold', fontSize: '25px' }}>
-      <h1 >Liste de tous les clients actifs</h1></div>
-      <div style={{ marginBottom: 16, marginTop:20 }}>
-        <Button type="primary" onClick={() => setShowAddForm(true)}>
-          Ajouter client
+  const Export = async () => {
+    console.log("Button Export clicked");
+    try {
+      const response = await fetch(
+        "http://localhost:5551/user/export/csv/actifusers",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "text/csv",
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = "actifusers.csv";
+
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("There was a problem with the fetch operation:", error);
+    }
+  };
+
+  const handleClients = (record) => {
+    const tempClient = data.map((client) => {
+      if (client.key === record.key) {
+        return record;
+      } else {
+        return client;
+      }
+    });
+
+    setData(tempClient);
+  };
+
+  const handleAddClientState = (record) => {
+    setData([ record, ...data,]);
+  };
+
+  const columns = [
+    {
+      title: "Client",
+      dataIndex: "username",
+      ...getColumnSearchProps('username'),
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      ...getColumnSearchProps('email'),
+    },
+    {
+      title: "Téléphone",
+      dataIndex: "phone",
+    },
+    {
+      title: "Adresse",
+      dataIndex: "adresse",
+      ...getColumnSearchProps('adresse'),
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      render: (_, record) => (
+        <Space>
+          <UpdateClientForm record={record} handleState={handleClients} />
+          <Button icon={<FolderOpenOutlined />} size="small" onClick={() => handleDelete(record.key)}>Archiver</Button>
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      
+        <Typography.Title level={2}>Liste de tous les clients actifs</Typography.Title>
+    
+      <Space className="mb-4">
+        <AddClientForm handleState={handleAddClientState} />
+        <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
+          Archive
         </Button>
-        <Button type="dashed" onClick={ToListArchive} style={{ marginLeft: 8 }}>
-          Tous les clients archivés
+        <Button icon={<ExportOutlined />} onClick={Export}>
+          Exporter
         </Button>
-      </div>
-      <Table rowSelection={rowSelection} columns={columns} dataSource={data} />
-      <Modal
-        title="Ajouter un nouveau client"
-        visible={showAddForm}
-        onCancel={() => setShowAddForm(false)}
-        footer={null}
-      >
-        <Form
-          name="addClientForm"
-          onFinish={handleAddClient}
-        >
-          <Form.Item
-            name="username"
-            label="Nom du client"
-            rules={[{ required: true, message: 'Veuillez saisir le nom du client!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[{ required: true, message: 'Veuillez saisir l\'email du client!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            label="Téléphone"
-            rules={[{ required: true, message: 'Veuillez saisir le numéro de téléphone du client!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="adresse"
-            label="Adresse"
-            rules={[{ required: true, message: 'Veuillez saisir l\'adresse du client!' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Ajouter
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
-   
+      </Space>
+      <Table
+      size="small"
+        columns={columns}
+        dataSource={data}
+        pagination={{
+          pageSize: 6,
+        }}
+      />
     </div>
   );
 };

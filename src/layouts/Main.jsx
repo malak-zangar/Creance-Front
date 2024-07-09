@@ -1,22 +1,31 @@
 import React from "react";
 import {
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
+  FileTextOutlined,TeamOutlined,DollarOutlined
 } from "@ant-design/icons";
 import { Layout, Menu, theme } from "antd";
-import { Outlet } from "react-router-dom";
+import { Outlet,Link } from "react-router-dom";
+
+
 const { Header, Content, Sider } = Layout;
+
 const items = [
-  UserOutlined,
-  VideoCameraOutlined,
-  UploadOutlined,
-  UserOutlined,
-].map((icon, index) => ({
-  key: String(index + 1),
-  icon: React.createElement(icon),
-  label: `nav ${index + 1}`,
-}));
+  {
+    key: '1',
+    icon: React.createElement(TeamOutlined),
+    label: <Link to="/clients">Gestion des Clients</Link>,
+  },
+  {
+    key: '2',
+    icon: React.createElement(FileTextOutlined),
+    label: <Link to="/factures">Gestion des Factures</Link>,
+  },
+
+  {
+    key: '3',
+    icon: React.createElement(DollarOutlined),
+    label: <Link to="/encaissements">Gestion des Encaissements</Link>,
+  },
+];
 const Main = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -39,7 +48,7 @@ const Main = () => {
           theme="dark"
           className="h-[100vh]"
           mode="inline"
-          defaultSelectedKeys={["4"]}
+          defaultSelectedKeys={["1"]}
           items={items}
         />
       </Sider>
@@ -53,6 +62,7 @@ const Main = () => {
         <Content
           style={{
             margin: "24px 16px 0",
+            overflowY: "scroll"
           }}
         >
           <div
@@ -61,6 +71,7 @@ const Main = () => {
               minHeight: "95%",
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
+              
             }}
           >
             <Outlet/>

@@ -1,123 +1,226 @@
-import { useState, useEffect } from 'react';
-import { Table, Button } from 'antd';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-
-
-const handleUpdate = (key) => {
-  console.log('Update record with key: ', key);
-  // Ajoutez ici la logique pour mettre à jour la ligne
-};
-
-const handleRestaure = (key) => {
-    console.log('restaure record with key: ', key);
-    axios.put(`http://localhost:5551/user/restaurerClient/${key}`)
-    .then(response => {
-      console.log('Client restaured successfully:', response.data);
-    })
-    .catch(error => {
-      console.error('There was an error restauring the client!', error);
-    });  };
-
-const columns = [
-  {
-    title: 'Client',
-    dataIndex: 'username',
-  },
-  {
-    title: 'Email',
-    dataIndex: 'email',
-  },
-  {
-    title: 'Téléphone',
-    dataIndex: 'phone',
-  },
-  {
-    title: 'Adresse',
-    dataIndex: 'adresse',
-  },
-
-  {
-    title: 'Action',
-    dataIndex: 'action',
-    render: (_, record) => (
-      <><Button onClick={() => handleUpdate(record.key)} style={{ marginRight: 8 }}>Modifier</Button>
-      <Button onClick={() => handleRestaure(record.key)}>Restaurer</Button></>
-
-    ),
-  },
-];
+import { useState, useRef, useEffect } from "react";
+import { Button, Input, Space, Table,Typography } from "antd";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { RetweetOutlined, SearchOutlined,UserOutlined } from "@ant-design/icons";
+import Highlighter from "react-highlight-words";
 
 const ArchivedClients = () => {
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [data, setData] = useState([]);
   const navigate = useNavigate();
 
-    const fetchData = () => {
-      axios.get('http://localhost:5551/user/getAllArchived')
-        .then(response => {
-          setData(response.data.map(client => ({
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
+  const searchInput = useRef(null);
+
+
+  const handleSearch = (selectedKeys, confirm, dataIndex) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+  const handleReset = (clearFilters) => {
+    clearFilters();
+    setSearchText("");
+  };
+  const getColumnSearchProps = (dataIndex) => ({
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
+      <div
+        style={{
+          padding: 8,
+        }}
+        onKeyDown={(e) => e.stopPropagation()}
+      >
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
+          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+          style={{
+            marginBottom: 8,
+            display: "block",
+          }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{
+              width: 90,
+            }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({
+                closeDropdown: false,
+              });
+              setSearchText(selectedKeys[0]);
+              setSearchedColumn(dataIndex);
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close();
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered) => (
+      <SearchOutlined
+        style={{
+          color: filtered ? "#1677ff" : undefined,
+        }}
+      />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: (text) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{
+            backgroundColor: "#ffc069",
+            padding: 0,
+          }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ) : (
+        text
+      ),
+  });
+
+  const handleRestaure = (key) => {
+    console.log("restaure record with key: ", key);
+    axios
+      .put(`http://localhost:5551/user/restaurerClient/${key}`)
+      .then((response) => {
+        console.log("Client restaured successfully:", response.data);
+      })
+      .catch((error) => {
+        console.error("There was an error restauring the client!", error);
+      });
+  };
+
+ 
+  const fetchData = () => {
+    axios
+      .get("http://localhost:5551/user/getAllArchived")
+      .then((response) => {
+        setData(
+          response.data.map((client) => ({
             key: client.id,
             username: client.username,
             email: client.email,
             phone: client.phone,
             adresse: client.adresse,
-          })));
-        })
-        .catch(error => {
-          console.error('There was an error fetching the clients!', error);
-        });
-    };
-  
-    const ToListActif = () => {
-      console.log('Button ToListActif clicked');
-      navigate('/ActifClients');
-    };
-
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the clients!", error);
+      });
+  };
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 1000); 
-
-    return () => clearInterval(interval);
   }, []);
 
-  const onSelectChange = (newSelectedRowKeys) => {
-    console.log('selectedRowKeys changed: ', newSelectedRowKeys);
-    setSelectedRowKeys(newSelectedRowKeys);
+
+  const ToListActif = () => {
+    console.log("Button ToListActif clicked");
+    navigate("/clients/actif");
   };
 
 
-  const rowSelection = {
-    selectedRowKeys,
-    onChange: onSelectChange,
-    selections: [
 
-     /* {
-        key: 'even',
-        text: 'Select Even Row',
-        onSelect: (changeableRowKeys) => {
-          let newSelectedRowKeys = [];
-          newSelectedRowKeys = changeableRowKeys.filter((_, index) => {
-            if (index % 2 !== 0) {
-              return true;
-            }
-            return false;
-          });
-          setSelectedRowKeys(newSelectedRowKeys);
-        },
-      },*/
-    ],
-  };
+  const columns = [
+    {
+      title: "Client",
+      dataIndex: "username",
+      ...getColumnSearchProps("username"),
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      ...getColumnSearchProps("email"),
+    },
+    {
+      title: "Téléphone",
+      dataIndex: "phone",
+    },
+    {
+      title: "Adresse",
+      dataIndex: "adresse",
+      ...getColumnSearchProps("adresse"),
+    },
 
-  return(
-    <div style={{ textAlign: 'center'}}> 
-    <div style={{ fontWeight: 'bold', fontSize: '25px' }}>
-      <h1 >Liste de tous les clients archivés</h1></div>
-      <Button type="default" onClick={ToListActif} style={{ marginBottom: 18, marginTop:18 }}>
-          Tous les clients actifs
+    {
+      title: "Action",
+      dataIndex: "action",
+      render: (_, record) => (
+        <Button
+          icon={<RetweetOutlined />}
+          onClick={() => handleRestaure(record.key)}
+        >
+          Restaurer
         </Button>
-      <Table rowSelection={rowSelection} columns={columns} dataSource={data} />
+      ),
+    },
+  ];
+
+
+  return (
+    <div >
+        <Typography.Title level={2}>Liste de tous les clients archivés</Typography.Title>
+        <Space className="mb-4">
+
+        <Button icon={<UserOutlined />}
+        onClick={ToListActif}
+    size="small"
+      >
+        Clients actifs
+      </Button></Space>
+      <Table       size="small"
+ columns={columns} dataSource={data}  pagination={{
+          pageSize: 6,
+        }} />
     </div>
   );
 };
