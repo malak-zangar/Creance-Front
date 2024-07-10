@@ -1,18 +1,23 @@
-import { useState, useRef, useEffect } from "react";
-import { Button, Input, Space, Table,Typography } from "antd";
+import { useState, useEffect, useRef } from "react";
+import { Table, Button, Typography, Space, Input } from "antd";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { RetweetOutlined, SearchOutlined,UserOutlined } from "@ant-design/icons";
 import Highlighter from "react-highlight-words";
+import { useNavigate } from "react-router-dom";
+import {
+  MoneyCollectOutlined,
+  FolderOpenOutlined,
+  SearchOutlined,
+} from "@ant-design/icons";
+import { AddEncaissementForm } from "../../components/Modals/AddEncaissementForm";
 
-const ArchivedClients = () => {
+const ListeEncaissements = () => {
   const [data, setData] = useState([]);
+
   const navigate = useNavigate();
 
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
-
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -126,105 +131,116 @@ const ArchivedClients = () => {
       ),
   });
 
-  const handleRestaure = (key) => {
-    console.log("restaure record with key: ", key);
-    axios
-      .put(`http://localhost:5551/user/restaurerClient/${key}`)
-      .then((response) => {
-        console.log("Client restaured successfully:", response.data);
-        fetchData();
-
-      })
-      .catch((error) => {
-        console.error("There was an error restauring the client!", error);
-      });
-  };
-
- 
-  const fetchData = () => {
-    axios
-      .get("http://localhost:5551/user/getAllArchived")
-      .then((response) => {
-        setData(
-          response.data.map((client) => ({
-            key: client.id,
-            username: client.username,
-            email: client.email,
-            phone: client.phone,
-            adresse: client.adresse,
-          }))
-        );
-      })
-      .catch((error) => {
-        console.error("There was an error fetching the clients!", error);
-      });
-  };
-
   useEffect(() => {
     fetchData();
   }, []);
 
-
-  const ToListActif = () => {
-    console.log("Button ToListActif clicked");
-    navigate("/clients/actif");
+  const fetchData = () => {
+    axios
+      .get("http://localhost:5551/encaissement/getAll")
+      .then((response) => {
+        setData(
+          response.data.map((encaissement) => ({
+            key: encaissement.id,
+            reference: encaissement.reference,
+            date: new Date(encaissement.date).toLocaleDateString('fr-FR'),
+            modeReglement: encaissement.modeReglement,
+            montantEncaisse: encaissement.montantEncaisse,
+            actif: encaissement.actif,
+            facture_id: encaissement.facture_id,
+            facture: encaissement.facture,
+            client: encaissement.client,
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the Encaissements!", error);
+      });
   };
-
-
 
   const columns = [
     {
-      title: "Client",
-      dataIndex: "username",
-      ...getColumnSearchProps("username"),
+      title: "Référence",
+      dataIndex: "reference",
+      ...getColumnSearchProps("reference"),
     },
     {
-      title: "Email",
-      dataIndex: "email",
-      ...getColumnSearchProps("email"),
+      title: "Facture",
+      dataIndex: "facture",
+      ...getColumnSearchProps("facture"),
     },
     {
-      title: "Téléphone",
-      dataIndex: "phone",
+      title: "Client ",
+      dataIndex: "client",
+      ...getColumnSearchProps("client"),
     },
     {
-      title: "Adresse",
-      dataIndex: "adresse",
-      ...getColumnSearchProps("adresse"),
+      title: "Date",
+      dataIndex: "date",
+      //...getColumnSearchProps("date"),
+      sorter: (a, b) => new Date(a.date) - new Date(b.date),
+
+    },
+    {
+      title: "Mode règlement",
+      dataIndex: "modeReglement",
+      ...getColumnSearchProps("modeReglement"),
+
+    },
+    {
+      title: "Montant encaisse ",
+      dataIndex: "montantEncaisse",
+      //...getColumnSearchProps("montantEncaisse"),
+      sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
+
     },
 
     {
-      title: "Action",
-      dataIndex: "action",
-      render: (_, record) => (
-        <Button
-          icon={<RetweetOutlined />}
-          onClick={() => handleRestaure(record.key)}
-        >
-          Restaurer
-        </Button>
-      ),
+      title: "Actif",
+      dataIndex: "actif",
+      render: (actif) => (actif ? "Oui" : "Non"),
     },
   ];
 
+  const ToListArchive = () => {
+    console.log("Button ToListArchive clicked");
+    navigate("/encaissements/archive");
+  };
+
+  const ToListActif = () => {
+    console.log("Button ToListActif clicked");
+    navigate("/encaissements/actif");
+  };
 
   return (
-    <div >
-        <Typography.Title level={2}>Liste de tous les clients archivés</Typography.Title>
-        <Space className="mb-4">
+    <div>
+      <Typography.Title level={2}>
+        Liste de tous les encaissements{" "}
+      </Typography.Title>
 
-        <Button icon={<UserOutlined />}
-        onClick={ToListActif}
-    size="small"
-      >
-        Clients actifs
-      </Button></Space>
-      <Table       size="small"
- columns={columns} dataSource={data}  pagination={{
+      <Space className="mb-4">
+        <AddEncaissementForm />
+        <Button
+          icon={<MoneyCollectOutlined />}
+          type="default"
+          onClick={ToListActif}
+        >
+          Encaissements actifs
+        </Button>
+        <Button icon={<FolderOpenOutlined />} onClick={ToListArchive}>
+          Archive
+        </Button>
+      </Space>
+      <Table
+        size="small"
+        columns={columns}
+        dataSource={data}
+        pagination={{
           pageSize: 6,
-        }} />
+        }}
+      />
     </div>
   );
 };
 
-export default ArchivedClients;
+export default ListeEncaissements;

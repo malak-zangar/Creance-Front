@@ -69,6 +69,7 @@ const Main = () => {
             style={{
               padding: 24,
               minHeight: "95%",
+              width:"112%",
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
               

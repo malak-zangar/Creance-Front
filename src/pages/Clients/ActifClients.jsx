@@ -1,13 +1,20 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, FolderOpenOutlined ,ExportOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography } from 'antd';
+import { Button, Input, Space, Table, Typography,Select } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UpdateClientForm from "../../components/Modals/UpdateClientForm";
 import { AddClientForm } from "../../components/Modals/AddClientForm";
+import { AddFactureForm } from "../../components/Modals/AddFactureForm";
 
 const ActifClients = () => {
+
+  //const [clientOptions, setClientOptions] = useState([]);
+  let usernames;
+
+  const { Option } = Select;
+
   const [data, setData] = useState([]);
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
@@ -143,6 +150,14 @@ const ActifClients = () => {
             adresse: client.adresse,
           }))
         );
+
+        //setClientOptions(response.data.map((client) => client.username));
+       // console.log("Client options:", response.data.map((client) => client.username));
+       // console.log(clientOptions)
+         usernames = response.data.map((client) => client.username);
+         console.log(usernames)
+
+
       })
       .catch((error) => {
         console.error("There was an error fetching the clients!", error);
@@ -202,6 +217,16 @@ const ActifClients = () => {
     setData(tempClient);
   };
 
+  const getClientId=(username) => {
+    const tempClient = data.map((client) => {
+      if (client.username === username) {
+        return client.key;
+      } 
+    });
+
+    setData(tempClient);
+  }
+
   const handleAddClientState = (record) => {
     setData([ record, ...data,]);
   };
@@ -260,6 +285,9 @@ const ActifClients = () => {
           pageSize: 6,
         }}
       />
+
+      
+
     </div>
   );
 };

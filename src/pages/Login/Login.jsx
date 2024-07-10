@@ -2,7 +2,7 @@ import React from "react";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Checkbox, Form, Input } from "antd";
 import "./loginstyle.css";
-import image from "../assets/Login.png";
+import image from "../../assets/Login.png";
 import { Card } from "antd";
 
 const Login = () => {

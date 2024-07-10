@@ -1,13 +1,13 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FolderOpenOutlined ,ExportOutlined,CheckOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography } from 'antd';
+import { SearchOutlined, FolderOpenOutlined ,ExportOutlined} from '@ant-design/icons';
+import { Button, Input, Space, Table, Typography,Select } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import UpdateFactureForm from "../../components/Modals/UpdateFactureForm";
-import { AddFactureForm } from "../../components/Modals/AddFactureForm";
+import UpdateEncaissementForm from "../../components/Modals/UpdateEncaissementForm";
+import { AddEncaissementForm } from "../../components/Modals/AddEncaissementForm";
 
-const ActifFactures = () => {
+const ActifEncaissements = () => {
 
   const [data, setData] = useState([]);
   const navigate = useNavigate();
@@ -121,43 +121,36 @@ const ActifFactures = () => {
   const handleDelete = (key) => {
     console.log("deleted record with key: ", key);
     axios
-      .put(`http://localhost:5551/facture/archiveFacture/${key}`)
+      .put(`http://localhost:5551/encaissement/archiveEncaissement/${key}`)
       .then((response) => {
-        console.log("Facture archived successfully:", response.data);
+        console.log("Encaissement archived successfully:", response.data);
         fetchData();
       })
       .catch((error) => {
-        console.error("There was an error archiving the Facture!", error);
+        console.error("There was an error archiving the encaissement!", error);
       });
   };
 
   const fetchData = () => {
     axios
-      .get("http://localhost:5551/facture/getAllActif")
+      .get("http://localhost:5551/encaissement/getAllActif")
       .then((response) => {
         setData(
-          response.data.map((facture) => ({
-            key: facture.id,
-            numero: facture.numero,
-            date: new Date(facture.date).toLocaleDateString('fr-FR'),
-            delai: facture.delai,
-            montant: facture.montant,
-            montantEncaisse:facture.montantEncaisse,
-            actionRecouvrement:facture.actionRecouvrement,
-            actif: facture.actif,
-            client_id:facture.client_id,
-            client : facture.client,
-            solde:facture.solde,
-            echeance:new Date (facture.echeance).toLocaleDateString('fr-FR'),
-            retard: facture.retard,
-            statut:facture.statut,
-            dateFinalisation: facture.dateFinalisation ? new Date(facture.dateFinalisation).toLocaleDateString('fr-FR') : null // Format date
-                      }))
+          response.data.map((encaissement) => ({
+            key: encaissement.id,
+            reference: encaissement.reference,
+            date: new Date(encaissement.date).toLocaleDateString('fr-FR'),
+            modeReglement: encaissement.modeReglement,
+            montantEncaisse: encaissement.montantEncaisse,
+            actif: encaissement.actif,
+            facture_id: encaissement.facture_id,
+            facture: encaissement.facture,
+            client: encaissement.client,
+          }))
         );
-
       })
       .catch((error) => {
-        console.error("There was an error fetching the factures!", error);
+        console.error("There was an error fetching the encaissements!", error);
       });
   };
 
@@ -168,32 +161,13 @@ const ActifFactures = () => {
 
   const ToListArchive = () => {
     console.log("Button ToListArchive clicked");
-    navigate("/factures/archive");
-  };
-
-
-
-  const handleFactures = (record) => {
-    const tempFacture = data.map((facture) => {
-      if (facture.key === record.key) {
-        return record;
-      } else {
-        return facture;
-      }
-    });
-
-    setData(tempFacture);
-    fetchData();
-  };
-
-  const handleAddFactureState = (record) => {
-    setData([ record, ...data,]);
+    navigate("/encaissements/archive");
   };
 
   const Report = (key) => {
     console.log("Generating report with key: ", key);
     axios
-      .get(`http://localhost:5551/facture/report/${key}`, {
+      .get(`http://localhost:5551/encaissement/recu/${key}`, {
         responseType: 'blob', 
       })
       .then((response) => {
@@ -215,123 +189,79 @@ const ActifFactures = () => {
       });
   };
 
-  const Payer=(key)=>{
-    axios
-    .put(`http://localhost:5551/facture/marquerpayeFacture/${key}`, {
-      responseType: 'blob', 
-    })
-    .then((response) => {
-      
-      fetchData();
-    })
-    .catch((error) => {
-      console.error("There was an error !", error);
+  const handleEncaissements = (record) => {
+    const tempEncaissement = data.map((encaissement) => {
+      if (encaissement.key === record.key) {
+        return record;
+      } else {
+        return encaissement;
+      }
     });
-  }
+
+    setData(tempEncaissement);
+    fetchData()
+  };
+
+  const handleAddEncaissementState = (record) => {
+    setData([ record, ...data,]);
+  };
 
   const columns = [
     {
-      title: "Numéro",
-      dataIndex: "numero",
-      ...getColumnSearchProps('numero'),
-
+      title: "Référence",
+      dataIndex: "reference",
+      ...getColumnSearchProps("reference"),
+    },
+    {
+      title: "Facture",
+      dataIndex: "facture",
+      ...getColumnSearchProps("facture"),
+    },
+    {
+      title: "Client ",
+      dataIndex: "client",
+      ...getColumnSearchProps("client"),
     },
     {
       title: "Date",
       dataIndex: "date",
-      //...getColumnSearchProps('date'),
+      //...getColumnSearchProps("date"),
       sorter: (a, b) => new Date(a.date) - new Date(b.date),
 
     },
     {
-      title: "Client",
-      dataIndex: "client",
-      ...getColumnSearchProps('client'),
+      title: "Mode règlement",
+      dataIndex: "modeReglement",
+      ...getColumnSearchProps("modeReglement"),
 
-      
     },
     {
-        title: "Montant",
-        dataIndex: "montant",
-        ...getColumnSearchProps('montant'),
-        sorter: (a, b) => a.montant - b.montant,
-  
-      },
-      {
-        title: "Délai",
-        dataIndex: "delai",
-        ...getColumnSearchProps('delai'),
-        sorter: (a, b) => a.delai - b.delai,
+      title: "Montant encaisse ",
+      dataIndex: "montantEncaisse",
+      //...getColumnSearchProps("montantEncaisse"),
+      sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
 
-      },
-      {
-        title: "Montant encaisse",
-        dataIndex: "montantEncaisse",
-        ...getColumnSearchProps('montantEncaisse'),
-        sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
-
-      },
-      {
-        title: "Solde",
-        dataIndex: "solde",
-        ...getColumnSearchProps('solde'),
-        sorter: (a, b) => a.solde - b.solde,
-
-      },
-      {
-        title: "Echéance ",
-        dataIndex: "echeance",
-        //...getColumnSearchProps('echeance'),
-        sorter: (a, b) => new Date(a.echeance) - new Date(b.echeance),
-  
-      },
-      {
-        title: "Retard ",
-        dataIndex: "retard",
-        ...getColumnSearchProps('retard'),
-        sorter: (a, b) => a.retard - b.retard,
-
-      },
-      {
-        title: "Statut ",
-        dataIndex: "statut",
-        ...getColumnSearchProps('statut'),
-  
-      },
-      {
-        title: "Action Recouvrement ",
-        dataIndex: "actionRecouvrement",
-        ...getColumnSearchProps('actionRecouvrement'),
-  
-      },
-      {
-        title: "Date Finalisation ",
-        dataIndex: "dateFinalisation",
-        //...getColumnSearchProps('dateFinalisation'),
-        sorter: (a, b) => new Date(a.dateFinalisation) - new Date(b.dateFinalisation),
-
-      },
-      {
+    },
+    {
         title: "Action",
         dataIndex: "action",
         render: (_, record) => (
           <Space direction="vertical">
-            <UpdateFactureForm record={record} handleState={handleFactures} />
+            <UpdateEncaissementForm record={record} handleState={handleEncaissements} />
             <Button icon={<ExportOutlined />} size="small" onClick={()=>Report(record.key)}>Rapport </Button>
             <Button icon={<FolderOpenOutlined />} size="small" onClick={() => handleDelete(record.key)}>Archiver</Button>
-            <Button icon={<CheckOutlined />} size="small" onClick={()=>Payer(record.key)}> Payée </Button>
-
           </Space>
         ),
       },
   ];
+
   return (
     <div>
       
-        <Typography.Title level={2}>Liste de toutes les factures actives</Typography.Title>
+        <Typography.Title level={2}>Liste de tous les encaissements actifs</Typography.Title>
     
       <Space className="mb-4">
-        <AddFactureForm handleState={handleAddFactureState}  />
+        <AddEncaissementForm handleState={handleAddEncaissementState} />
         <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
           Archive
         </Button>
@@ -342,8 +272,9 @@ const ActifFactures = () => {
         dataSource={data}
         pagination={{
           pageSize: 6,
-        }}
+        }}        
         showSorterTooltip={{ target: 'sorter-icon' }}
+
       />
 
       
@@ -352,4 +283,4 @@ const ActifFactures = () => {
   );
 };
 
-export default ActifFactures;
+export default ActifEncaissements;

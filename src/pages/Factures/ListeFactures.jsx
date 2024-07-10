@@ -132,7 +132,7 @@ function ListeFactures() {
           response.data.map((facture) => ({
             key: facture.id,
             numero: facture.numero,
-            date: facture.date,
+            date: new Date(facture.date).toLocaleDateString('fr-FR'),
             delai: facture.delai,
             montant: facture.montant,
             montantEncaisse:facture.montantEncaisse,
@@ -141,10 +141,10 @@ function ListeFactures() {
             client_id:facture.client_id,
             client : facture.client,
             solde:facture.solde,
-            echeance:facture.echeance,
+            echeance:new Date (facture.echeance).toLocaleDateString('fr-FR'),
             retard: facture.retard,
             statut:facture.statut,
-            dateFinalisation:facture.dateFinalisation
+            dateFinalisation: facture.dateFinalisation ? new Date(facture.dateFinalisation).toLocaleDateString('fr-FR') : null // Format date
           }))
         );
       })
@@ -163,7 +163,8 @@ function ListeFactures() {
     {
       title: "Date",
       dataIndex: "date",
-      ...getColumnSearchProps('date'),
+     // ...getColumnSearchProps('date'),
+      sorter: (a, b) => new Date(a.date) - new Date(b.date),
 
     },
     {
@@ -174,40 +175,47 @@ function ListeFactures() {
       
     },
     {
-        title: "Montant",
-        dataIndex: "montant",
-        ...getColumnSearchProps('montant'),
-  
-      },
-      {
-        title: "Délai",
-        dataIndex: "delai",
-        ...getColumnSearchProps('delai'),
-      },
-      {
-        title: "Montant encaisse",
-        dataIndex: "montantEncaisse",
-        ...getColumnSearchProps('montantEncaisse'),
-  
-      },
-      {
-        title: "Solde",
-        dataIndex: "solde",
-        ...getColumnSearchProps('solde'),
-  
-      },
-      {
-        title: "Echéance ",
-        dataIndex: "echeance",
-        ...getColumnSearchProps('echeance'),
-  
-      },
-      {
-        title: "Retard ",
-        dataIndex: "retard",
-        ...getColumnSearchProps('retard'),
-  
-      },
+      title: "Montant",
+      dataIndex: "montant",
+      ...getColumnSearchProps('montant'),
+      sorter: (a, b) => a.montant - b.montant,
+
+    },
+    {
+      title: "Délai",
+      dataIndex: "delai",
+      ...getColumnSearchProps('delai'),
+      sorter: (a, b) => a.delai - b.delai,
+
+    },
+    {
+      title: "Montant encaisse",
+      dataIndex: "montantEncaisse",
+      ...getColumnSearchProps('montantEncaisse'),
+      sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
+
+    },
+    {
+      title: "Solde",
+      dataIndex: "solde",
+      ...getColumnSearchProps('solde'),
+      sorter: (a, b) => a.solde - b.solde,
+
+    },
+    {
+      title: "Echéance ",
+      dataIndex: "echeance",
+      //...getColumnSearchProps('echeance'),
+      sorter: (a, b) => new Date(a.echeance) - new Date(b.echeance),
+
+    },
+    {
+      title: "Retard ",
+      dataIndex: "retard",
+      ...getColumnSearchProps('retard'),
+      sorter: (a, b) => a.retard - b.retard,
+
+    },
       {
         title: "Statut ",
         dataIndex: "statut",
@@ -223,8 +231,9 @@ function ListeFactures() {
       {
         title: "Date Finalisation ",
         dataIndex: "dateFinalisation",
-        ...getColumnSearchProps('dateFinalisation'),
-  
+        //...getColumnSearchProps('dateFinalisation'),
+        sorter: (a, b) => new Date(a.dateFinalisation) - new Date(b.dateFinalisation),
+
       },
     {
       title: "Actif",
