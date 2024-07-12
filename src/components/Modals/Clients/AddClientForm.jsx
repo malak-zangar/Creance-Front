@@ -9,7 +9,7 @@ export const AddClientForm = ({ handleState }) => {
   const handleAddClient = (values) => {
     console.log(values);
     axios
-      .post("http://localhost:5551/user/create", values)
+      .post("http://localhost:5555/user/create", values)
       .then((response) => {
         console.log("Client added successfully:", response.data);
         setShowAddForm(false);
@@ -34,13 +34,14 @@ export const AddClientForm = ({ handleState }) => {
         onClick={() => setShowAddForm(true)}
         icon={<PlusCircleOutlined />}
       >
-        Ajouter Client
+        Ajouter un Client
       </Button>
       <Modal
         title="Ajouter un nouveau client"
         visible={showAddForm}
         onCancel={() => setShowAddForm(false)}
-        footer={null}
+        footer={null}        style={{ top: 15 }} 
+
       >
         <Form
           layout="vertical"
@@ -53,7 +54,7 @@ export const AddClientForm = ({ handleState }) => {
             label="Nom du client"
             rules={[
               { required: true, message: "Veuillez saisir le nom du client!" },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
@@ -62,7 +63,16 @@ export const AddClientForm = ({ handleState }) => {
             label="Email"
             rules={[
               { required: true, message: "Veuillez saisir l'email du client!" },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="emailcc"
+            label="Email CC"
+            rules={[
+              { required: true, message: "Veuillez saisir l'email cc du client!" },
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
@@ -74,7 +84,19 @@ export const AddClientForm = ({ handleState }) => {
                 required: true,
                 message: "Veuillez saisir le numéro de téléphone du client!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="identifiantFiscal"
+            label="Identifiant fiscal"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez saisir l'identifiant fiscal' du client!",
+              },
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
@@ -86,7 +108,7 @@ export const AddClientForm = ({ handleState }) => {
                 required: true,
                 message: "Veuillez saisir l'adresse du client!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>

@@ -1,7 +1,8 @@
-import { Button, Form, Input, Modal, notification } from "antd";
+import { Button, DatePicker, Form, Input, Modal, notification } from "antd";
 import axios from "axios";
-import { useState,useEffect } from "react";
-import { EditOutlined} from '@ant-design/icons';
+import { useState, useEffect } from "react";
+import { EditOutlined } from "@ant-design/icons";
+import moment from "moment";
 
 function UpdateFactureForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -9,33 +10,31 @@ function UpdateFactureForm({ record, handleState }) {
   const [editForm] = Form.useForm();
 
   const handleUpdate = () => {
-    const formattedDate = new Date(record.date).toISOString().split('T')[0];
-    const formattedEcheance = new Date(record.echeance).toISOString().split('T')[0];
-    editForm.setFieldsValue({ ...record, date: formattedDate, echeance: formattedEcheance });
+    editForm.setFieldsValue({ ...record, date: moment(record.date) });
+
     setIsEditModalVisible(true);
 
-    console.log(record)
+    console.log(record);
   };
 
   const handleEditFacture = (values) => {
-
     const formattedValues = {
       ...values,
-      date: new Date(values.date).toISOString().split('T')[0],
-      echeance: new Date(values.echeance).toISOString().split('T')[0]
+      date: values.date.format("YYYY-MM-DD"),
     };
 
     axios
-      .put(`http://localhost:5551/facture/updateFacture/${record.key}`, formattedValues)
+      .put(
+        `http://localhost:5555/facture/updateFacture/${record.key}`,
+        formattedValues
+      )
       .then((response) => {
-        
         handleState({
-            ...values,
-            key: record.key
+          ...values,
+          key: record.key,
         });
         setIsEditModalVisible(false);
-        notification.success({ message: 'Facture modifiée avec succès' });
-        
+        notification.success({ message: "Facture modifiée avec succès" });
       })
       .catch((error) => {
         notification.error({
@@ -48,16 +47,24 @@ function UpdateFactureForm({ record, handleState }) {
 
   return (
     <>
-      <Button icon={<EditOutlined />} type="primary" size="small" onClick={handleUpdate}>Modifier</Button>
+      <Button
+        icon={<EditOutlined />}
+        type="primary"
+        size="small"
+        onClick={handleUpdate}
+      >
+        Modifier
+      </Button>
 
       <Modal
-        title={"Modifier la facture "+ record?.numero}
+        title={"Modifier la facture " + record?.numero}
         visible={isEditModalVisible}
         onCancel={() => {
           setIsEditModalVisible(false);
           setEditingFacture(null);
         }}
         footer={null}
+        style={{ top: 15 }}
       >
         <Form
           form={editForm}
@@ -70,8 +77,12 @@ function UpdateFactureForm({ record, handleState }) {
             name="numero"
             label="Numéro de facture"
             rules={[
-              { required: true, message: "Veuillez saisir le numéro de la facture!" },
+              {
+                required: true,
+                message: "Veuillez saisir le numéro de la facture!",
+              },
             ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input disabled />
           </Form.Item>
@@ -79,24 +90,40 @@ function UpdateFactureForm({ record, handleState }) {
             name="date"
             label="Date"
             rules={[
-              { required: true, message: "Veuillez saisir la date de la facture!" },
+              {
+                required: true,
+                message: "Veuillez saisir la date de la facture!",
+              },
             ]}
+            style={{ marginBottom: "8px" }}
           >
-            <Input type="Date" />
+            <DatePicker format="YYYY-MM-DD" />
           </Form.Item>
           <Form.Item
-  name="client"
-  label="Client"
-  rules={[
-    {
-      required: true,
-      message: "Veuillez choisir le client!",
-    },
-  ]}
->
-<Input disabled />
- 
-</Form.Item>
+            name="client"
+            label="Client"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+            style={{ marginBottom: "8px" }}
+          >
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="contrat"
+            label="Contrat"
+            rules={[
+              {
+                required: true,
+              },
+            ]}
+            style={{ marginBottom: "8px" }}
+          >
+            <Input disabled />
+          </Form.Item>
 
           <Form.Item
             name="montant"
@@ -107,9 +134,24 @@ function UpdateFactureForm({ record, handleState }) {
                 message: "Veuillez saisir le montant de la facture!",
               },
             ]}
+            style={{ marginBottom: "8px" }}
           >
-            <Input type="number"step="0.001" />
+            <Input type="number" step="0.001" />
           </Form.Item>
+          <Form.Item
+            name="devise"
+            label="Devise"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez saisir la devise de la facture!",
+              },
+            ]}
+            style={{ marginBottom: "8px" }}
+          >
+            <Input />
+          </Form.Item>
+
           <Form.Item
             name="delai"
             label="Délai en jours"
@@ -119,6 +161,7 @@ function UpdateFactureForm({ record, handleState }) {
                 message: "Veuillez saisir le délai de la facture!",
               },
             ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input type="number" />
           </Form.Item>
@@ -131,72 +174,22 @@ function UpdateFactureForm({ record, handleState }) {
                 message: "Veuillez saisir le montant encaisse de la facture!",
               },
             ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input type="number" step="0.001" />
           </Form.Item>
-          <Form.Item
-            name="solde"
-            label="Solde"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir le solde de la facture!",
-              },
-            ]}
-          >
-            <Input type="number" step="0.001" />
-          </Form.Item>
-          <Form.Item
-            name="echeance"
-            label="Echéance"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir la date d'échéance de la facture!",
-              },
-            ]}
-          >
-            <Input disabled />
-          </Form.Item>
-          <Form.Item
-            name="retard"
-            label="Retard"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir le retard de la facture!",
-              },
-            ]}
-          >
-            <Input type="number" />
-          </Form.Item>
-          <Form.Item
-            name="statut"
-            label="Statut"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir le statut de la facture!",
-              },
-            ]}
-          >
-            <Input disabled />
-          </Form.Item>
-          <Form.Item
-            name="dateFinalisation"
-            label="Date Finalisation"
-          >
-            <Input  disabled  />
-          </Form.Item>
+
           <Form.Item
             name="actionRecouvrement"
             label="Action de recouvrement"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir l'action de recouvrement de la facture!",
+                message:
+                  "Veuillez saisir l'action de recouvrement de la facture!",
               },
             ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>

@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, notification, Select } from "antd";
+import { Button, DatePicker, Form, Input, Modal, notification, Select } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { useState, useEffect } from "react";
@@ -14,7 +14,7 @@ export const AddEncaissementForm = ({ handleState }) => {
 
   const fetchFactures = () => {
     axios
-      .get("http://localhost:5551/facture/getAllActif")
+      .get("http://localhost:5555/facture/getAllActif")
       .then((response) => {
         setFactures(
           response.data.map((facture) => ({
@@ -42,7 +42,7 @@ export const AddEncaissementForm = ({ handleState }) => {
       facture_numero: factureId,
     };
     axios
-      .post("http://localhost:5551/encaissement/create", dataToSend)
+      .post("http://localhost:5555/encaissement/create", dataToSend)
       .then((response) => {
         console.log("Encaissement added successfully:", response.data);
         setShowAddForm(false);
@@ -67,13 +67,13 @@ export const AddEncaissementForm = ({ handleState }) => {
         onClick={() => setShowAddForm(true)}
         icon={<PlusCircleOutlined />}
       >
-        Ajouter Encaissement
+        Ajouter un Encaissement
       </Button>
       <Modal
         title="Ajouter un nouveau encaissement"
         visible={showAddForm}
         onCancel={() => setShowAddForm(false)}
-        footer={null}
+        footer={null}   style={{ top: 15 }} 
       >
         <Form
           layout="vertical"
@@ -89,7 +89,7 @@ export const AddEncaissementForm = ({ handleState }) => {
                 required: true,
                 message: "Veuillez saisir la référence de l'encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
@@ -102,7 +102,7 @@ export const AddEncaissementForm = ({ handleState }) => {
                 message:
                   "Veuillez choisir la facture correspondante à cet encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Select>
               {factures.map((facture) => (
@@ -121,10 +121,10 @@ export const AddEncaissementForm = ({ handleState }) => {
                 required: true,
                 message: "Veuillez saisir la date de l'encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
-            <Input type="date" />
-          </Form.Item>
+            <DatePicker style={{ width: "100%" }} />
+            </Form.Item>
 
           <Form.Item
             name="modeReglement"
@@ -135,7 +135,7 @@ export const AddEncaissementForm = ({ handleState }) => {
                 message:
                   "Veuillez saisir le mode de reglement de l'encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
@@ -148,7 +148,7 @@ export const AddEncaissementForm = ({ handleState }) => {
                 message:
                   "Veuillez saisir le montant encaisse de l'encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input type="number" step="0.001" />
           </Form.Item>

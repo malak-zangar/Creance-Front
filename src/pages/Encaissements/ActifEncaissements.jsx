@@ -4,8 +4,8 @@ import { Button, Input, Space, Table, Typography,Select } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import UpdateEncaissementForm from "../../components/Modals/UpdateEncaissementForm";
-import { AddEncaissementForm } from "../../components/Modals/AddEncaissementForm";
+import UpdateEncaissementForm from "../../components/Modals/Encaissements/UpdateEncaissementForm";
+import { AddEncaissementForm } from "../../components/Modals/Encaissements/AddEncaissementForm";
 
 const ActifEncaissements = () => {
 
@@ -121,7 +121,7 @@ const ActifEncaissements = () => {
   const handleDelete = (key) => {
     console.log("deleted record with key: ", key);
     axios
-      .put(`http://localhost:5551/encaissement/archiveEncaissement/${key}`)
+      .put(`http://localhost:5555/encaissement/archiveEncaissement/${key}`)
       .then((response) => {
         console.log("Encaissement archived successfully:", response.data);
         fetchData();
@@ -133,7 +133,7 @@ const ActifEncaissements = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:5551/encaissement/getAllActif")
+      .get("http://localhost:5555/encaissement/getAllActif")
       .then((response) => {
         setData(
           response.data.map((encaissement) => ({
@@ -167,7 +167,7 @@ const ActifEncaissements = () => {
   const Report = (key) => {
     console.log("Generating report with key: ", key);
     axios
-      .get(`http://localhost:5551/encaissement/recu/${key}`, {
+      .get(`http://localhost:5555/encaissement/recu/${key}`, {
         responseType: 'blob', 
       })
       .then((response) => {

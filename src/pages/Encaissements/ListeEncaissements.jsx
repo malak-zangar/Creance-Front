@@ -8,7 +8,7 @@ import {
   FolderOpenOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import { AddEncaissementForm } from "../../components/Modals/AddEncaissementForm";
+import { AddEncaissementForm } from "../../components/Modals/Encaissements/AddEncaissementForm";
 
 const ListeEncaissements = () => {
   const [data, setData] = useState([]);
@@ -137,7 +137,7 @@ const ListeEncaissements = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:5551/encaissement/getAll")
+      .get("http://localhost:5555/encaissement/getAll")
       .then((response) => {
         setData(
           response.data.map((encaissement) => ({

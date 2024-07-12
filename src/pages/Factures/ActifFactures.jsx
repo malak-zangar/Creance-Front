@@ -4,8 +4,10 @@ import { Button, Input, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import UpdateFactureForm from "../../components/Modals/UpdateFactureForm";
-import { AddFactureForm } from "../../components/Modals/AddFactureForm";
+import UpdateFactureForm from "../../components/Modals/Factures/UpdateFactureForm";
+import { AddFactureForm } from "../../components/Modals/Factures/AddFactureForm";
+import moment from "moment";
+import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
 
 const ActifFactures = () => {
 
@@ -118,22 +120,9 @@ const ActifFactures = () => {
       ),
   });
 
-  const handleDelete = (key) => {
-    console.log("deleted record with key: ", key);
-    axios
-      .put(`http://localhost:5551/facture/archiveFacture/${key}`)
-      .then((response) => {
-        console.log("Facture archived successfully:", response.data);
-        fetchData();
-      })
-      .catch((error) => {
-        console.error("There was an error archiving the Facture!", error);
-      });
-  };
-
   const fetchData = () => {
     axios
-      .get("http://localhost:5551/facture/getAllActif")
+      .get("http://localhost:5555/facture/getAllActif")
       .then((response) => {
         setData(
           response.data.map((facture) => ({
@@ -148,6 +137,7 @@ const ActifFactures = () => {
             client_id:facture.client_id,
             client : facture.client,
             solde:facture.solde,
+            devise:facture.devise,
             echeance:new Date (facture.echeance).toLocaleDateString('fr-FR'),
             retard: facture.retard,
             statut:facture.statut,
@@ -193,7 +183,7 @@ const ActifFactures = () => {
   const Report = (key) => {
     console.log("Generating report with key: ", key);
     axios
-      .get(`http://localhost:5551/facture/report/${key}`, {
+      .get(`http://localhost:5555/facture/report/${key}`, {
         responseType: 'blob', 
       })
       .then((response) => {
@@ -217,7 +207,7 @@ const ActifFactures = () => {
 
   const Payer=(key)=>{
     axios
-    .put(`http://localhost:5551/facture/marquerpayeFacture/${key}`, {
+    .put(`http://localhost:5555/facture/marquerpayeFacture/${key}`, {
       responseType: 'blob', 
     })
     .then((response) => {
@@ -231,6 +221,12 @@ const ActifFactures = () => {
 
   const columns = [
     {
+      title: "ID",
+      dataIndex: "key",
+      ...getColumnSearchProps('key'),
+
+    },
+    {
       title: "Numéro",
       dataIndex: "numero",
       ...getColumnSearchProps('numero'),
@@ -240,6 +236,8 @@ const ActifFactures = () => {
       title: "Date",
       dataIndex: "date",
       //...getColumnSearchProps('date'),
+      render: (text) => moment(text).format('DD/MM/YYYY'),
+
       sorter: (a, b) => new Date(a.date) - new Date(b.date),
 
     },
@@ -257,69 +255,67 @@ const ActifFactures = () => {
         sorter: (a, b) => a.montant - b.montant,
   
       },
-      {
-        title: "Délai",
-        dataIndex: "delai",
-        ...getColumnSearchProps('delai'),
-        sorter: (a, b) => a.delai - b.delai,
 
-      },
       {
-        title: "Montant encaisse",
-        dataIndex: "montantEncaisse",
-        ...getColumnSearchProps('montantEncaisse'),
-        sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
-
-      },
-      {
-        title: "Solde",
-        dataIndex: "solde",
-        ...getColumnSearchProps('solde'),
-        sorter: (a, b) => a.solde - b.solde,
-
-      },
-      {
-        title: "Echéance ",
-        dataIndex: "echeance",
-        //...getColumnSearchProps('echeance'),
-        sorter: (a, b) => new Date(a.echeance) - new Date(b.echeance),
-  
-      },
-      {
-        title: "Retard ",
-        dataIndex: "retard",
-        ...getColumnSearchProps('retard'),
-        sorter: (a, b) => a.retard - b.retard,
-
-      },
-      {
-        title: "Statut ",
+        title: "Statut",
         dataIndex: "statut",
-        ...getColumnSearchProps('statut'),
-  
-      },
-      {
-        title: "Action Recouvrement ",
-        dataIndex: "actionRecouvrement",
-        ...getColumnSearchProps('actionRecouvrement'),
-  
-      },
-      {
-        title: "Date Finalisation ",
-        dataIndex: "dateFinalisation",
-        //...getColumnSearchProps('dateFinalisation'),
-        sorter: (a, b) => new Date(a.dateFinalisation) - new Date(b.dateFinalisation),
+        filters: [
+            { text: 'Échue', value: 'Échue' },
+            { text: 'Payée', value: 'Payée' },
+            { text: 'Non payée', value: 'Non payée' },
+            { text: 'En cours', value: 'En cours' },
+        ],
+        onFilter: (value, record) => record.statut === value,
+        render: (statut) => {
+            // Fonction pour déterminer la couleur en fonction du statut
+            const getColor = (statut) => {
+                switch (statut) {
+                    case 'Échue':
+                        return 'red';
+                    case 'Payée':
+                        return 'green';
+                    case 'Non payée':
+                        return 'orange';
+                    case 'En cours':
+                        return 'gray';
+    
+                }
+            };
+    
+            // Couleur correspondant au statut
+            const color = getColor(statut);
+    
+            return (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div
+                        style={{
+                            padding: '0px 2px',
+                            borderRadius: '4px',
+                            backgroundColor: color,
+                            color: 'white',
+                            fontWeight: 'bold',
+                            textAlign: 'center'
+                        }}
+                    >
+                        {statut}
+                    </div>
+                </div>
+            );
+        },
+    }
+,    
 
-      },
       {
         title: "Action",
         dataIndex: "action",
         render: (_, record) => (
-          <Space direction="vertical">
+          <Space >
             <UpdateFactureForm record={record} handleState={handleFactures} />
+            <Button icon={<CheckOutlined />} size="small" onClick={()=>Payer(record.key)}> Payer </Button>
+
             <Button icon={<ExportOutlined />} size="small" onClick={()=>Report(record.key)}>Rapport </Button>
-            <Button icon={<FolderOpenOutlined />} size="small" onClick={() => handleDelete(record.key)}>Archiver</Button>
-            <Button icon={<CheckOutlined />} size="small" onClick={()=>Payer(record.key)}> Payée </Button>
+            <DetailsFactureForm record={record} />
+
 
           </Space>
         ),
@@ -328,12 +324,12 @@ const ActifFactures = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Liste de toutes les factures actives</Typography.Title>
+        <Typography.Title level={2}>Les factures validées</Typography.Title>
     
       <Space className="mb-4">
         <AddFactureForm handleState={handleAddFactureState}  />
         <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
-          Archive
+          Les factures non validées
         </Button>
       </Space>
       <Table

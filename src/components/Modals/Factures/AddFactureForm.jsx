@@ -1,22 +1,19 @@
-import { Button, Form, Input, Modal, notification,Select } from "antd";
+import { Button, DatePicker, Form, Input, Modal, notification, Select } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 
-
-export const AddFactureForm= ({ handleState }) => {
-
+export const AddFactureForm = ({ handleState }) => {
   const { Option } = Select;
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm] = Form.useForm();
   const [clients, setClients] = useState([]);
-
+  const [contrats, setContrats] = useState([]);
 
   const fetchClients = () => {
     axios
-      .get("http://localhost:5551/user/getAllActif")
+      .get("http://localhost:5555/user/getAllActif")
       .then((response) => {
-        console.log(response)
         setClients(
           response.data.map((client) => ({
             id: client.id,
@@ -29,22 +26,56 @@ export const AddFactureForm= ({ handleState }) => {
       });
   };
 
+  const fetchContrats = (clientId) => {
+    console.log(clientId)
+    axios
+      .get(`http://localhost:5555/contrat/getByClient/${clientId}`)
+      .then((response) => {
+        if (response.data.contracts) {
+          console.log(response)
+          setContrats([response.data.contracts]);
+          console.log(contrats)
+        } else {
+          console.log(response)
+
+          setContrats([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching contrats:", error);
+      });
+  };
+
   useEffect(() => {
     fetchClients();
   }, []);
 
+  const handleClientChange = (value) => {
+    if (value) {
+      console.log(value)
+      console.log(contrats)
+
+      fetchContrats(value);
+      console.log(contrats)
+
+    } else {
+      console.log(contrats)
+
+      setContrats([]);
+    }
+  };
+
   const handleAddFacture = (values) => {
-    console.log(values);
- 
     const clientId = values.client;
 
     const dataToSend = {
       ...values,
       client_id: clientId,
+      date: values.date.format('YYYY-MM-DD'),
     };
 
     axios
-      .post("http://localhost:5551/facture/create", dataToSend)
+      .post("http://localhost:5555/facture/create", dataToSend)
       .then((response) => {
         console.log("Facture added successfully:", response.data);
         setShowAddForm(false);
@@ -70,13 +101,14 @@ export const AddFactureForm= ({ handleState }) => {
         onClick={() => setShowAddForm(true)}
         icon={<PlusCircleOutlined />}
       >
-        Ajouter Facture
+        Ajouter une Facture
       </Button>
       <Modal
         title="Ajouter une nouvelle facture"
         visible={showAddForm}
         onCancel={() => setShowAddForm(false)}
         footer={null}
+        style={{ top: 15 }}
       >
         <Form
           layout="vertical"
@@ -90,6 +122,7 @@ export const AddFactureForm= ({ handleState }) => {
             rules={[
               { required: true, message: "Veuillez saisir le numéro de la facture!" },
             ]}
+            style={{ marginBottom: '8px' }}
           >
             <Input />
           </Form.Item>
@@ -99,33 +132,55 @@ export const AddFactureForm= ({ handleState }) => {
             rules={[
               { required: true, message: "Veuillez saisir la date de la facture!" },
             ]}
+            style={{ marginBottom: '8px' }}
           >
-            <Input type="Date" />
+            <DatePicker style={{ width: "100%" }} />
           </Form.Item>
           <Form.Item
-  name="client"
-  label="Client"
-  rules={[
-    {
-      required: true,
-      message: "Veuillez choisir le client!",
-    },
-  ]}
->
- 
-    <Select
-      placeholder="Sélectionner un client"
-      allowClear
-    >
-      {clients.map((client) => (
+            name="client"
+            label="Client"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez choisir le client!",
+              },
+            ]}
+            style={{ marginBottom: '8px' }}
+          >
+            <Select
+              placeholder="Sélectionner un client"
+              allowClear
+              onChange={handleClientChange}
+            >
+              {clients.map((client) => (
                 <Option key={client.id} value={client.id}>
                   {client.username}
                 </Option>
               ))}
-    </Select>
- 
-</Form.Item>
+            </Select>
+          </Form.Item>
+          {contrats.length > 0 && (
+            <Form.Item
+              name="contrat"
+              label="Contrat"
+              rules={[
+                {
+                  required: true,
+                  message: "Veuillez choisir le contrat!",
+                },
+              ]}
+              style={{ marginBottom: '8px' }}
+            >
+             <Select placeholder="Sélectionner un contrat" allowClear>
+  {contrats.flat().map((contrat) => ( // Utilisation de flat() pour déplier le tableau imbriqué
+    <Option key={contrat.id} value={contrat.id}>
+      {contrat.reference}
+    </Option>
+  ))}
+</Select>
 
+            </Form.Item>
+          )}
           <Form.Item
             name="montant"
             label="Montant"
@@ -135,8 +190,22 @@ export const AddFactureForm= ({ handleState }) => {
                 message: "Veuillez saisir le montant de la facture!",
               },
             ]}
+            style={{ marginBottom: '8px' }}
           >
-            <Input type="number"step="0.001" />
+            <Input type="number" step="0.001" />
+          </Form.Item>
+          <Form.Item
+            name="devise"
+            label="Devise"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez saisir la devise de la facture!",
+              },
+            ]}
+            style={{ marginBottom: '8px' }}
+          >
+            <Input />
           </Form.Item>
           <Form.Item
             name="delai"
@@ -147,6 +216,7 @@ export const AddFactureForm= ({ handleState }) => {
                 message: "Veuillez saisir le délai de la facture!",
               },
             ]}
+            style={{ marginBottom: '8px' }}
           >
             <Input type="number" />
           </Form.Item>
@@ -159,6 +229,7 @@ export const AddFactureForm= ({ handleState }) => {
                 message: "Veuillez saisir le montant encaisse de la facture!",
               },
             ]}
+            style={{ marginBottom: '8px' }}
           >
             <Input type="number" step="0.001" />
           </Form.Item>
@@ -171,6 +242,7 @@ export const AddFactureForm= ({ handleState }) => {
                 message: "Veuillez saisir l'action de recouvrement de la facture!",
               },
             ]}
+            style={{ marginBottom: '8px' }}
           >
             <Input />
           </Form.Item>

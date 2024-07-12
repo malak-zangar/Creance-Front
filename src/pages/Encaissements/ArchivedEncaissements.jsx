@@ -133,7 +133,7 @@ const ArchivedEncaissements = () => {
   const handleRestaure = (key) => {
     console.log("restaure record with key: ", key);
     axios
-      .put(`http://localhost:5551/encaissement/restaurerEncaissement/${key}`)
+      .put(`http://localhost:5555/encaissement/activerEncaissement/${key}`)
       .then((response) => {
         console.log("Encaissement restaured successfully:", response.data);
         fetchData();
@@ -147,7 +147,7 @@ const ArchivedEncaissements = () => {
   const Report = (key) => {
     console.log("Generating report with key: ", key);
     axios
-      .get(`http://localhost:5551/encaissement/recu/${key}`, {
+      .get(`http://localhost:5555/encaissement/recu/${key}`, {
         responseType: "blob",
       })
       .then((response) => {
@@ -172,7 +172,7 @@ const ArchivedEncaissements = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:5551/encaissement/getAllArchived")
+      .get("http://localhost:5555/encaissement/getAllArchived")
       .then((response) => {
         setData(
           response.data.map((encaissement) => ({
@@ -248,7 +248,7 @@ const ArchivedEncaissements = () => {
               size="small"
               onClick={() => handleRestaure(record.key)}
             >
-              Restaurer
+              activer
             </Button>
             <Button
               icon={<ExportOutlined />}

@@ -1,19 +1,15 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FolderOpenOutlined ,ExportOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography,Select } from 'antd';
+import { SearchOutlined, DownloadOutlined } from '@ant-design/icons';
+import { Button, Input, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import UpdateClientForm from "../../components/Modals/Clients/UpdateClientForm";
-import { AddClientForm } from "../../components/Modals/Clients/AddClientForm";
-import  DetailsClientForm  from "../../components/Modals/Clients/DetailsClientForm";
+import UpdateContratForm from "../../components/Modals/Contrats/UpdateContratForm";
+import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
+import { AddContratForm } from "../../components/Modals/Contrats/AddContratForm";
+import moment from "moment";
 
-const ActifClients = () => {
-
-  //const [clientOptions, setClientOptions] = useState([]);
-  let usernames;
-
-  const { Option } = Select;
+const AllContracts = () => {
 
   const [data, setData] = useState([]);
   const navigate = useNavigate();
@@ -124,114 +120,78 @@ const ActifClients = () => {
       ),
   });
 
-  const handleDelete = (key) => {
-    console.log("deleted record with key: ", key);
-    axios
-      .put(`http://localhost:5555/user/archiveClient/${key}`)
-      .then((response) => {
-        console.log("Client archived successfully:", response.data);
-        fetchData();
-      })
-      .catch((error) => {
-        console.error("There was an error archiving the client!", error);
-      });
-  };
 
   const fetchData = () => {
     axios
-      .get("http://localhost:5555/user/getAllActif")
+      .get("http://localhost:5555/contrat/getAll")
       .then((response) => {
         setData(
-          response.data.map((client) => ({
-            key: client.id,
-            username: client.username,
-            email: client.email,
-            emailcc :client.emailcc,
-            phone: client.phone,
-            adresse: client.adresse,
-            identifiantFiscal : client.identifiantFiscal,
-
+          response.data.map((contrat) => ({
+            key: contrat.id,
+            reference: contrat.reference,
+            dateDebut: moment(contrat.dateDebut).format('YYYY-MM-DD'),
+            dateFin: moment(contrat.dateFin).format('YYYY-MM-DD'),
+            delai: contrat.delai,
+            conditionsFinancieres: contrat.conditionsFinancieres,
+            prochaineAction: contrat.prochaineAction,
+            client_id: contrat.client_id,
+            client: contrat.client,
+            dateProchaineAction: moment(contrat.dateProchaineAction).format('YYYY-MM-DD'),
+            dateRappel: moment(contrat.dateRappel).format('YYYY-MM-DD'),
           }))
         );
-
-        //setClientOptions(response.data.map((client) => client.username));
-       // console.log("Client options:", response.data.map((client) => client.username));
-       // console.log(clientOptions)
-         usernames = response.data.map((client) => client.username);
-         console.log(usernames)
-
-
       })
       .catch((error) => {
-        console.error("There was an error fetching the clients!", error);
+        console.error("There was an error fetching the contracts!", error);
       });
   };
+  
 
   useEffect(() => {
     fetchData();
   }, []);
 
 
-  const ToListArchive = () => {
-    console.log("Button ToListArchive clicked");
-    navigate("/clients/archive");
-  };
-
-  const Export = async () => {
-    console.log("Button Export clicked");
-    try {
-      const response = await fetch(
-        "http://localhost:5555/user/export/csv/actifusers",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "text/csv",
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = "actifusers.csv";
-
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
-    }
-  };
-
-  const handleClients = (record) => {
-    const tempClient = data.map((client) => {
-      if (client.key === record.key) {
+  const handleContracts = (record) => {
+   /* const tempContrat = data.map((contrat) => {
+      if (contrat.key === record.key) {
         return record;
       } else {
-        return client;
+        return contrat;
       }
     });
 
-    setData(tempClient);
+    setData(tempContrat);*/
+    fetchData();
   };
 
-  const getClientId=(username) => {
-    const tempClient = data.map((client) => {
-      if (client.username === username) {
-        return client.key;
-      } 
-    });
-
-    setData(tempClient);
-  }
-
-  const handleAddClientState = (record) => {
+  const handleAddContractState = (record) => {
     setData([ record, ...data,]);
+  };
+
+  const Report = (key) => {
+    console.log("Generating contract with key: ", key);
+    axios
+      .get(`http://localhost:5555/contrat/report/${key}`, {
+        responseType: 'blob', 
+      })
+      .then((response) => {
+        console.log("Contract generated successfully:", response.data);
+  
+        
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `contrat_${key}.pdf`); 
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        fetchData();
+      })
+      .catch((error) => {
+        console.error("There was an error generating the contract!", error);
+      });
   };
 
   const columns = [
@@ -241,46 +201,41 @@ const ActifClients = () => {
       ...getColumnSearchProps('key'),
     },
     {
+      title: "Référence",
+      dataIndex: "reference",
+      ...getColumnSearchProps('reference'),
+    },
+    {
+      title: "Date début",
+      dataIndex: "dateDebut",
+      render: (text) => moment(text).format('DD/MM/YYYY'),
+      sorter: (a, b) => new Date(a.dateDebut) - new Date(b.dateDebut),
+    },
+    {
       title: "Client",
-      dataIndex: "username",
-      ...getColumnSearchProps('username'),
+      dataIndex: "client",
+      ...getColumnSearchProps('client'),
     },
-    {
-      title: "Email destinataire",
-      dataIndex: "email",
-      ...getColumnSearchProps('email'),
-    },
-    {
-      title: "Téléphone",
-      dataIndex: "phone",
-    },
- 
     {
       title: "Action",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
-          <UpdateClientForm record={record} handleState={handleClients} />
-          <DetailsClientForm record={record} />
-          <Button icon={<FolderOpenOutlined />} size="small" onClick={() => handleDelete(record.key)}>Archiver</Button>
+          <UpdateContratForm record={record} handleState={handleContracts} />
+          <Button icon={<DownloadOutlined />} size="small" onClick={() => Report(record.key)}>Télécharger</Button>
+          <DetailsContratForm record={record} />
         </Space>
       ),
     },
   ];
-
+  
   return (
     <div>
       
-        <Typography.Title level={2}>Tous les clients actifs</Typography.Title>
+        <Typography.Title level={2}>Tous les Contrats</Typography.Title>
     
       <Space className="mb-4">
-        <AddClientForm handleState={handleAddClientState} />
-        <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
-          Archive
-        </Button>
-        <Button icon={<ExportOutlined />} onClick={Export}>
-          Exporter
-        </Button>
+        <AddContratForm handleState={handleAddContractState}  />
       </Space>
       <Table
       size="small"
@@ -289,6 +244,7 @@ const ActifClients = () => {
         pagination={{
           pageSize: 6,
         }}
+        showSorterTooltip={{ target: 'sorter-icon' }}
       />
 
       
@@ -297,4 +253,4 @@ const ActifClients = () => {
   );
 };
 
-export default ActifClients;
+export default AllContracts;

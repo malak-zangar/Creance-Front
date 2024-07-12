@@ -4,7 +4,7 @@ import { Button, Input, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { AddFactureForm } from "../../components/Modals/AddFactureForm";
+import { AddFactureForm } from "../../components/Modals/Factures/AddFactureForm";
 
 
 function ListeFactures() {
@@ -126,7 +126,7 @@ function ListeFactures() {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:5551/facture/getAll")
+      .get("http://localhost:5555/facture/getAll")
       .then((response) => {
         setData(
           response.data.map((facture) => ({
@@ -141,6 +141,7 @@ function ListeFactures() {
             client_id:facture.client_id,
             client : facture.client,
             solde:facture.solde,
+            devise:facture.devise,
             echeance:new Date (facture.echeance).toLocaleDateString('fr-FR'),
             retard: facture.retard,
             statut:facture.statut,
@@ -252,17 +253,73 @@ function ListeFactures() {
     navigate("/factures/actif");
   };
 
+  const handleFactures = (record) => {
+    const tempFacture = data.map((facture) => {
+      if (facture.key === record.key) {
+        return record;
+      } else {
+        return facture;
+      }
+    });
+
+    setData(tempFacture);
+    fetchData();
+  };
+
+  const handleAddFactureState = (record) => {
+    setData([ record, ...data,]);
+  };
+
+  const Report = (key) => {
+    console.log("Generating report with key: ", key);
+    axios
+      .get(`http://localhost:5555/facture/report/${key}`, {
+        responseType: 'blob', 
+      })
+      .then((response) => {
+        console.log("Report generated successfully:", response.data);
+  
+        
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `report_${key}.pdf`); 
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        fetchData();
+      })
+      .catch((error) => {
+        console.error("There was an error generating the report!", error);
+      });
+  };
+  const Payer=(key)=>{
+    axios
+    .put(`http://localhost:5555/facture/marquerpayeFacture/${key}`, {
+      responseType: 'blob', 
+    })
+    .then((response) => {
+      
+      fetchData();
+    })
+    .catch((error) => {
+      console.error("There was an error !", error);
+    });
+  }
+
   return (
     <div>
-      <Typography.Title level={2}>Liste de toutes les factures  </Typography.Title>
+      <Typography.Title level={2}>Toutes les factures  </Typography.Title>
 
       <Space className="mb-4">
         <AddFactureForm />
         <Button icon={<FileDoneOutlined />} type="default" onClick={ToListActif}>
-          Factures actives
+          Factures validées
         </Button>
         <Button icon={<FolderOpenOutlined />} onClick={ToListArchive}>
-          Archive
+        Factures non validées
+
         </Button>
       </Space>
       <Table

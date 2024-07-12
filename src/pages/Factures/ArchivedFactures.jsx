@@ -4,6 +4,8 @@ import { Button, Input, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
+import moment from "moment";
 
 const ArchivedFactures = () => {
 
@@ -119,7 +121,7 @@ const ArchivedFactures = () => {
   const handleRestaure = (key) => {
     console.log("deleted record with key: ", key);
     axios
-      .put(`http://localhost:5551/facture/restaureFacture/${key}`)
+      .put(`http://localhost:5555/facture/restaureFacture/${key}`)
       .then((response) => {
         console.log("Facture restaured successfully:", response.data);
         fetchData();
@@ -131,7 +133,7 @@ const ArchivedFactures = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:5551/facture/getAllArchived")
+      .get("http://localhost:5555/facture/getAllArchived")
       .then((response) => {
         setData(
           response.data.map((facture) => ({
@@ -172,7 +174,7 @@ const ArchivedFactures = () => {
   const Report = (key) => {
     console.log("Generating report with key: ", key);
     axios
-      .get(`http://localhost:5551/facture/report/${key}`, {
+      .get(`http://localhost:5555/facture/report/${key}`, {
         responseType: 'blob', 
       })
       .then((response) => {
@@ -197,6 +199,12 @@ const ArchivedFactures = () => {
 
   const columns = [
     {
+      title: "ID",
+      dataIndex: "key",
+      ...getColumnSearchProps('key'),
+
+    },
+    {
       title: "Numéro",
       dataIndex: "numero",
       ...getColumnSearchProps('numero'),
@@ -205,7 +213,9 @@ const ArchivedFactures = () => {
     {
       title: "Date",
       dataIndex: "date",
-     // ...getColumnSearchProps('date'),
+      //...getColumnSearchProps('date'),
+      render: (text) => moment(text).format('DD/MM/YYYY'),
+
       sorter: (a, b) => new Date(a.date) - new Date(b.date),
 
     },
@@ -217,74 +227,23 @@ const ArchivedFactures = () => {
       
     },
     {
-      title: "Montant",
-      dataIndex: "montant",
-      ...getColumnSearchProps('montant'),
-      sorter: (a, b) => a.montant - b.montant,
-
-    },
-    {
-      title: "Délai",
-      dataIndex: "delai",
-      ...getColumnSearchProps('delai'),
-      sorter: (a, b) => a.delai - b.delai,
-
-    },
-    {
-      title: "Montant encaisse",
-      dataIndex: "montantEncaisse",
-      ...getColumnSearchProps('montantEncaisse'),
-      sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
-
-    },
-    {
-      title: "Solde",
-      dataIndex: "solde",
-      ...getColumnSearchProps('solde'),
-      sorter: (a, b) => a.solde - b.solde,
-
-    },
-    {
-      title: "Echéance ",
-      dataIndex: "echeance",
-      //...getColumnSearchProps('echeance'),
-      sorter: (a, b) => new Date(a.echeance) - new Date(b.echeance),
-
-    },
-    {
-      title: "Retard ",
-      dataIndex: "retard",
-      ...getColumnSearchProps('retard'),
-      sorter: (a, b) => a.retard - b.retard,
-
-    },
-      {
-        title: "Statut ",
-        dataIndex: "statut",
-        ...getColumnSearchProps('statut'),
+        title: "Montant",
+        dataIndex: "montant",
+        ...getColumnSearchProps('montant'),
+        sorter: (a, b) => a.montant - b.montant,
   
       },
-      {
-        title: "Action Recouvrement ",
-        dataIndex: "actionRecouvrement",
-        ...getColumnSearchProps('actionRecouvrement'),
-  
-      },
-      {
-        title: "Date Finalisation ",
-        dataIndex: "dateFinalisation",
-        //...getColumnSearchProps('dateFinalisation'),
-        sorter: (a, b) => new Date(a.dateFinalisation) - new Date(b.dateFinalisation),
 
-      },
       {
         title: "Action",
         dataIndex: "action",
         render: (_, record) => (
-          <Space direction="vertical">
-            <Button icon={<RetweetOutlined />} size="small" onClick={() => handleRestaure(record.key)}>Restaurer</Button>
+          <Space >
+            <Button icon={<RetweetOutlined />} size="small" onClick={() => handleRestaure(record.key)}>activer</Button>
             <Button icon={<ExportOutlined />} size="small" onClick={()=>Report(record.key)}>Rapport </Button>
-          </Space>
+     
+            <DetailsFactureForm record={record} />
+            </Space>
         ),
       },
   ];
@@ -293,11 +252,11 @@ const ArchivedFactures = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Liste de toutes les factures archivées</Typography.Title>
+        <Typography.Title level={2}>Les factures en attente de validation</Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToListActif} icon={<FileDoneOutlined />}>
-          Factures actives
+          Factures validées
         </Button>
   
       </Space>

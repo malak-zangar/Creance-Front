@@ -12,16 +12,21 @@ import ActifFactures from "./pages/Factures/ActifFactures";
 import ListeEncaissements from "./pages/Encaissements/ListeEncaissements";
 import ArchivedEncaissements from "./pages/Encaissements/ArchivedEncaissements";
 import ActifEncaissements from "./pages/Encaissements/ActifEncaissements";
-
+import AuthProvider from "./context/AuthProvider";
+import AppContextProvider from "./context/AppContextProvider";
+import AllContracts from "./pages/Contrats/AllContracts";
 
 function App() {
   return (
     <BrowserRouter>
+    <AppContextProvider>
+    <AuthProvider>
       <Routes>
       <Route  path="login" element={<Login/>} />
 
         <Route path="/" element={<Main />}>
           <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="clients" element={<ListeClients />} />
           <Route path="clients/archive" element={<ArchivedClients/>}/>
           <Route path="clients/actif" element={<ActifClients/>}/>
@@ -31,10 +36,14 @@ function App() {
           <Route path="encaissements" element={<ListeEncaissements/>}/>
           <Route path="encaissements/actif" element={<ActifEncaissements/>}/>
           <Route path="encaissements/archive" element={<ArchivedEncaissements/>}/>
+          <Route path="contrats" element={<AllContracts/>}/>
 
           
         </Route>
       </Routes>
+      </AuthProvider>
+      </AppContextProvider>
+
     </BrowserRouter>
   );
 }

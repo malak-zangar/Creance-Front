@@ -18,7 +18,7 @@ function UpdateEncaissementForm({ record, handleState }) {
 
   const handleEditEncaissement = (values) => {
     axios
-      .put(`http://localhost:5551/encaissement/updateEncaissement/${record.key}`, values)
+      .put(`http://localhost:5555/encaissement/updateEncaissement/${record.key}`, values)
       .then((response) => {
         
         handleState({
@@ -47,7 +47,7 @@ function UpdateEncaissementForm({ record, handleState }) {
           setIsEditModalVisible(false);
           setEditingUser(null);
         }}
-        footer={null}
+        footer={null}   style={{ top: 15 }} 
       >
         <Form
           form={editForm}
@@ -61,7 +61,7 @@ function UpdateEncaissementForm({ record, handleState }) {
             label="Référence de l'encaissement"
             rules={[
               { required: true, message: "Veuillez saisir la référence de l'encaissement!" },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input disabled />
           </Form.Item>
@@ -70,7 +70,7 @@ function UpdateEncaissementForm({ record, handleState }) {
             label="Facture"
             rules={[
               { required: true, message: "Veuillez choisir la facture correspondante à cet encaissement!" },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input disabled />
           </Form.Item>
@@ -82,7 +82,7 @@ function UpdateEncaissementForm({ record, handleState }) {
                 required: true,
                 message: "Veuillez choisir le client correspondant à cet encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input disabled />
           </Form.Item>
@@ -94,7 +94,7 @@ function UpdateEncaissementForm({ record, handleState }) {
                 required: true,
                 message: "Veuillez saisir la date de l'encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input type="date" />
           </Form.Item>
@@ -107,7 +107,7 @@ function UpdateEncaissementForm({ record, handleState }) {
                 required: true,
                 message: "Veuillez saisir le mode de reglement de l'encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input  />
           </Form.Item>
@@ -119,7 +119,7 @@ function UpdateEncaissementForm({ record, handleState }) {
                 required: true,
                 message: "Veuillez saisir le montant encaisse de l'encaissement!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input type="number" step="0.001"  />
           </Form.Item>

@@ -15,7 +15,7 @@ function UpdateClientForm({ record, handleState }) {
 
   const handleEditClient = (values) => {
     axios
-      .put(`http://localhost:5551/user/updateClient/${record.key}`, values)
+      .put(`http://localhost:5555/user/updateClient/${record.key}`, values)
       .then((response) => {
         
         handleState({
@@ -38,13 +38,15 @@ function UpdateClientForm({ record, handleState }) {
       <Button icon={<EditOutlined />} type="primary" size="small" onClick={handleUpdate}>Modifier</Button>
 
       <Modal
-        title={"Modifier le client "+ record?.username}
+        title={"Modifier le client d'ID : "+ record?.key}
         visible={isEditModalVisible}
         onCancel={() => {
           setIsEditModalVisible(false);
           setEditingUser(null);
         }}
         footer={null}
+        style={{ top: 10 }} 
+
       >
         <Form
           form={editForm}
@@ -53,12 +55,13 @@ function UpdateClientForm({ record, handleState }) {
           layout="vertical"
           onFinish={handleEditClient}
         >
+          
           <Form.Item
             name="username"
             label="Nom du client"
             rules={[
               { required: true, message: "Veuillez saisir le nom du client!" },
-            ]}
+            ]}            style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
@@ -67,7 +70,16 @@ function UpdateClientForm({ record, handleState }) {
             label="Email"
             rules={[
               { required: true, message: "Veuillez saisir l'email du client!" },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="emailcc"
+            label="Email CC"
+            rules={[
+              { required: true, message: "Veuillez saisir l'email cc du client!" },
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
@@ -79,7 +91,19 @@ function UpdateClientForm({ record, handleState }) {
                 required: true,
                 message: "Veuillez saisir le numéro de téléphone du client!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="identifiantFiscal"
+            label="Identifiant Fiscal"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez saisir l'identifiant fiscal' du client!",
+              },
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
@@ -91,7 +115,7 @@ function UpdateClientForm({ record, handleState }) {
                 required: true,
                 message: "Veuillez saisir l'adresse du client!",
               },
-            ]}
+            ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
