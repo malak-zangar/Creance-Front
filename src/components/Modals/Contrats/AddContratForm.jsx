@@ -3,7 +3,6 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { AddClientForm } from "../Clients/AddClientForm";
-import moment from 'moment';
 
 export const AddContratForm = ({ handleState }) => {
   const { Option } = Select;
@@ -24,7 +23,7 @@ export const AddContratForm = ({ handleState }) => {
         );
       })
       .catch((error) => {
-        console.error("Error fetching clients:", error);
+        notification.error("Error fetching clients:", error);
       });
   };
 
@@ -32,7 +31,6 @@ export const AddContratForm = ({ handleState }) => {
     fetchClients();
   }, []);
 
-  // Handle form submission to add a new contract
   const handleAddContrat = (values) => {
     console.log(values);
 
@@ -50,6 +48,8 @@ export const AddContratForm = ({ handleState }) => {
       .post("http://localhost:5555/contrat/create", dataToSend)
       .then((response) => {
         console.log("Contract added successfully:", response.data);
+        notification.success({ message: "Contrat modifié avec succès" });
+
         setShowAddForm(false);
         handleState({
           ...response.data.contrat,

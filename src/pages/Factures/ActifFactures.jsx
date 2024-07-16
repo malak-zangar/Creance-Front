@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FolderOpenOutlined ,ExportOutlined,CheckOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography } from 'antd';
+import { SearchOutlined, FolderOpenOutlined ,ExportOutlined,CheckOutlined,DownloadOutlined} from '@ant-design/icons';
+import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -128,7 +128,7 @@ const ActifFactures = () => {
           response.data.map((facture) => ({
             key: facture.id,
             numero: facture.numero,
-            date: new Date(facture.date).toLocaleDateString('fr-FR'),
+            date: moment(facture.date).format('YYYY-MM-DD'),
             delai: facture.delai,
             montant: facture.montant,
             montantEncaisse:facture.montantEncaisse,
@@ -136,18 +136,20 @@ const ActifFactures = () => {
             actif: facture.actif,
             client_id:facture.client_id,
             client : facture.client,
+            contrat : facture.contrat,
+            contrat_id : facture.contrat_id,
             solde:facture.solde,
             devise:facture.devise,
-            echeance:new Date (facture.echeance).toLocaleDateString('fr-FR'),
+            echeance:moment(facture.echeance).format('YYYY-MM-DD'),
             retard: facture.retard,
             statut:facture.statut,
-            dateFinalisation: facture.dateFinalisation ? new Date(facture.dateFinalisation).toLocaleDateString('fr-FR') : null // Format date
+            dateFinalisation: facture.dateFinalisation ? moment(facture.dateFinalisation).format('YYYY-MM-DD') : null 
                       }))
         );
 
       })
       .catch((error) => {
-        console.error("There was an error fetching the factures!", error);
+        notification.error("There was an error fetching the factures!", error);
       });
   };
 
@@ -199,9 +201,11 @@ const ActifFactures = () => {
         document.body.removeChild(link);
         
         fetchData();
+        notification.success({ message: "Rapport facture généré avec succès" });
+
       })
       .catch((error) => {
-        console.error("There was an error generating the report!", error);
+        notification.error("There was an error generating the report!", error);
       });
   };
 
@@ -215,7 +219,7 @@ const ActifFactures = () => {
       fetchData();
     })
     .catch((error) => {
-      console.error("There was an error !", error);
+      notification.error("There was an error !", error);
     });
   }
 
@@ -238,7 +242,7 @@ const ActifFactures = () => {
       //...getColumnSearchProps('date'),
       render: (text) => moment(text).format('DD/MM/YYYY'),
 
-      sorter: (a, b) => new Date(a.date) - new Date(b.date),
+      sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
 
     },
     {
@@ -249,11 +253,18 @@ const ActifFactures = () => {
       
     },
     {
+      title: "Contrat",
+      dataIndex: "contrat",
+      ...getColumnSearchProps('contrat'),
+
+      
+    },
+    {
         title: "Montant",
         dataIndex: "montant",
         ...getColumnSearchProps('montant'),
         sorter: (a, b) => a.montant - b.montant,
-  
+        render: (_, record) => `${record.montant} ${record.devise}`, 
       },
 
       {
@@ -313,7 +324,7 @@ const ActifFactures = () => {
             <UpdateFactureForm record={record} handleState={handleFactures} />
             <Button icon={<CheckOutlined />} size="small" onClick={()=>Payer(record.key)}> Payer </Button>
 
-            <Button icon={<ExportOutlined />} size="small" onClick={()=>Report(record.key)}>Rapport </Button>
+            <Button icon={<DownloadOutlined />} size="small" onClick={()=>Report(record.key)}>Télécharger </Button>
             <DetailsFactureForm record={record} />
 
 
@@ -329,7 +340,7 @@ const ActifFactures = () => {
       <Space className="mb-4">
         <AddFactureForm handleState={handleAddFactureState}  />
         <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
-          Les factures non validées
+          Les factures en attente de validation
         </Button>
       </Space>
       <Table

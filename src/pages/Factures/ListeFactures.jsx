@@ -1,10 +1,13 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FolderOpenOutlined ,FileDoneOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography } from 'antd';
+import { SearchOutlined, FolderOpenOutlined ,FileDoneOutlined,CheckOutlined,DownloadOutlined} from '@ant-design/icons';
+import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AddFactureForm } from "../../components/Modals/Factures/AddFactureForm";
+import moment from "moment";
+import UpdateFactureForm from "../../components/Modals/Factures/UpdateFactureForm";
+import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
 
 
 function ListeFactures() {
@@ -132,7 +135,7 @@ function ListeFactures() {
           response.data.map((facture) => ({
             key: facture.id,
             numero: facture.numero,
-            date: new Date(facture.date).toLocaleDateString('fr-FR'),
+            date: moment(facture.date).format('YYYY-MM-DD'),
             delai: facture.delai,
             montant: facture.montant,
             montantEncaisse:facture.montantEncaisse,
@@ -140,21 +143,29 @@ function ListeFactures() {
             actif: facture.actif,
             client_id:facture.client_id,
             client : facture.client,
+            contrat : facture.contrat,
+            contrat_id : facture.contrat_id,
             solde:facture.solde,
             devise:facture.devise,
-            echeance:new Date (facture.echeance).toLocaleDateString('fr-FR'),
+            echeance:moment(facture.echeance).format('YYYY-MM-DD'),
             retard: facture.retard,
             statut:facture.statut,
-            dateFinalisation: facture.dateFinalisation ? new Date(facture.dateFinalisation).toLocaleDateString('fr-FR') : null // Format date
-          }))
+            dateFinalisation: facture.dateFinalisation ? moment(facture.dateFinalisation).format('YYYY-MM-DD') : null // Format date
+                      }))
         );
       })
       .catch((error) => {
-        console.error("There was an error fetching the factures!", error);
+        notification.error("There was an error fetching the factures!", error);
       });
   };
 
   const columns = [
+    {
+      title: "ID",
+      dataIndex: "key",
+      ...getColumnSearchProps('key'),
+
+    },
     {
       title: "Numéro",
       dataIndex: "numero",
@@ -164,8 +175,9 @@ function ListeFactures() {
     {
       title: "Date",
       dataIndex: "date",
-     // ...getColumnSearchProps('date'),
-      sorter: (a, b) => new Date(a.date) - new Date(b.date),
+      render: (text) => moment(text).format('DD/MM/YYYY'),
+
+      sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
 
     },
     {
@@ -176,70 +188,64 @@ function ListeFactures() {
       
     },
     {
+      title: "Contrat",
+      dataIndex: "contrat",
+      ...getColumnSearchProps('contrat'),
+
+      
+    },
+    {
       title: "Montant",
       dataIndex: "montant",
       ...getColumnSearchProps('montant'),
       sorter: (a, b) => a.montant - b.montant,
 
     },
-    {
-      title: "Délai",
-      dataIndex: "delai",
-      ...getColumnSearchProps('delai'),
-      sorter: (a, b) => a.delai - b.delai,
-
-    },
-    {
-      title: "Montant encaisse",
-      dataIndex: "montantEncaisse",
-      ...getColumnSearchProps('montantEncaisse'),
-      sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
-
-    },
-    {
-      title: "Solde",
-      dataIndex: "solde",
-      ...getColumnSearchProps('solde'),
-      sorter: (a, b) => a.solde - b.solde,
-
-    },
-    {
-      title: "Echéance ",
-      dataIndex: "echeance",
-      //...getColumnSearchProps('echeance'),
-      sorter: (a, b) => new Date(a.echeance) - new Date(b.echeance),
-
-    },
-    {
-      title: "Retard ",
-      dataIndex: "retard",
-      ...getColumnSearchProps('retard'),
-      sorter: (a, b) => a.retard - b.retard,
-
-    },
+  
       {
         title: "Statut ",
         dataIndex: "statut",
         ...getColumnSearchProps('statut'),
   
       },
+    
       {
-        title: "Action Recouvrement ",
-        dataIndex: "actionRecouvrement",
-        ...getColumnSearchProps('actionRecouvrement'),
+        title: "Actif",
+        dataIndex: "actif",
+        filters: [
+          { text: 'Actif', value: true },
+          { text: 'Non Actif', value: false },
+        ],
+        onFilter: (value, record) => record.actif === value,
   
-      },
-      {
-        title: "Date Finalisation ",
-        dataIndex: "dateFinalisation",
-        //...getColumnSearchProps('dateFinalisation'),
-        sorter: (a, b) => new Date(a.dateFinalisation) - new Date(b.dateFinalisation),
-
+        render: (actif) => (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+              style={{
+                width: '13px',
+                height: '13px',
+                borderRadius:'100%',
+                backgroundColor: actif ? 'green' : 'red',
+                marginLeft: '8px',
+              }}
+            ></div>
+          </div>
+        ),
       },
     {
-      title: "Actif",
-      dataIndex: "actif",
-      render: (actif) => (actif ? "Oui" : "Non"),
+      title: "Action",
+      dataIndex: "action",
+      render: (_, record) => (
+        <Space >
+          <UpdateFactureForm record={record} handleState={handleFactures} />
+          <Button icon={<CheckOutlined />} size="small" onClick={()=>Payer(record.key)}> Payer </Button>
+
+          <Button icon={<DownloadOutlined />} size="small" onClick={()=>Report(record.key)}>Télécharger </Button>
+          <DetailsFactureForm record={record} />
+
+
+        </Space>
+      ),
     },
   ];
 
@@ -289,9 +295,11 @@ function ListeFactures() {
         document.body.removeChild(link);
         
         fetchData();
+        notification.success({ message: "Rapport facture généré avec succès" });
+
       })
       .catch((error) => {
-        console.error("There was an error generating the report!", error);
+        notification.error("There was an error generating the report!", error);
       });
   };
   const Payer=(key)=>{
@@ -304,7 +312,7 @@ function ListeFactures() {
       fetchData();
     })
     .catch((error) => {
-      console.error("There was an error !", error);
+      notification.error("There was an error !", error);
     });
   }
 
@@ -315,10 +323,10 @@ function ListeFactures() {
       <Space className="mb-4">
         <AddFactureForm />
         <Button icon={<FileDoneOutlined />} type="default" onClick={ToListActif}>
-          Factures validées
+        Les factures validées
         </Button>
         <Button icon={<FolderOpenOutlined />} onClick={ToListArchive}>
-        Factures non validées
+        Les factures en attente de validation
 
         </Button>
       </Space>

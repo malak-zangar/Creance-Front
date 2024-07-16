@@ -1,9 +1,8 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, DownloadOutlined } from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography } from 'antd';
+import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import UpdateContratForm from "../../components/Modals/Contrats/UpdateContratForm";
 import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
 import { AddContratForm } from "../../components/Modals/Contrats/AddContratForm";
@@ -12,7 +11,6 @@ import moment from "moment";
 const AllContracts = () => {
 
   const [data, setData] = useState([]);
-  const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
@@ -142,7 +140,7 @@ const AllContracts = () => {
         );
       })
       .catch((error) => {
-        console.error("There was an error fetching the contracts!", error);
+        notification.error("There was an error fetching the contracts!", error);
       });
   };
   
@@ -177,8 +175,7 @@ const AllContracts = () => {
       })
       .then((response) => {
         console.log("Contract generated successfully:", response.data);
-  
-        
+
         const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
         const link = document.createElement('a');
         link.href = url;
@@ -188,9 +185,11 @@ const AllContracts = () => {
         document.body.removeChild(link);
         
         fetchData();
+        notification.success({ message: "Rapport du contrat généré avec succès" });
+
       })
       .catch((error) => {
-        console.error("There was an error generating the contract!", error);
+        notification.error("There was an error generating the contract!", error);
       });
   };
 
@@ -209,7 +208,7 @@ const AllContracts = () => {
       title: "Date début",
       dataIndex: "dateDebut",
       render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => new Date(a.dateDebut) - new Date(b.dateDebut),
+      sorter: (a, b) => moment(a.dateDebut).format('DD/MM/YYYY') - moment(b.dateDebut).format('DD/MM/YYYY'),
     },
     {
       title: "Client",

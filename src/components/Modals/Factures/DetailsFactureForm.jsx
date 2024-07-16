@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Descriptions, Card, Avatar } from 'antd';
 import { InfoCircleOutlined, FileDoneOutlined } from '@ant-design/icons';
+import moment from 'moment';
 
 const DetailsFactureForm = ({ record }) => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
@@ -42,7 +43,7 @@ const DetailsFactureForm = ({ record }) => {
             display: 'inline-block',
           }}
         >
-          Non encore validé
+          Non encore validée
         </div>
       );
     }
@@ -63,6 +64,10 @@ const DetailsFactureForm = ({ record }) => {
         {statut}
       </div>
     );
+  };
+
+  const formatDate = (date) => {
+    return moment(date).format('DD/MM/YYYY');
   };
 
   return (
@@ -98,16 +103,16 @@ const DetailsFactureForm = ({ record }) => {
           <Descriptions bordered style={{ marginTop: '16px' }} column={1}>
             <Descriptions.Item label="Numéro">{record.numero}</Descriptions.Item>
             <Descriptions.Item label="Client">{record.client}</Descriptions.Item>
-            <Descriptions.Item label="Date d'émission">{record.date}</Descriptions.Item>
+            <Descriptions.Item label="Contrat">{record.contrat}</Descriptions.Item>
+            <Descriptions.Item label="Date d'émission">{formatDate(record.date)}</Descriptions.Item>
             <Descriptions.Item label="Délai">{record.delai}</Descriptions.Item>
-            <Descriptions.Item label="Date d'échéance">{record.echeance}</Descriptions.Item>
+            <Descriptions.Item label="Date d'échéance">{formatDate(record.echeance)}</Descriptions.Item>
             <Descriptions.Item label="Retard">{record.retard}</Descriptions.Item>
-            <Descriptions.Item label="Montant de la facture">{record.montant}</Descriptions.Item>
-            <Descriptions.Item label="Devise">{record.devise}</Descriptions.Item>
-            <Descriptions.Item label="Montant encaissé">{record.montantEncaisse}</Descriptions.Item>
-            <Descriptions.Item label="Solde restant">{record.solde}</Descriptions.Item>
+            <Descriptions.Item label="Montant de la facture">{record.montant} {record.devise}</Descriptions.Item>
+            <Descriptions.Item label="Montant encaissé">{record.montantEncaisse} {record.devise}</Descriptions.Item>
+            <Descriptions.Item label="Solde restant">{record.solde} {record.devise}</Descriptions.Item>
             <Descriptions.Item label="Action de recouvrement">{record.actionRecouvrement}</Descriptions.Item>
-            <Descriptions.Item label="Date de finalisation">{record.dateFinalisation}</Descriptions.Item>
+            <Descriptions.Item label="Date de finalisation">{formatDate(record.dateFinalisation)}</Descriptions.Item>
           </Descriptions>
         </Card>
       </Modal>

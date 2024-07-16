@@ -10,7 +10,8 @@ function UpdateFactureForm({ record, handleState }) {
   const [editForm] = Form.useForm();
 
   const handleUpdate = () => {
-    editForm.setFieldsValue({ ...record, date: moment(record.date) });
+    editForm.setFieldsValue({ ...record, 
+      date: moment(record.date) });
 
     setIsEditModalVisible(true);
 

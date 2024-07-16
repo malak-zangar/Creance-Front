@@ -12,6 +12,8 @@ export const AddClientForm = ({ handleState }) => {
       .post("http://localhost:5555/user/create", values)
       .then((response) => {
         console.log("Client added successfully:", response.data);
+        notification.success({ message: "Client modifié avec succès" });
+
         setShowAddForm(false);
         handleState({
           ...response.data.client,

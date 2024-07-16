@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, FolderOpenOutlined ,ExportOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography,Select } from 'antd';
+import { Button, Input, Space, Table, Typography,Select, notification } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -125,15 +125,16 @@ const ActifClients = () => {
   });
 
   const handleDelete = (key) => {
-    console.log("deleted record with key: ", key);
     axios
       .put(`http://localhost:5555/user/archiveClient/${key}`)
       .then((response) => {
         console.log("Client archived successfully:", response.data);
+        notification.success({ message: "Client archivé avec succès" });
+
         fetchData();
       })
       .catch((error) => {
-        console.error("There was an error archiving the client!", error);
+        notification.error("There was an error archiving the client!", error);
       });
   };
 
@@ -163,7 +164,7 @@ const ActifClients = () => {
 
       })
       .catch((error) => {
-        console.error("There was an error fetching the clients!", error);
+        notification.error("There was an error fetching the clients!", error);
       });
   };
 
@@ -204,7 +205,7 @@ const ActifClients = () => {
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
+      notification.error("There was a problem with the fetch operation:", error);
     }
   };
 

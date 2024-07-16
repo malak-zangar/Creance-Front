@@ -22,7 +22,7 @@ export const AddFactureForm = ({ handleState }) => {
         );
       })
       .catch((error) => {
-        console.error("Error fetching clients:", error);
+        notification.error("Error fetching clients:", error);
       });
   };
 
@@ -42,7 +42,7 @@ export const AddFactureForm = ({ handleState }) => {
         }
       })
       .catch((error) => {
-        console.error("Error fetching contrats:", error);
+        notification.error("Error fetching contrats:", error);
       });
   };
 
@@ -66,11 +66,13 @@ export const AddFactureForm = ({ handleState }) => {
   };
 
   const handleAddFacture = (values) => {
-    const clientId = values.client;
+   // const clientId = values.client;
+    const contratId = values.contrat;
 
     const dataToSend = {
       ...values,
-      client_id: clientId,
+      //client_id: clientId,
+      contrat_id: contratId,
       date: values.date.format('YYYY-MM-DD'),
     };
 
@@ -78,6 +80,8 @@ export const AddFactureForm = ({ handleState }) => {
       .post("http://localhost:5555/facture/create", dataToSend)
       .then((response) => {
         console.log("Facture added successfully:", response.data);
+        notification.success({ message: "Facture ajoutée avec succès" });
+
         setShowAddForm(false);
         handleState({
           ...response.data.facture,
@@ -172,7 +176,7 @@ export const AddFactureForm = ({ handleState }) => {
               style={{ marginBottom: '8px' }}
             >
              <Select placeholder="Sélectionner un contrat" allowClear>
-  {contrats.flat().map((contrat) => ( // Utilisation de flat() pour déplier le tableau imbriqué
+  {contrats.flat().map((contrat) => ( 
     <Option key={contrat.id} value={contrat.id}>
       {contrat.reference}
     </Option>

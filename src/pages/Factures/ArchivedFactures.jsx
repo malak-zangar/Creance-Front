@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FileDoneOutlined ,ExportOutlined,RetweetOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography } from 'antd';
+import { SearchOutlined, FileDoneOutlined ,DownloadOutlined} from '@ant-design/icons';
+import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -118,18 +118,6 @@ const ArchivedFactures = () => {
       ),
   });
 
-  const handleRestaure = (key) => {
-    console.log("deleted record with key: ", key);
-    axios
-      .put(`http://localhost:5555/facture/restaureFacture/${key}`)
-      .then((response) => {
-        console.log("Facture restaured successfully:", response.data);
-        fetchData();
-      })
-      .catch((error) => {
-        console.error("There was an error restauring the Facture!", error);
-      });
-  };
 
   const fetchData = () => {
     axios
@@ -139,7 +127,7 @@ const ArchivedFactures = () => {
           response.data.map((facture) => ({
             key: facture.id,
             numero: facture.numero,
-            date: new Date(facture.date).toLocaleDateString('fr-FR'),
+            date: moment(facture.date).format('YYYY-MM-DD'),
             delai: facture.delai,
             montant: facture.montant,
             montantEncaisse:facture.montantEncaisse,
@@ -147,17 +135,20 @@ const ArchivedFactures = () => {
             actif: facture.actif,
             client_id:facture.client_id,
             client : facture.client,
+            contrat : facture.contrat,
+            contrat_id : facture.contrat_id,
             solde:facture.solde,
-            echeance:new Date (facture.echeance).toLocaleDateString('fr-FR'),
+            devise:facture.devise,
+            echeance:moment(facture.echeance).format('YYYY-MM-DD'),
             retard: facture.retard,
             statut:facture.statut,
-            dateFinalisation: facture.dateFinalisation ? new Date(facture.dateFinalisation).toLocaleDateString('fr-FR') : null // Format date
-          }))
+            dateFinalisation: facture.dateFinalisation ? moment(facture.dateFinalisation).format('YYYY-MM-DD') : null // Format date
+                      }))
         );
 
       })
       .catch((error) => {
-        console.error("There was an error fetching the factures!", error);
+        notification.error("There was an error fetching the factures!", error);
       });
   };
 
@@ -190,9 +181,11 @@ const ArchivedFactures = () => {
         document.body.removeChild(link);
         
         fetchData();
+        notification.success({ message: "Rapport facture généré avec succès" });
+
       })
       .catch((error) => {
-        console.error("There was an error generating the report!", error);
+        notification.error("There was an error generating the report!", error);
       });
   };
   
@@ -216,7 +209,7 @@ const ArchivedFactures = () => {
       //...getColumnSearchProps('date'),
       render: (text) => moment(text).format('DD/MM/YYYY'),
 
-      sorter: (a, b) => new Date(a.date) - new Date(b.date),
+      sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
 
     },
     {
@@ -227,11 +220,19 @@ const ArchivedFactures = () => {
       
     },
     {
+      title: "Contrat",
+      dataIndex: "contrat",
+      ...getColumnSearchProps('contrat'),
+
+      
+    },
+    {
         title: "Montant",
         dataIndex: "montant",
         ...getColumnSearchProps('montant'),
         sorter: (a, b) => a.montant - b.montant,
-  
+        render: (_, record) => `${record.montant} ${record.devise}`, 
+
       },
 
       {
@@ -239,8 +240,7 @@ const ArchivedFactures = () => {
         dataIndex: "action",
         render: (_, record) => (
           <Space >
-            <Button icon={<RetweetOutlined />} size="small" onClick={() => handleRestaure(record.key)}>activer</Button>
-            <Button icon={<ExportOutlined />} size="small" onClick={()=>Report(record.key)}>Rapport </Button>
+            <Button icon={<DownloadOutlined />} size="small" onClick={()=>Report(record.key)}>Télécharger </Button>
      
             <DetailsFactureForm record={record} />
             </Space>
@@ -256,7 +256,7 @@ const ArchivedFactures = () => {
     
       <Space className="mb-4">
         <Button  onClick={ToListActif} icon={<FileDoneOutlined />}>
-          Factures validées
+          Les Factures validées
         </Button>
   
       </Space>

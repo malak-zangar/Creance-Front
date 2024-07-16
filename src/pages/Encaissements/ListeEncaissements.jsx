@@ -1,19 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { Table, Button, Typography, Space, Input } from "antd";
+import { Table, Button, Typography, Space, Input, notification } from "antd";
 import axios from "axios";
 import Highlighter from "react-highlight-words";
-import { useNavigate } from "react-router-dom";
-import {
-  MoneyCollectOutlined,
-  FolderOpenOutlined,
-  SearchOutlined,
-} from "@ant-design/icons";
+import { SearchOutlined, DownloadOutlined } from "@ant-design/icons";
 import { AddEncaissementForm } from "../../components/Modals/Encaissements/AddEncaissementForm";
+import UpdateEncaissementForm from "../../components/Modals/Encaissements/UpdateEncaissementForm";
+import DetailsEncaissementForm from "../../components/Modals/Encaissements/DetailsEncaissementForm";
+import moment from "moment";
 
 const ListeEncaissements = () => {
   const [data, setData] = useState([]);
-
-  const navigate = useNavigate();
 
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -135,6 +131,51 @@ const ListeEncaissements = () => {
     fetchData();
   }, []);
 
+  const Report = (key) => {
+    console.log("Generating report with key: ", key);
+    axios
+      .get(`http://localhost:5555/encaissement/recu/${key}`, {
+        responseType: "blob",
+      })
+      .then((response) => {
+        console.log("Report generated successfully:", response.data);
+
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], { type: "application/pdf" })
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `report_${key}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        fetchData();
+        notification.success({ message: "Rapport paiement généré avec succès" });
+
+      })
+      .catch((error) => {
+        notification.error("There was an error generating the report!", error);
+      });
+  };
+
+  const handleAddEncaissementState = (record) => {
+    setData([record, ...data]);
+  };
+
+  const handleEncaissements = (record) => {
+    const tempEncaissement = data.map((encaissement) => {
+      if (encaissement.key === record.key) {
+        return record;
+      } else {
+        return encaissement;
+      }
+    });
+
+    setData(tempEncaissement);
+    fetchData();
+  };
+
   const fetchData = () => {
     axios
       .get("http://localhost:5555/encaissement/getAll")
@@ -143,26 +184,41 @@ const ListeEncaissements = () => {
           response.data.map((encaissement) => ({
             key: encaissement.id,
             reference: encaissement.reference,
-            date: new Date(encaissement.date).toLocaleDateString('fr-FR'),
+            date: moment(encaissement.date).format("YYYY-MM-DD"),
             modeReglement: encaissement.modeReglement,
             montantEncaisse: encaissement.montantEncaisse,
             actif: encaissement.actif,
             facture_id: encaissement.facture_id,
             facture: encaissement.facture,
             client: encaissement.client,
+            contrat: encaissement.contrat,
           }))
         );
       })
       .catch((error) => {
-        console.error("There was an error fetching the Encaissements!", error);
+        notification.error("There was an error fetching the paiement!", error);
       });
   };
 
   const columns = [
     {
+      title: "ID",
+      dataIndex: "key",
+      ...getColumnSearchProps('key'),
+
+    },
+    {
       title: "Référence",
       dataIndex: "reference",
       ...getColumnSearchProps("reference"),
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      //...getColumnSearchProps("date"),
+      render: (text) => moment(text).format("DD/MM/YYYY"),
+
+      sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
     },
     {
       title: "Facture",
@@ -174,62 +230,35 @@ const ListeEncaissements = () => {
       dataIndex: "client",
       ...getColumnSearchProps("client"),
     },
-    {
-      title: "Date",
-      dataIndex: "date",
-      //...getColumnSearchProps("date"),
-      sorter: (a, b) => new Date(a.date) - new Date(b.date),
-
-    },
-    {
-      title: "Mode règlement",
-      dataIndex: "modeReglement",
-      ...getColumnSearchProps("modeReglement"),
-
-    },
-    {
-      title: "Montant encaisse ",
-      dataIndex: "montantEncaisse",
-      //...getColumnSearchProps("montantEncaisse"),
-      sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
-
-    },
 
     {
-      title: "Actif",
-      dataIndex: "actif",
-      render: (actif) => (actif ? "Oui" : "Non"),
+      title: "Action",
+      dataIndex: "action",
+      render: (_, record) => (
+        <Space>
+          <UpdateEncaissementForm
+            record={record}
+            handleState={handleEncaissements}
+          />
+          <Button
+            icon={<DownloadOutlined />}
+            size="small"
+            onClick={() => Report(record.key)}
+          >
+            Télécharger
+          </Button>
+          <DetailsEncaissementForm record={record} />
+        </Space>
+      ),
     },
   ];
 
-  const ToListArchive = () => {
-    console.log("Button ToListArchive clicked");
-    navigate("/encaissements/archive");
-  };
-
-  const ToListActif = () => {
-    console.log("Button ToListActif clicked");
-    navigate("/encaissements/actif");
-  };
-
   return (
     <div>
-      <Typography.Title level={2}>
-        Liste de tous les encaissements{" "}
-      </Typography.Title>
+      <Typography.Title level={2}>Liste de tous les paiements</Typography.Title>
 
       <Space className="mb-4">
-        <AddEncaissementForm />
-        <Button
-          icon={<MoneyCollectOutlined />}
-          type="default"
-          onClick={ToListActif}
-        >
-          Encaissements actifs
-        </Button>
-        <Button icon={<FolderOpenOutlined />} onClick={ToListArchive}>
-          Archive
-        </Button>
+        <AddEncaissementForm handleState={handleAddEncaissementState} />
       </Space>
       <Table
         size="small"
@@ -238,6 +267,7 @@ const ListeEncaissements = () => {
         pagination={{
           pageSize: 6,
         }}
+        showSorterTooltip={{ target: "sorter-icon" }}
       />
     </div>
   );
