@@ -1,7 +1,7 @@
 import { Button, DatePicker, Form, Input, Modal, notification, Select } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
-import axios from "axios";
 import { useState, useEffect } from "react";
+import api from "../../../utils/axios";
 
 const { Option } = Select;
 
@@ -12,25 +12,9 @@ export const AddEncaissementForm = ({ handleState }) => {
   const [clients, setClients] = useState([]);
   const [selectedFacture, setSelectedFacture] = useState(null); // Ajout de l'état pour la facture sélectionnée
 
-  /*const fetchClients = () => {
-    axios
-      .get("http://localhost:5555/user/getAllActif")
-      .then((response) => {
-        setClients(
-          response.data.map((client) => ({
-            id: client.id,
-            username: client.username,
-          }))
-        );
-      })
-      .catch((error) => {
-        notification.error("Error fetching clients:", error);
-      });
-  };*/
-
   const fetchClients = async () => {
     try {
-      const response = await axios.get('http://localhost:5555/facture/getClientsWithActiveUnpaidInvoices');
+      const response = await api.get('/facture/getClientsWithActiveUnpaidInvoices');
       setClients(    response.data.map((client) => ({
         id: client.id,
         username: client.username,
@@ -41,8 +25,8 @@ export const AddEncaissementForm = ({ handleState }) => {
   };
 
   const fetchFactures = (clientId) => {
-    axios
-      .get(`http://localhost:5555/facture/getByClient/actif/${clientId}`)
+    api
+      .get(`/facture/getByClient/actif/${clientId}`)
       .then((response) => {
         if (response.data) {
           setFactures(response.data);
@@ -83,8 +67,8 @@ export const AddEncaissementForm = ({ handleState }) => {
       facture_numero: factureId,
       date: values.date.format("YYYY-MM-DD"),
     };
-    axios
-      .post("http://localhost:5555/encaissement/create", dataToSend)
+    api
+      .post("/encaissement/create", dataToSend)
       .then((response) => {
         console.log("Paiement added successfully:", response.data);
         notification.success({ message: "Paiement ajouté avec succès" });

@@ -2,12 +2,12 @@ import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, FolderOpenOutlined ,FileDoneOutlined,CheckOutlined,DownloadOutlined} from '@ant-design/icons';
 import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AddFactureForm } from "../../components/Modals/Factures/AddFactureForm";
 import moment from "moment";
 import UpdateFactureForm from "../../components/Modals/Factures/UpdateFactureForm";
 import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
+import api from "../../utils/axios";
 
 
 function ListeFactures() {
@@ -128,8 +128,8 @@ function ListeFactures() {
   }, []);
 
   const fetchData = () => {
-    axios
-      .get("http://localhost:5555/facture/getAll")
+    api
+      .get("/facture/getAll")
       .then((response) => {
         setData(
           response.data.map((facture) => ({
@@ -278,8 +278,8 @@ function ListeFactures() {
 
   const Report = (key) => {
     console.log("Generating report with key: ", key);
-    axios
-      .get(`http://localhost:5555/facture/report/${key}`, {
+    api
+      .get(`/facture/report/${key}`, {
         responseType: 'blob', 
       })
       .then((response) => {
@@ -303,8 +303,8 @@ function ListeFactures() {
       });
   };
   const Payer=(key)=>{
-    axios
-    .put(`http://localhost:5555/facture/marquerpayeFacture/${key}`, {
+    api
+    .put(`/facture/marquerpayeFacture/${key}`, {
       responseType: 'blob', 
     })
     .then((response) => {

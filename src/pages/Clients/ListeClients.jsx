@@ -1,19 +1,17 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, FolderOpenOutlined ,ExportOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography,Select ,Row, Col} from 'antd';
+import { Button, Input, Space, Table, Typography,Select ,Row, Col, notification} from 'antd';
 import Highlighter from 'react-highlight-words';
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UpdateClientForm from "../../components/Modals/Clients/UpdateClientForm";
 import { AddClientForm } from "../../components/Modals/Clients/AddClientForm";
 import  DetailsClientForm  from "../../components/Modals/Clients/DetailsClientForm";
+import api from "../../utils/axios";
 
 const ListeClients = () => {
 
-  //const [clientOptions, setClientOptions] = useState([]);
   let usernames;
 
-  const { Option } = Select;
 
   const [data, setData] = useState([]);
   const navigate = useNavigate();
@@ -126,8 +124,8 @@ const ListeClients = () => {
 
 
   const fetchData = () => {
-    axios
-      .get("http://localhost:5555/user/getAll")
+    api
+      .get("/user/getAll")
       .then((response) => {
         setData(
           response.data.map((client) => ({
@@ -143,9 +141,6 @@ const ListeClients = () => {
           }))
         );
 
-        //setClientOptions(response.data.map((client) => client.username));
-       // console.log("Client options:", response.data.map((client) => client.username));
-       // console.log(clientOptions)
          usernames = response.data.map((client) => client.username);
          console.log(usernames)
 
@@ -170,7 +165,7 @@ const ListeClients = () => {
     console.log("Button Export clicked");
     try {
       const response = await fetch(
-        "http://localhost:5555/user/export/csv",
+        "/user/export/csv",
         {
           method: "GET",
           headers: {

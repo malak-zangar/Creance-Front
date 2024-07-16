@@ -67,6 +67,11 @@ const DetailsFactureForm = ({ record }) => {
   };
 
   const formatDate = (date) => {
+    
+    if (date == null) {
+      return ('-')
+    }
+    else
     return moment(date).format('DD/MM/YYYY');
   };
 

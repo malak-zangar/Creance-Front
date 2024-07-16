@@ -1,8 +1,8 @@
 import { Button, Form, Input, Modal, notification, DatePicker } from "antd";
-import axios from "axios";
 import { useState, useEffect } from "react";
 import { EditOutlined } from '@ant-design/icons';
 import moment from "moment";
+import api from "../../../utils/axios";
 
 function UpdateContratForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -26,8 +26,8 @@ function UpdateContratForm({ record, handleState }) {
       dateRappel: values.dateRappel.format("YYYY-MM-DD"),
     };
   
-    axios
-      .put(`http://localhost:5555/contrat/updateContrat/${record.key}`, formattedValues)
+    api
+      .put(`/contrat/updateContrat/${record.key}`, formattedValues)
       .then((response) => {
         handleState({
           ...formattedValues,

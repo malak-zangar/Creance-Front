@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Button, Descriptions, Card, Avatar } from "antd";
 import { InfoCircleOutlined, MoneyCollectOutlined } from "@ant-design/icons";
 import moment from "moment";
-import axios from "axios";
+import api from "../../../utils/axios";
 
 const DetailsEncaissementForm = ({ record }) => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
@@ -10,8 +10,8 @@ const DetailsEncaissementForm = ({ record }) => {
 
   useEffect(() => {
     if (record?.facture) {
-      axios
-        .get(`http://localhost:5555/facture/getByID/${record.key}`)
+      api
+        .get(`/facture/getByID/${record.key}`)
         .then((response) => {
           console.log(response.data.facture)
           setFacture(response.data.facture); // Mettre à jour l'état avec la facture

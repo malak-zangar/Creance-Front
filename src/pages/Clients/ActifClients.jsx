@@ -2,11 +2,11 @@ import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, FolderOpenOutlined ,ExportOutlined} from '@ant-design/icons';
 import { Button, Input, Space, Table, Typography,Select, notification } from 'antd';
 import Highlighter from 'react-highlight-words';
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UpdateClientForm from "../../components/Modals/Clients/UpdateClientForm";
 import { AddClientForm } from "../../components/Modals/Clients/AddClientForm";
 import  DetailsClientForm  from "../../components/Modals/Clients/DetailsClientForm";
+import api from "../../utils/axios";
 
 const ActifClients = () => {
 
@@ -125,8 +125,8 @@ const ActifClients = () => {
   });
 
   const handleDelete = (key) => {
-    axios
-      .put(`http://localhost:5555/user/archiveClient/${key}`)
+    api
+      .put(`/user/archiveClient/${key}`)
       .then((response) => {
         console.log("Client archived successfully:", response.data);
         notification.success({ message: "Client archivé avec succès" });
@@ -139,8 +139,8 @@ const ActifClients = () => {
   };
 
   const fetchData = () => {
-    axios
-      .get("http://localhost:5555/user/getAllActif")
+    api
+      .get("/user/getAllActif")
       .then((response) => {
         setData(
           response.data.map((client) => ({
@@ -155,9 +155,6 @@ const ActifClients = () => {
           }))
         );
 
-        //setClientOptions(response.data.map((client) => client.username));
-       // console.log("Client options:", response.data.map((client) => client.username));
-       // console.log(clientOptions)
          usernames = response.data.map((client) => client.username);
          console.log(usernames)
 
@@ -182,7 +179,7 @@ const ActifClients = () => {
     console.log("Button Export clicked");
     try {
       const response = await fetch(
-        "http://localhost:5555/user/export/csv/actifusers",
+        "/user/export/csv/actifusers",
         {
           method: "GET",
           headers: {

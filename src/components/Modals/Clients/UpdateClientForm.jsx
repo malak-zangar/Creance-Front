@@ -1,7 +1,7 @@
 import { Button, Form, Input, Modal, notification } from "antd";
-import axios from "axios";
 import { useState } from "react";
 import { EditOutlined} from '@ant-design/icons';
+import api from "../../../utils/axios";
 
 function UpdateClientForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -14,8 +14,8 @@ function UpdateClientForm({ record, handleState }) {
   };
 
   const handleEditClient = (values) => {
-    axios
-      .put(`http://localhost:5555/user/updateClient/${record.key}`, values)
+    api
+      .put(`/user/updateClient/${record.key}`, values)
       .then((response) => {
         
         handleState({

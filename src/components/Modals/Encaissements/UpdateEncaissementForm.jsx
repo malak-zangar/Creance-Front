@@ -1,7 +1,7 @@
 import { Button, Form, Input, Modal, notification } from "antd";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { EditOutlined} from '@ant-design/icons';
+import api from "../../../utils/axios";
 
 function UpdateEncaissementForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -12,8 +12,8 @@ function UpdateEncaissementForm({ record, handleState }) {
 
   useEffect(() => {
     if (record?.facture) {
-      axios
-        .get(`http://localhost:5555/facture/getByID/${record.key}`)
+      api
+        .get(`/facture/getByID/${record.key}`)
         .then((response) => {
           console.log(response.data.facture)
           setFacture(response.data.facture); // Mettre à jour l'état avec la facture
@@ -33,8 +33,8 @@ function UpdateEncaissementForm({ record, handleState }) {
   };
 
   const handleEditEncaissement = (values) => {
-    axios
-      .put(`http://localhost:5555/encaissement/updateEncaissement/${record.key}`, values)
+    api
+      .put(`/encaissement/updateEncaissement/${record.key}`, values)
       .then((response) => {
         
         handleState({

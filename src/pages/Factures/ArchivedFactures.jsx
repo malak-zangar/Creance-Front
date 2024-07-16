@@ -2,10 +2,10 @@ import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, FileDoneOutlined ,DownloadOutlined} from '@ant-design/icons';
 import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
 import moment from "moment";
+import api from "../../utils/axios";
 
 const ArchivedFactures = () => {
 
@@ -120,8 +120,8 @@ const ArchivedFactures = () => {
 
 
   const fetchData = () => {
-    axios
-      .get("http://localhost:5555/facture/getAllArchived")
+    api
+      .get("/facture/getAllArchived")
       .then((response) => {
         setData(
           response.data.map((facture) => ({
@@ -164,8 +164,8 @@ const ArchivedFactures = () => {
 
   const Report = (key) => {
     console.log("Generating report with key: ", key);
-    axios
-      .get(`http://localhost:5555/facture/report/${key}`, {
+    api
+      .get(`/facture/report/${key}`, {
         responseType: 'blob', 
       })
       .then((response) => {
@@ -252,7 +252,7 @@ const ArchivedFactures = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Les factures en attente de validation</Typography.Title>
+        <Typography.Title level={2}>Toutes les factures en attente de validation</Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToListActif} icon={<FileDoneOutlined />}>

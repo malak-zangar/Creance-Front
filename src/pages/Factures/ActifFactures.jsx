@@ -1,13 +1,13 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FolderOpenOutlined ,ExportOutlined,CheckOutlined,DownloadOutlined} from '@ant-design/icons';
+import { SearchOutlined, FolderOpenOutlined ,CheckOutlined,DownloadOutlined} from '@ant-design/icons';
 import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import UpdateFactureForm from "../../components/Modals/Factures/UpdateFactureForm";
 import { AddFactureForm } from "../../components/Modals/Factures/AddFactureForm";
 import moment from "moment";
 import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
+import api from "../../utils/axios";
 
 const ActifFactures = () => {
 
@@ -121,8 +121,8 @@ const ActifFactures = () => {
   });
 
   const fetchData = () => {
-    axios
-      .get("http://localhost:5555/facture/getAllActif")
+    api
+      .get("/facture/getAllActif")
       .then((response) => {
         setData(
           response.data.map((facture) => ({
@@ -184,8 +184,8 @@ const ActifFactures = () => {
 
   const Report = (key) => {
     console.log("Generating report with key: ", key);
-    axios
-      .get(`http://localhost:5555/facture/report/${key}`, {
+    api
+      .get(`/facture/report/${key}`, {
         responseType: 'blob', 
       })
       .then((response) => {
@@ -210,8 +210,8 @@ const ActifFactures = () => {
   };
 
   const Payer=(key)=>{
-    axios
-    .put(`http://localhost:5555/facture/marquerpayeFacture/${key}`, {
+    api
+    .put(`/facture/marquerpayeFacture/${key}`, {
       responseType: 'blob', 
     })
     .then((response) => {
@@ -335,7 +335,7 @@ const ActifFactures = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Les factures validées</Typography.Title>
+        <Typography.Title level={2}>Toutes les factures validées</Typography.Title>
     
       <Space className="mb-4">
         <AddFactureForm handleState={handleAddFactureState}  />

@@ -1,27 +1,32 @@
-// Login.js
-import React, { useContext } from "react";
+import { useState } from "react";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Checkbox, Form, Input, message } from "antd";
-import AuthContext from "../../context/AuthContext"; // Importez votre contexte d'authentification
+import { Button, Checkbox, Form, Input, message, Card } from "antd";
 import image from "../../assets/Login.png";
-import { Card } from "antd";
+import { setaccess_token } from '../../utils/auth';
+import api from '../../utils/axios';
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+
 
 const Login = () => {
-  const { login } = useContext(AuthContext); // Utilisez le contexte d'authentification
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+  const { setCurrentUser } = useAuth(); // Get setCurrentUser from AuthContext
 
   const onFinish = async (values) => {
-    console.log("Logging in with values:", values);
     try {
-      const success = await login(values);
-      console.log("Login success:", success);
-      if (success) {
-        message.success('Connexion réussie');
-        window.location.href = "/dashboard";
-      } else {
-        message.error('Nom d\'utilisateur ou mot de passe incorrect');
-      }
+      const response = await api.post('/auth/login', values);
+      console.log(response.data)
+      localStorage.setItem('access_token', response.data.access_token);
+      setaccess_token(response.data.access_token);
+      message.success('Connexion réussie');
+      const user = await api.get('/auth/protected');
+console.log(user.data.logged_in_as);
+      setCurrentUser(user.data.logged_in_as);
+      navigate("/dashboard");
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login failed:', error);
       message.error('Erreur de connexion : Veuillez vérifier votre nom d\'utilisateur et votre mot de passe');
     }
   };
@@ -86,6 +91,8 @@ const Login = () => {
               <Input
                 prefix={<UserOutlined className="site-form-item-icon" />}
                 placeholder="Nom d'utilisateur"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </Form.Item>
             <Form.Item
@@ -103,6 +110,8 @@ const Login = () => {
                 prefix={<LockOutlined className="site-form-item-icon" />}
                 type="password"
                 placeholder="Mot de passe"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </Form.Item>
             <div
@@ -153,4 +162,5 @@ const Login = () => {
     </div>
   );
 };
+
 export default Login;

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import {
   FileTextOutlined,
   FileDoneOutlined,
@@ -10,8 +10,10 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Dropdown, Avatar } from "antd";
-import { Outlet, Link } from "react-router-dom";
-import AuthContext from "../context/AuthContext"; // Importez votre contexte d'authentification
+import { Outlet, Link,useNavigate } from "react-router-dom";
+import {removeaccess_token} from '../utils/auth'
+import { useAuth } from "../context/AuthContext";
+
 
 const { Header, Content, Sider } = Layout;
 
@@ -48,25 +50,28 @@ const items = [
   },
 ];
 
-const Main = () => {
 
-  const { user, logout } = useContext(AuthContext);
+
+const Main = () => {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth(); // Get currentUser from AuthContext
+
 
   const handleLogout = () => {
-    logout();
+    removeaccess_token();
+    navigate("/login");
+
   };
 
   const profileMenu = (
     <Menu>
-      <Menu.Item key="1" icon={<UserOutlined />}>
-        {user?.username}
+      <Menu.Item key="1" icon={<UserOutlined />}>{currentUser}
       </Menu.Item>
       <Menu.Item key="2" icon={<LogoutOutlined />} onClick={handleLogout}>
         Déconnexion
       </Menu.Item>
     </Menu>
   );
-console.log(user)
   return (
     <Layout className="h-[100vh]">
 <Sider
@@ -107,7 +112,7 @@ console.log(user)
                   }}
                 >
                   <Avatar style={{}} icon={<UserOutlined />} />
-                  <span style={{ marginLeft: "8px" }}>{user?.username}</span>
+                  <span style={{ marginLeft: "8px" }}>{currentUser}</span>
                 </div>
               </Dropdown>
             </Header>

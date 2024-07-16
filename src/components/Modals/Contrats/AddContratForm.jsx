@@ -1,8 +1,8 @@
 import { Button, Form, Input, Modal, notification, Select, DatePicker } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
-import axios from "axios";
 import { useState, useEffect } from "react";
 import { AddClientForm } from "../Clients/AddClientForm";
+import api from "../../../utils/axios";
 
 export const AddContratForm = ({ handleState }) => {
   const { Option } = Select;
@@ -11,8 +11,8 @@ export const AddContratForm = ({ handleState }) => {
   const [clients, setClients] = useState([]);
 
   const fetchClients = () => {
-    axios
-      .get("http://localhost:5555/user/getAll")
+    api
+      .get("/user/getAll")
       .then((response) => {
         console.log(response);
         setClients(
@@ -44,8 +44,8 @@ export const AddContratForm = ({ handleState }) => {
       dateRappel: values.dateRappel.format('YYYY-MM-DD')
     };
 
-    axios
-      .post("http://localhost:5555/contrat/create", dataToSend)
+    api
+      .post("/contrat/create", dataToSend)
       .then((response) => {
         console.log("Contract added successfully:", response.data);
         notification.success({ message: "Contrat modifié avec succès" });

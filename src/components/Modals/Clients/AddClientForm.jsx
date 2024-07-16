@@ -1,15 +1,15 @@
 import { Button, Form, Input, Modal, notification } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
-import axios from "axios";
 import { useState } from "react";
+import api from "../../../utils/axios";
 
 export const AddClientForm = ({ handleState }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm] = Form.useForm();
   const handleAddClient = (values) => {
     console.log(values);
-    axios
-      .post("http://localhost:5555/user/create", values)
+    api
+      .post("/user/create", values)
       .then((response) => {
         console.log("Client added successfully:", response.data);
         notification.success({ message: "Client modifié avec succès" });

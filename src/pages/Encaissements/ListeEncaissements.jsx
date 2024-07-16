@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { Table, Button, Typography, Space, Input, notification } from "antd";
-import axios from "axios";
 import Highlighter from "react-highlight-words";
 import { SearchOutlined, DownloadOutlined } from "@ant-design/icons";
 import { AddEncaissementForm } from "../../components/Modals/Encaissements/AddEncaissementForm";
 import UpdateEncaissementForm from "../../components/Modals/Encaissements/UpdateEncaissementForm";
 import DetailsEncaissementForm from "../../components/Modals/Encaissements/DetailsEncaissementForm";
 import moment from "moment";
+import api from "../../utils/axios";
 
 const ListeEncaissements = () => {
   const [data, setData] = useState([]);
@@ -133,8 +133,8 @@ const ListeEncaissements = () => {
 
   const Report = (key) => {
     console.log("Generating report with key: ", key);
-    axios
-      .get(`http://localhost:5555/encaissement/recu/${key}`, {
+    api
+      .get(`/encaissement/recu/${key}`, {
         responseType: "blob",
       })
       .then((response) => {
@@ -177,8 +177,8 @@ const ListeEncaissements = () => {
   };
 
   const fetchData = () => {
-    axios
-      .get("http://localhost:5555/encaissement/getAll")
+    api
+      .get("/encaissement/getAll")
       .then((response) => {
         setData(
           response.data.map((encaissement) => ({
@@ -255,7 +255,7 @@ const ListeEncaissements = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Liste de tous les paiements</Typography.Title>
+      <Typography.Title level={2}>Tous les paiements</Typography.Title>
 
       <Space className="mb-4">
         <AddEncaissementForm handleState={handleAddEncaissementState} />

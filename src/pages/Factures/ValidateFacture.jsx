@@ -6,10 +6,10 @@ import {
 } from "@ant-design/icons";
 import { Button, Input, notification, Space, Table, Typography } from "antd";
 import Highlighter from "react-highlight-words";
-import axios from "axios";
 import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
 import moment from "moment";
 import { useParams } from 'react-router-dom';
+import api from "../../utils/axios";
 
 
 const ValidateFacture = () => {
@@ -133,8 +133,8 @@ const ValidateFacture = () => {
 
   const handleActivate = (key) => {
     console.log("activated record with key: ", key);
-    axios
-      .put(`http://localhost:5555/facture/restaureFacture/${key}`)
+    api
+      .put(`/facture/restaureFacture/${key}`)
       .then((response) => {
         console.log("Facture activated successfully:", response.data);
         notification.success({ message: "Facture activée avec succès" });
@@ -146,8 +146,8 @@ const ValidateFacture = () => {
   };
 
   const fetchData = () => {
-    axios
-      .get(`http://localhost:5555/facture/getByClient/${param}`)
+    api
+      .get(`/facture/getByClient/${param}`)
       .then((response) => {
         if (response.data.length > 0) {
           setClientName(response.data[0].client); // Set the client name
@@ -188,8 +188,8 @@ const ValidateFacture = () => {
 
   const Report = (key) => {
     console.log("Generating report with key: ", key);
-    axios
-      .get(`http://localhost:5555/facture/report/${key}`, {
+    api
+      .get(`/facture/report/${key}`, {
         responseType: "blob",
       })
       .then((response) => {

@@ -2,11 +2,11 @@ import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
-import axios from "axios";
 import UpdateContratForm from "../../components/Modals/Contrats/UpdateContratForm";
 import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
 import { AddContratForm } from "../../components/Modals/Contrats/AddContratForm";
 import moment from "moment";
+import api from "../../utils/axios";
 
 const AllContracts = () => {
 
@@ -120,8 +120,8 @@ const AllContracts = () => {
 
 
   const fetchData = () => {
-    axios
-      .get("http://localhost:5555/contrat/getAll")
+    api
+      .get("contrat/getAll")
       .then((response) => {
         setData(
           response.data.map((contrat) => ({
@@ -151,15 +151,6 @@ const AllContracts = () => {
 
 
   const handleContracts = (record) => {
-   /* const tempContrat = data.map((contrat) => {
-      if (contrat.key === record.key) {
-        return record;
-      } else {
-        return contrat;
-      }
-    });
-
-    setData(tempContrat);*/
     fetchData();
   };
 
@@ -169,8 +160,8 @@ const AllContracts = () => {
 
   const Report = (key) => {
     console.log("Generating contract with key: ", key);
-    axios
-      .get(`http://localhost:5555/contrat/report/${key}`, {
+    api
+      .get(`/contrat/report/${key}`, {
         responseType: 'blob', 
       })
       .then((response) => {

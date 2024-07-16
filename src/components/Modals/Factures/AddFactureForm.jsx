@@ -1,7 +1,7 @@
 import { Button, DatePicker, Form, Input, Modal, notification, Select } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
-import axios from "axios";
 import { useState, useEffect } from "react";
+import api from "../../../utils/axios";
 
 export const AddFactureForm = ({ handleState }) => {
   const { Option } = Select;
@@ -11,8 +11,8 @@ export const AddFactureForm = ({ handleState }) => {
   const [contrats, setContrats] = useState([]);
 
   const fetchClients = () => {
-    axios
-      .get("http://localhost:5555/user/getAllActif")
+    api
+      .get("/user/getAllActif")
       .then((response) => {
         setClients(
           response.data.map((client) => ({
@@ -28,8 +28,8 @@ export const AddFactureForm = ({ handleState }) => {
 
   const fetchContrats = (clientId) => {
     console.log(clientId)
-    axios
-      .get(`http://localhost:5555/contrat/getByClient/${clientId}`)
+    api
+      .get(`/contrat/getByClient/${clientId}`)
       .then((response) => {
         if (response.data.contracts) {
           console.log(response)
@@ -76,8 +76,8 @@ export const AddFactureForm = ({ handleState }) => {
       date: values.date.format('YYYY-MM-DD'),
     };
 
-    axios
-      .post("http://localhost:5555/facture/create", dataToSend)
+    api
+      .post("/facture/create", dataToSend)
       .then((response) => {
         console.log("Facture added successfully:", response.data);
         notification.success({ message: "Facture ajoutée avec succès" });

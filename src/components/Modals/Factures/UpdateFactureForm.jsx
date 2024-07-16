@@ -1,8 +1,8 @@
 import { Button, DatePicker, Form, Input, Modal, notification } from "antd";
-import axios from "axios";
 import { useState, useEffect } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import moment from "moment";
+import api from "../../../utils/axios";
 
 function UpdateFactureForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -24,9 +24,9 @@ function UpdateFactureForm({ record, handleState }) {
       date: values.date.format("YYYY-MM-DD"),
     };
 
-    axios
+    api
       .put(
-        `http://localhost:5555/facture/updateFacture/${record.key}`,
+        `/facture/updateFacture/${record.key}`,
         formattedValues
       )
       .then((response) => {
