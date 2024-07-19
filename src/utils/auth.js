@@ -1,5 +1,5 @@
 export const setaccess_token = (access_token) => {
-    localStorage.setItem('aaccess_token', access_token);
+    localStorage.setItem('access_token', access_token);
   };
   
   export const getaccess_token = () => {

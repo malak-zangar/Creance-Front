@@ -48,7 +48,7 @@ export const AddContratForm = ({ handleState }) => {
       .post("/contrat/create", dataToSend)
       .then((response) => {
         console.log("Contract added successfully:", response.data);
-        notification.success({ message: "Contrat modifié avec succès" });
+        notification.success({ message: "Contrat ajouté avec succès" });
 
         setShowAddForm(false);
         handleState({
@@ -142,9 +142,9 @@ export const AddContratForm = ({ handleState }) => {
           </Form.Item>
           <Form.Item
             name="delai"
-            label="Délai en jours"
+            label="Délai de paiement (en jours)"
             rules={[
-              { required: true, message: "Veuillez saisir le délai du contrat!" },
+              { required: true, message: "Veuillez saisir le délai de paiement (en jours) du contrat!" },
             ]}
             style={{ marginBottom: "8px" }}
           >

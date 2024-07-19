@@ -16,14 +16,17 @@ const Login = () => {
 
   const onFinish = async (values) => {
     try {
+      console.log(values)
       const response = await api.post('/auth/login', values);
       console.log(response.data)
       localStorage.setItem('access_token', response.data.access_token);
       setaccess_token(response.data.access_token);
       message.success('Connexion réussie');
       const user = await api.get('/auth/protected');
-console.log(user.data.logged_in_as);
+      console.log(user.data.logged_in_as);
       setCurrentUser(user.data.logged_in_as);
+      localStorage.setItem('currentUser',user.data.logged_in_as );
+
       navigate("/dashboard");
     } catch (error) {
       console.error('Login failed:', error);
@@ -149,7 +152,7 @@ console.log(user.data.logged_in_as);
                 </a>
                 <Form.Item>
                   <br />
-                  Vous n'avez pas de compte ?{" "}
+                  Vous n'avez pas de compte ?
                   <a href="" style={{ color: "#aa42e8" }}>
                     Créer un compte
                   </a>

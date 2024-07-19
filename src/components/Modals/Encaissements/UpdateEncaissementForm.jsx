@@ -47,7 +47,7 @@ function UpdateEncaissementForm({ record, handleState }) {
         notification.error({
           description:
             error?.response?.data?.error ||
-            `Un erreur lors de la modification du paiement "${values?.reference}"`,
+            `Une erreur lors de la modification du paiement "${values?.reference}"`,
         });
       });
   };

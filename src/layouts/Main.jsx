@@ -12,7 +12,7 @@ import {
 import { Layout, Menu, Dropdown, Avatar } from "antd";
 import { Outlet, Link,useNavigate } from "react-router-dom";
 import {removeaccess_token} from '../utils/auth'
-import { useAuth } from "../context/AuthContext";
+//import { useAuth } from "../context/AuthContext";
 
 
 const { Header, Content, Sider } = Layout;
@@ -46,7 +46,7 @@ const items = [
   {
     key: "6",
     icon: React.createElement(SettingOutlined),
-    label: <Link to="/dashboard">Paramétrage</Link>,
+    label: <Link to="/parametres/actuels">Paramétrage</Link>,
   },
 ];
 
@@ -54,7 +54,8 @@ const items = [
 
 const Main = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth(); // Get currentUser from AuthContext
+ // const { currentUser } = useAuth(); // Get currentUser from AuthContext
+  const currentUser = localStorage.getItem('currentUser');
 
 
   const handleLogout = () => {

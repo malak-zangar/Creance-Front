@@ -99,11 +99,11 @@ function UpdateContratForm({ record, handleState }) {
           </Form.Item>
           <Form.Item
             name="delai"
-            label="Délai en jours"
+            label="Délai de paiement (en jours)"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le délai du contrat!",
+                message: "Veuillez saisir le délai de paiement (en jours) du contrat!",
               },
             ]}
             style={{ marginBottom: '8px' }}

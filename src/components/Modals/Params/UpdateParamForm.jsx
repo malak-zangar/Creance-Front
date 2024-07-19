@@ -3,9 +3,9 @@ import { useState } from "react";
 import { EditOutlined} from '@ant-design/icons';
 import api from "../../../utils/axios";
 
-function UpdateClientForm({ record, handleState }) {
+function UpdateParamForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [editingParam, setEditingParam] = useState(null);
   const [editForm] = Form.useForm();
 
   const handleUpdate = () => {
@@ -13,9 +13,10 @@ function UpdateClientForm({ record, handleState }) {
     setIsEditModalVisible(true);
   };
 
-  const handleEditClient = (values) => {
+  const handleEditParam = (values) => {
+    
     api
-      .put(`/user/updateClient/${record.key}`, values)
+      .put(`/paramentreprise/updateparamentrep/${record.key}`, values)
       .then((response) => {
         
         handleState({
@@ -28,7 +29,7 @@ function UpdateClientForm({ record, handleState }) {
         notification.error({
           description:
             error?.response?.data?.error ||
-            `Une erreur lors de la modification du client "${values?.username}"`,
+            `Une erreur lors de la modification des paramètres d'ID "${record?.key}"`,
         });
       });
   };
@@ -38,11 +39,11 @@ function UpdateClientForm({ record, handleState }) {
       <Button icon={<EditOutlined />} type="primary" size="small" onClick={handleUpdate}>Modifier</Button>
 
       <Modal
-        title={"Modifier le client d'ID : "+ record?.key}
+        title={"Modifier les paramètres d'ID : "+ record?.key}
         visible={isEditModalVisible}
         onCancel={() => {
           setIsEditModalVisible(false);
-          setEditingUser(null);
+          setEditingParam(null);
         }}
         footer={null}
         style={{ top: 10 }} 
@@ -50,17 +51,17 @@ function UpdateClientForm({ record, handleState }) {
       >
         <Form
           form={editForm}
-          name="editClientForm"
-          initialValues={editingUser}
+          name="editParamForm"
+          initialValues={editingParam}
           layout="vertical"
-          onFinish={handleEditClient}
+          onFinish={handleEditParam}
         >
           
           <Form.Item
-            name="username"
-            label="Nom du client"
+            name="raisonSociale"
+            label="Raison sociale"
             rules={[
-              { required: true, message: "Veuillez saisir le nom du client!" },
+              { required: true, message: "Veuillez saisir la raison sociale de l'entreprise!" },
             ]}            style={{ marginBottom: '8px' }} 
           >
             <Input />
@@ -69,27 +70,19 @@ function UpdateClientForm({ record, handleState }) {
             name="email"
             label="Email"
             rules={[
-              { required: true, message: "Veuillez saisir l'email du client!" },
+              { required: true, message: "Veuillez saisir l'email de l'entreprise!" },
             ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            name="emailcc"
-            label="Email à copier en cc"
-            rules={[
-              { required: true, message: "Veuillez saisir l'email à copier en cc du client!" },
-            ]}style={{ marginBottom: '8px' }} 
-          >
-            <Input />
-          </Form.Item>
+          
           <Form.Item
             name="phone"
             label="Téléphone"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le numéro de téléphone du client!",
+                message: "Veuillez saisir le numéro de téléphone de l'entreprise!",
               },
             ]}style={{ marginBottom: '8px' }} 
           >
@@ -101,7 +94,7 @@ function UpdateClientForm({ record, handleState }) {
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir l'identifiant fiscal' du client!",
+                message: "Veuillez saisir l'identifiant fiscal de l'entreprise!",
               },
             ]}style={{ marginBottom: '8px' }} 
           >
@@ -109,11 +102,11 @@ function UpdateClientForm({ record, handleState }) {
           </Form.Item>
           <Form.Item
             name="adresse"
-            label="Adresse"
+            label="Adresse complète"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir l'adresse du client!",
+                message: "Veuillez saisir l'adresse complète de l'entreprise!",
               },
             ]}style={{ marginBottom: '8px' }} 
           >
@@ -130,4 +123,4 @@ function UpdateClientForm({ record, handleState }) {
   );
 }
 
-export default UpdateClientForm;
+export default UpdateParamForm;

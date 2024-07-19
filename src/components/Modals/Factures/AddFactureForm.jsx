@@ -93,7 +93,7 @@ export const AddFactureForm = ({ handleState }) => {
         notification.error({
           description:
             error?.response?.data?.erreur ||
-            `Un erreur lors de la creation de la facture "${values?.numero}"`,
+            `Une erreur lors de la creation de la facture "${values?.numero}"`,
         });
       });
   };
@@ -213,11 +213,11 @@ export const AddFactureForm = ({ handleState }) => {
           </Form.Item>
           <Form.Item
             name="delai"
-            label="Délai en jours"
+            label="Délai de paiement (en jours)"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le délai de la facture!",
+                message: "Veuillez saisir le délai de paiement (en jours) de la facture!",
               },
             ]}
             style={{ marginBottom: '8px' }}

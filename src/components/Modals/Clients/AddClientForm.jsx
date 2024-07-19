@@ -25,7 +25,7 @@ export const AddClientForm = ({ handleState }) => {
         notification.error({
           description:
             error?.response?.data?.erreur ||
-            `Un erreur lors de la creation du client "${values?.username}"`,
+            `Une erreur lors de la creation du client "${values?.username}"`,
         });
       });
   };
@@ -71,9 +71,9 @@ export const AddClientForm = ({ handleState }) => {
           </Form.Item>
           <Form.Item
             name="emailcc"
-            label="Email CC"
+            label="Email à copier en cc"
             rules={[
-              { required: true, message: "Veuillez saisir l'email cc du client!" },
+              { required: true, message: "Veuillez saisir l'email à copier en cc du client!" },
             ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
@@ -92,7 +92,7 @@ export const AddClientForm = ({ handleState }) => {
           </Form.Item>
           <Form.Item
             name="identifiantFiscal"
-            label="Identifiant fiscal"
+            label="ID Fiscal"
             rules={[
               {
                 required: true,

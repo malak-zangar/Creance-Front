@@ -53,9 +53,9 @@ const DetailsClientForm = ({ record }) => {
           <Descriptions bordered style={{ marginTop: '16px' }} column={1}>
             <Descriptions.Item label="Nom d'utilisateur">{record.username}</Descriptions.Item>
             <Descriptions.Item label="Email">{record.email}</Descriptions.Item>
-            <Descriptions.Item label="Email CC">{record.emailcc}</Descriptions.Item>
+            <Descriptions.Item label="Email à copier en cc">{record.emailcc}</Descriptions.Item>
             <Descriptions.Item label="Téléphone">{record.phone}</Descriptions.Item>
-            <Descriptions.Item label="Identifiant Fiscal">{record.identifiantFiscal}</Descriptions.Item>
+            <Descriptions.Item label="ID Fiscal">{record.identifiantFiscal}</Descriptions.Item>
             <Descriptions.Item label="Adresse">{record.adresse}</Descriptions.Item>
           </Descriptions>
         </Card>

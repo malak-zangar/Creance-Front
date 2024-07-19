@@ -41,7 +41,7 @@ function UpdateFactureForm({ record, handleState }) {
         notification.error({
           description:
             error?.response?.data?.error ||
-            `Un erreur lors de la modification de la facture "${values?.numero}"`,
+            `Une erreur lors de la modification de la facture "${values?.numero}"`,
         });
       });
   };
@@ -155,11 +155,11 @@ function UpdateFactureForm({ record, handleState }) {
 
           <Form.Item
             name="delai"
-            label="Délai en jours"
+            label="Délai de paiement (en jours)"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le délai de la facture!",
+                message: "Veuillez saisir le délai de paiement (en jours) de la facture!",
               },
             ]}
             style={{ marginBottom: "8px" }}

@@ -110,7 +110,7 @@ const DetailsFactureForm = ({ record }) => {
             <Descriptions.Item label="Client">{record.client}</Descriptions.Item>
             <Descriptions.Item label="Contrat">{record.contrat}</Descriptions.Item>
             <Descriptions.Item label="Date d'émission">{formatDate(record.date)}</Descriptions.Item>
-            <Descriptions.Item label="Délai">{record.delai}</Descriptions.Item>
+            <Descriptions.Item label="Délai de paiement (en jours)">{record.delai}</Descriptions.Item>
             <Descriptions.Item label="Date d'échéance">{formatDate(record.echeance)}</Descriptions.Item>
             <Descriptions.Item label="Retard">{record.retard}</Descriptions.Item>
             <Descriptions.Item label="Montant de la facture">{record.montant} {record.devise}</Descriptions.Item>

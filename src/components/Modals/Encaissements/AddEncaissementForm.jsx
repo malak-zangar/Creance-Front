@@ -84,7 +84,7 @@ export const AddEncaissementForm = ({ handleState }) => {
         notification.error({
           description:
             error?.response?.data?.erreur ||
-            `Un erreur lors de la creation du paiement "${values?.reference}"`,
+            `Une erreur lors de la creation du paiement "${values?.reference}"`,
         });
       });
   };

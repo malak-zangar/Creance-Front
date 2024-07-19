@@ -47,7 +47,7 @@ const DetailsContratForm = ({ record }) => {
           <Descriptions bordered style={{ marginTop: '16px' }} column={1}>
             <Descriptions.Item label="Référence">{record.reference}</Descriptions.Item>
             <Descriptions.Item label="Date de début">{formatDate(record.dateDebut)}</Descriptions.Item>
-            <Descriptions.Item label="Délai">{record.delai}</Descriptions.Item>
+            <Descriptions.Item label="Délai de paiement (en jours)">{record.delai}</Descriptions.Item>
             <Descriptions.Item label="Date de fin">{formatDate(record.dateFin)}</Descriptions.Item>
             <Descriptions.Item label="Conditions financières">{record.conditionsFinancieres}</Descriptions.Item>
             <Descriptions.Item label="Prochaine action">{record.prochaineAction}</Descriptions.Item>

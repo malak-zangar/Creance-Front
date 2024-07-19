@@ -14,6 +14,8 @@ import AllContracts from "./pages/Contrats/AllContracts";
 import ValidateFacture from "./pages/Factures/ValidateFacture";
 import { isAuthenticated } from "./utils/auth";
 import { AuthProvider } from './context/AuthContext';
+import EntrepParamHistorique from './pages/EntrepParam/EntrepParamHistorique';
+import EntrepParamActuel from './pages/EntrepParam/EntrepParamActuel';
 
 
 function App() {
@@ -38,6 +40,9 @@ function App() {
               <Route path="factures/valider/:param" element={<ValidateFacture />} />
               <Route path="encaissements" element={<ListeEncaissements />} />
               <Route path="contrats" element={<AllContracts />} />
+              <Route path="parametres/actuels" element={<EntrepParamActuel />} />
+              <Route path="parametres/historique" element={<EntrepParamHistorique />} />
+
             </>
           )}
         </Route>
