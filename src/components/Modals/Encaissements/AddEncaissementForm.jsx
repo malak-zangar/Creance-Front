@@ -1,4 +1,4 @@
-import { Button, DatePicker, Form, Input, Modal, notification, Select } from "antd";
+import { Button, DatePicker, Form, Input, Modal, notification, Select, Space } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import api from "../../../utils/axios";
@@ -92,6 +92,11 @@ export const AddEncaissementForm = ({ handleState }) => {
   const handleFactureChange = (value) => {
     const facture = factures.find((facture) => facture.id === value);
     setSelectedFacture(facture); // Mettre à jour l'état de la facture sélectionnée
+  };
+
+  const handleCancel = () => {
+    setShowAddForm(false);
+    addForm.resetFields();
   };
 
   return (
@@ -223,9 +228,14 @@ export const AddEncaissementForm = ({ handleState }) => {
           </Form.Item>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Ajouter
-            </Button>
+          <Space>
+              <Button type="primary" htmlType="submit">
+                Ajouter
+              </Button>
+              <Button key="cancel" onClick={handleCancel}>
+                Annuler
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

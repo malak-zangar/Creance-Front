@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, Button, Descriptions, Card, Avatar } from 'antd';
-import { InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, FileDoneOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
 const DetailsContratForm = ({ record }) => {
@@ -8,6 +8,7 @@ const DetailsContratForm = ({ record }) => {
 
   const handleDetails = () => {
     setIsDetailsModalVisible(true);
+    console.log(record)
   };
 
   const handleClose = () => {
@@ -17,7 +18,30 @@ const DetailsContratForm = ({ record }) => {
   const formatDate = (date) => {
     return moment(date).format('DD/MM/YYYY');
   };
-  
+
+  const renderDescriptions = () => {
+    const fields = [
+      { label: "Date de début", value: formatDate(record.dateDebut) },
+      { label: "Délai de paiement (en jours)", value: record.delai },
+      { label: "Date de fin", value: record.dateFin && formatDate(record.dateFin) },
+      { label: "Client", value: record.client },
+      { label: "Type de contrat", value: record.type },
+      { label: "Total à payer", value: record.total !== undefined && record.total !== null && record.devise ? `${record.total} ${record.devise}` : null },   
+      { label: "Prix du jour/homme", value: record.prixJourHomme !== undefined && record.prixJourHomme !== null && record.devise ? `${record.prixJourHomme} ${record.devise}` : null },   
+      { label: "Fréquence de facturation", value: record.typeFrequenceFacturation },
+      { label: "Détails spécifiques à la fréquence de facturation", value: record.detailsFrequence },
+      { label: "Montant à facturer par mois", value: record.montantParMois !== undefined && record.montantParMois !== null && record.devise ? `${record.montantParMois} ${record.devise}` : null },   
+
+    ];
+
+    return fields
+      .filter(field => field.value !== null && field.value !== undefined && field.value !== "")
+      .map(field => (
+        <Descriptions.Item key={field.label} label={field.label}>
+          {field.value}
+        </Descriptions.Item>
+      ));
+  };
 
   return (
     <>
@@ -39,21 +63,13 @@ const DetailsContratForm = ({ record }) => {
           <Card.Meta
             avatar={
               <div style={{ position: 'relative', display: 'inline-block' }}>
-                <Avatar icon={<UserOutlined />} />
+                <Avatar icon={<FileDoneOutlined />} />
               </div>
             }
-            description={`ID : ${record.key}`}
+            description={`Référence : ${record.reference}`}
           />
           <Descriptions bordered style={{ marginTop: '16px' }} column={1}>
-            <Descriptions.Item label="Référence">{record.reference}</Descriptions.Item>
-            <Descriptions.Item label="Date de début">{formatDate(record.dateDebut)}</Descriptions.Item>
-            <Descriptions.Item label="Délai de paiement (en jours)">{record.delai}</Descriptions.Item>
-            <Descriptions.Item label="Date de fin">{formatDate(record.dateFin)}</Descriptions.Item>
-            <Descriptions.Item label="Conditions financières">{record.conditionsFinancieres}</Descriptions.Item>
-            <Descriptions.Item label="Prochaine action">{record.prochaineAction}</Descriptions.Item>
-            <Descriptions.Item label="Date de la prochaine action">{formatDate(record.dateProchaineAction)}</Descriptions.Item>
-            <Descriptions.Item label="Date de rappel pour renégociation">{formatDate(record.dateRappel)}</Descriptions.Item>
-            <Descriptions.Item label="Client">{record.client}</Descriptions.Item>
+            {renderDescriptions()}
           </Descriptions>
         </Card>
       </Modal>

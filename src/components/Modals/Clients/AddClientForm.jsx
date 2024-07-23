@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, notification } from "antd";
+import { Button, Form, Input, Modal, notification, Space } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import api from "../../../utils/axios";
@@ -6,6 +6,12 @@ import api from "../../../utils/axios";
 export const AddClientForm = ({ handleState }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm] = Form.useForm();
+
+  const handleCancel = () => {
+    setShowAddForm(false);
+    addForm.resetFields();
+  };
+
   const handleAddClient = (values) => {
     console.log(values);
     api
@@ -115,9 +121,15 @@ export const AddClientForm = ({ handleState }) => {
             <Input />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Ajouter
-            </Button>
+          <Space>
+              <Button type="primary" htmlType="submit">
+                Ajouter
+              </Button>
+              <Button key="cancel" onClick={handleCancel}>
+                Annuler
+              </Button>
+            </Space>
+
           </Form.Item>
         </Form>
       </Modal>

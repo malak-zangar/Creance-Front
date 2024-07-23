@@ -26,7 +26,7 @@ const items = [
   {
     key: "2",
     icon: React.createElement(FileDoneOutlined),
-    label: <Link to="/contrats">Contrats</Link>,
+    label: <Link to="/contrats/actif">Contrats</Link>,
   },
   {
     key: "3",

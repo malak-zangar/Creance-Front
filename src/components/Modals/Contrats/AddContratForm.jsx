@@ -1,5 +1,16 @@
-import { Button, Form, Input, Modal, notification, Select, DatePicker } from "antd";
-import { PlusCircleOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Select,
+  DatePicker,
+  Space,
+  Upload,
+  Divider,
+} from "antd";
+import { PlusCircleOutlined, UploadOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import { AddClientForm } from "../Clients/AddClientForm";
 import api from "../../../utils/axios";
@@ -9,6 +20,10 @@ export const AddContratForm = ({ handleState }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm] = Form.useForm();
   const [clients, setClients] = useState([]);
+  const [contratFile1, setContratFile1] = useState("");
+  const [type, setType] = useState(null);
+  const [typeFrequenceFacturation, setTypeFrequenceFacturation] = useState(null);
+
 
   const fetchClients = () => {
     api
@@ -39,10 +54,10 @@ export const AddContratForm = ({ handleState }) => {
     const dataToSend = {
       ...values,
       client_id: clientId,
-      dateDebut: values.dateDebut.format('YYYY-MM-DD'),
-      dateProchaineAction: values.dateProchaineAction.format('YYYY-MM-DD'),
-      dateRappel: values.dateRappel.format('YYYY-MM-DD')
+      dateDebut: values.dateDebut.format("YYYY-MM-DD"),
+      contratFile: contratFile1,
     };
+    console.log(values.contratFile);
 
     api
       .post("/contrat/create", dataToSend)
@@ -71,6 +86,55 @@ export const AddContratForm = ({ handleState }) => {
     addForm.setFieldsValue({ client: client.id });
   };
 
+  const handleCancel = () => {
+    setShowAddForm(false);
+    addForm.resetFields();
+    setContratFile1(null);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.file;
+    console.log(file);
+  
+    if (file) {
+      const reader = new FileReader();
+      console.log(reader);
+  
+      reader.onload = (event) => {
+        console.log(event);
+        const base64Content = event.target.result.split(",")[1];
+        console.log(base64Content);
+        setContratFile1(base64Content);
+        console.log(contratFile1);
+      };
+  
+      reader.readAsDataURL(file); // This line reads the file
+    }
+  };
+  
+  const handleTypeChange = (value) => {
+    setType(value);
+    if (value === 'Forfait') {
+      addForm.setFieldsValue({ prixJourHomme: null });
+    } else if (value === 'Jour Homme') {
+      addForm.setFieldsValue({ total: null });
+    } else {
+      // Mix case: nothing to clear, just show relevant fields
+    }
+  };
+
+  const handleFrequenceChange = (value) => {
+    setTypeFrequenceFacturation(value);
+    if (value === 'Spécifique') {
+      addForm.setFieldsValue({ montantParMois: null });
+    } else {
+      // Mensuelle case: check if type is Forfait to set montantParMois
+      if (type === 'Forfait') {
+        addForm.setFieldsValue({ montantParMois: addForm.getFieldValue('montantParMois') });
+      }
+    }
+  };
+
   return (
     <>
       <Button
@@ -97,7 +161,10 @@ export const AddContratForm = ({ handleState }) => {
             name="reference"
             label="Référence du contrat"
             rules={[
-              { required: true, message: "Veuillez saisir la référence du contrat!" },
+              {
+                required: true,
+                message: "Veuillez saisir la référence du contrat!",
+              },
             ]}
             style={{ marginBottom: "8px" }}
           >
@@ -107,7 +174,10 @@ export const AddContratForm = ({ handleState }) => {
             name="dateDebut"
             label="Date Début"
             rules={[
-              { required: true, message: "Veuillez saisir la date de début du contrat!" },
+              {
+                required: true,
+                message: "Veuillez saisir la date de début du contrat!",
+              },
             ]}
             style={{ marginBottom: "8px" }}
           >
@@ -116,9 +186,7 @@ export const AddContratForm = ({ handleState }) => {
           <Form.Item
             name="client"
             label="Client"
-            rules={[
-              { required: true, message: "Veuillez choisir le client!" },
-            ]}
+            rules={[{ required: true, message: "Veuillez choisir le client!" }]}
             style={{ marginBottom: "8px" }}
           >
             <Select
@@ -144,56 +212,158 @@ export const AddContratForm = ({ handleState }) => {
             name="delai"
             label="Délai de paiement (en jours)"
             rules={[
-              { required: true, message: "Veuillez saisir le délai de paiement (en jours) du contrat!" },
+              {
+                required: true,
+                message:
+                  "Veuillez saisir le délai de paiement (en jours) du contrat!",
+              },
             ]}
             style={{ marginBottom: "8px" }}
           >
             <Input type="number" />
           </Form.Item>
-          <Form.Item
-            name="conditionsFinancieres"
-            label="Conditions financières"
-            rules={[
-              { required: true, message: "Veuillez saisir les conditions financières du contrat!" },
-            ]}
+
+            <Form.Item
+            name="type"
+            label="Type"
+            rules={[{ required: true, message: "Veuillez sélectionner le type de contrat!" }]}
             style={{ marginBottom: "8px" }}
           >
-            <Input type="text" />
+            <Select onChange={handleTypeChange}>
+              <Option value="Forfait">Forfait</Option>
+              <Option value="Jour Homme">Jour Homme</Option>
+              <Option value="Mix">Mix</Option>
+            </Select>
+          </Form.Item>
+          {type === 'Forfait' && (
+            <>
+              <Form.Item
+                name="total"
+                label="Total"
+                rules={[
+                  {
+                    required: true,
+                    message: "Veuillez saisir le total!",
+                  },
+                ]}
+                style={{ marginBottom: "8px" }}
+              >
+                <Input type="number" step="0.001" />
+              </Form.Item>
+              {typeFrequenceFacturation === 'Mensuelle' && (
+                <Form.Item
+                  name="montantParMois"
+                  label="Montant à facturer par Mois"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Veuillez saisir le montant à facturer par mois!",
+                    },
+                  ]}
+                  style={{ marginBottom: "8px" }}
+                >
+                  <Input type="number" step="0.001" />
+                </Form.Item>
+              )}
+            </>
+          )}
+          {type === 'Jour Homme' && (
+            <Form.Item
+              name="prixJourHomme"
+              label="Prix du jour/homme"
+              rules={[
+                {
+                  required: true,
+                  message: "Veuillez saisir le prix du jour/homme!",
+                },
+              ]}
+              style={{ marginBottom: "8px" }}
+            >
+              <Input type="number" step="0.001"/>
+            </Form.Item>
+          )}
+          {type === 'Mix' && (
+            <>
+              <Form.Item
+                name="total"
+                label="Total"
+                rules={[
+                  {
+                    required: true,
+                    message: "Veuillez saisir le total!",
+                  },
+                ]}
+                style={{ marginBottom: "8px" }}
+              >
+                <Input type="number" step="0.001"/>
+              </Form.Item>
+              <Form.Item
+                name="prixJourHomme"
+                label="Prix du jour/homme"
+                rules={[
+                  {
+                    required: true,
+                    message: "Veuillez saisir le prix du jour/homme!",
+                  },
+                ]}
+                style={{ marginBottom: "8px" }}
+              >
+                <Input type="number" step="0.001" />
+              </Form.Item>
+            </>
+          )}
+          <Form.Item
+            name="typeFrequenceFacturation"
+            label="Fréquence de facturation"
+            rules={[{ required: true, message: "Veuillez sélectionner la fréquence de facturation!" }]}
+            style={{ marginBottom: "8px" }}
+          >
+            <Select onChange={handleFrequenceChange}>
+              <Option value="Mensuelle">Mensuelle</Option>
+              <Option value="Spécifique">Spécifique</Option>
+            </Select>
+          </Form.Item>
+          {typeFrequenceFacturation === 'Spécifique' && (
+            <Form.Item
+              name="detailsFrequence"
+              label="Détails spécifiques"
+              style={{ marginBottom: "8px" }}
+            >
+              <Input />
+            </Form.Item>
+          )}
+           <Form.Item
+            name="devise"
+            label="Devise"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez saisir la devise du contrat!",
+              },
+            ]}
+            style={{ marginBottom: '8px' }}
+          >
+            <Input />
           </Form.Item>
           <Form.Item
-            name="prochaineAction"
-            label="Prochaine action"
-            rules={[
-              { required: true, message: "Veuillez saisir la prochaine action du contrat!" },
-            ]}
+            name="contratFile"
+            label="Ajouter le contrat PDF"
             style={{ marginBottom: "8px" }}
           >
-            <Input type="text" />
-          </Form.Item>
-          <Form.Item
-            name="dateProchaineAction"
-            label="Date de prochaine action"
-            rules={[
-              { required: true, message: "Veuillez saisir la date de la prochaine action du contrat!" },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            name="dateRappel"
-            label="Date de rappel pour renégociation"
-            rules={[
-              { required: true, message: "Veuillez saisir la date de rappel du contrat!" },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <DatePicker style={{ width: "100%" }} />
+            <Upload beforeUpload={() => false} onChange={handleFileChange}>
+              <Button icon={<UploadOutlined />}>Sélectionner un fichier</Button>
+            </Upload>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Ajouter
-            </Button>
+            {" "}
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Ajouter
+              </Button>
+              <Button key="cancel" onClick={handleCancel}>
+                Annuler
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

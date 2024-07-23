@@ -1,4 +1,4 @@
-import { Button, DatePicker, Form, Input, Modal, notification, Select } from "antd";
+import { Button, DatePicker, Form, Input, Modal, notification, Select, Space } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import api from "../../../utils/axios";
@@ -98,6 +98,11 @@ export const AddFactureForm = ({ handleState }) => {
       });
   };
 
+  const handleCancel = () => {
+    setShowAddForm(false);
+    addForm.resetFields();
+  };
+
   return (
     <>
       <Button
@@ -187,30 +192,18 @@ export const AddFactureForm = ({ handleState }) => {
           )}
           <Form.Item
             name="montant"
-            label="Montant"
+            label={`Montant `}
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le montant de la facture!",
+                message: "Veuillez saisir le montant de la facture! ",
               },
             ]}
             style={{ marginBottom: '8px' }}
           >
             <Input type="number" step="0.001" />
           </Form.Item>
-          <Form.Item
-            name="devise"
-            label="Devise"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir la devise de la facture!",
-              },
-            ]}
-            style={{ marginBottom: '8px' }}
-          >
-            <Input />
-          </Form.Item>
+         
           <Form.Item
             name="delai"
             label="Délai de paiement (en jours)"
@@ -251,9 +244,14 @@ export const AddFactureForm = ({ handleState }) => {
             <Input />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Ajouter
-            </Button>
+          <Space>
+              <Button type="primary" htmlType="submit">
+                Ajouter
+              </Button>
+              <Button key="cancel" onClick={handleCancel}>
+                Annuler
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

@@ -1,19 +1,21 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, DownloadOutlined } from '@ant-design/icons';
+import { SearchOutlined, FileTextOutlined,FolderOpenOutlined  } from '@ant-design/icons';
 import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
-import UpdateContratForm from "../../components/Modals/Contrats/UpdateContratForm";
 import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
-import { AddContratForm } from "../../components/Modals/Contrats/AddContratForm";
 import moment from "moment";
 import api from "../../utils/axios";
+import { useNavigate } from "react-router-dom";
 
-const AllContracts = () => {
+const AllExpiredContracts = () => {
 
   const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
+  const navigate = useNavigate();
+
+
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
@@ -121,7 +123,7 @@ const AllContracts = () => {
 
   const fetchData = () => {
     api
-      .get("contrat/getAll")
+      .get("contrat/getExpired")
       .then((response) => {
         setData(
           response.data.map((contrat) => ({
@@ -130,17 +132,22 @@ const AllContracts = () => {
             dateDebut: moment(contrat.dateDebut).format('YYYY-MM-DD'),
             dateFin: moment(contrat.dateFin).format('YYYY-MM-DD'),
             delai: contrat.delai,
-            conditionsFinancieres: contrat.conditionsFinancieres,
-            prochaineAction: contrat.prochaineAction,
+            type: contrat.type,
+            total: contrat.total,
+            prixJourHomme: contrat.prixJourHomme,
+            typeFrequenceFacturation: contrat.typeFrequenceFacturation,
+            detailsFrequence: contrat.detailsFrequence,
+            montantParMois: contrat.montantParMois,
+            devise: contrat.devise,
             client_id: contrat.client_id,
             client: contrat.client,
-            dateProchaineAction: moment(contrat.dateProchaineAction).format('YYYY-MM-DD'),
-            dateRappel: moment(contrat.dateRappel).format('YYYY-MM-DD'),
+            contratFile : contrat.contratFile
+
           }))
         );
       })
       .catch((error) => {
-        notification.error("There was an error fetching the contracts!", error);
+        notification.error("Une erreur lors de la recherche des contrats!", error);
       });
   };
   
@@ -150,46 +157,39 @@ const AllContracts = () => {
   }, []);
 
 
-  const handleContracts = (record) => {
-    fetchData();
-  };
-
   const handleAddContractState = (record) => {
     setData([ record, ...data,]);
   };
 
-  const Report = (key) => {
-    console.log("Generating contract with key: ", key);
-    api
-      .get(`/contrat/report/${key}`, {
-        responseType: 'blob', 
-      })
-      .then((response) => {
-        console.log("Contract generated successfully:", response.data);
+  const ToListActif = () => {
+    console.log("Button ToListActif clicked");
+    navigate("/contrats/actif");
+  };
 
+  const Report = (key,reference) => {
+    console.log("Generating contract with key: ", key," and reference : ", reference);
+    api
+      .get(`/contrat/contratFile/${key}`, {responseType: 'blob', })
+      .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-        const link = document.createElement('a');
+        window.open(url); 
+       /* const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `contrat_${key}.pdf`); 
+        link.setAttribute('download', `contrat_${reference}.pdf`); 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
         fetchData();
-        notification.success({ message: "Rapport du contrat généré avec succès" });
+        notification.success({ message: "Rapport du contrat généré avec succès" });*/
 
       })
       .catch((error) => {
-        notification.error("There was an error generating the contract!", error);
+        notification.error("Une erreur lors de la génération du contrat!", error);
       });
   };
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "key",
-      ...getColumnSearchProps('key'),
-    },
+
     {
       title: "Référence",
       dataIndex: "reference",
@@ -202,6 +202,12 @@ const AllContracts = () => {
       sorter: (a, b) => moment(a.dateDebut).format('DD/MM/YYYY') - moment(b.dateDebut).format('DD/MM/YYYY'),
     },
     {
+      title: "Date fin",
+      dataIndex: "dateFin",
+      render: (text) => moment(text).format('DD/MM/YYYY'),
+      sorter: (a, b) => moment(a.dateFin).format('DD/MM/YYYY') - moment(b.dateFin).format('DD/MM/YYYY'),
+    },
+    {
       title: "Client",
       dataIndex: "client",
       ...getColumnSearchProps('client'),
@@ -211,9 +217,8 @@ const AllContracts = () => {
       dataIndex: "action",
       render: (_, record) => (
         <Space>
-          <UpdateContratForm record={record} handleState={handleContracts} />
-          <Button icon={<DownloadOutlined />} size="small" onClick={() => Report(record.key)}>Télécharger</Button>
           <DetailsContratForm record={record} />
+          <Button  disabled={!record.contratFile} icon={<FileTextOutlined  />} size="small" onClick={() => Report(record.key,record.reference)}>Visualiser le contrat</Button>
         </Space>
       ),
     },
@@ -222,10 +227,12 @@ const AllContracts = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Tous les Contrats</Typography.Title>
+        <Typography.Title level={2}>Tous les Contrats archivés</Typography.Title>
     
       <Space className="mb-4">
-        <AddContratForm handleState={handleAddContractState}  />
+        <Button  onClick={ToListActif} icon={<FolderOpenOutlined />}>
+          Les contrats actifs
+        </Button>
       </Space>
       <Table
       size="small"
@@ -243,4 +250,4 @@ const AllContracts = () => {
   );
 };
 
-export default AllContracts;
+export default AllExpiredContracts;
