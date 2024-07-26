@@ -1,11 +1,12 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, UserOutlined ,ExportOutlined} from '@ant-design/icons';
+import { SearchOutlined,HistoryOutlined, UserOutlined ,ExportOutlined} from '@ant-design/icons';
 import { Button, Input, Space, Table, Typography,Select,Row,Col, notification } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
 import UpdateClientForm from "../../components/Modals/Clients/UpdateClientForm";
 import  DetailsClientForm  from "../../components/Modals/Clients/DetailsClientForm";
 import api from "../../utils/axios";
+import moment from "moment";
 
 const ArchivedClients = () => {
 
@@ -36,7 +37,7 @@ const ArchivedClients = () => {
       >
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
@@ -52,10 +53,10 @@ const ArchivedClients = () => {
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90,
+              width: 100,
             }}
           >
-            Search
+            Rechercher
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
@@ -64,7 +65,7 @@ const ArchivedClients = () => {
               width: 90,
             }}
           >
-            Reset
+            Réinitialiser
           </Button>
           <Button
             type="link"
@@ -77,7 +78,7 @@ const ArchivedClients = () => {
               setSearchedColumn(dataIndex);
             }}
           >
-            Filter
+            Filtrer
           </Button>
           <Button
             type="link"
@@ -86,7 +87,7 @@ const ArchivedClients = () => {
               close();
             }}
           >
-            close
+            Fermer
           </Button>
         </Space>
       </div>
@@ -136,7 +137,8 @@ const ArchivedClients = () => {
             phone: client.phone,
             adresse: client.adresse,
             identifiantFiscal : client.identifiantFiscal,
-            actif : client.actif
+            actif : client.actif,
+            dateCreation: moment(client.dateCreation).format('YYYY-MM-DD'),
 
           }))
         );
@@ -162,34 +164,34 @@ const ArchivedClients = () => {
     navigate("/clients");
   };
 
+  
+
   const Export = async () => {
     console.log("Button Export clicked");
     try {
-      const response = await fetch(
-        "/user/export/csv/nonactif",
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "text/csv",
-          },
+        const response = await api.get('/user/export/csv/nonactif', {
+            responseType: 'blob'
+        });
+
+        console.log("Response:", response);
+
+        if (response.status !== 200) {
+            throw new Error('Network response was not ok');
         }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = "nonactifusers.csv";
+        const blob = new Blob([response.data], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'nonactifusers.csv';  // Nom du fichier CSV
 
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
     } catch (error) {
-      notification.error("There was a problem with the fetch operation:", error);
+        console.error('There was a problem with the fetch operation:', error);
     }
   };
 
@@ -207,25 +209,35 @@ const ArchivedClients = () => {
 
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "key",
-      ...getColumnSearchProps('key'),
-    },
+
     {
       title: "Client",
       dataIndex: "username",
       ...getColumnSearchProps('username'),
     },
     {
-      title: "Email destinataire",
+      title: "Date de creation",
+      dataIndex: "dateCreation",
+      render: (text) => moment(text).format('DD/MM/YYYY'),
+      sorter: (a, b) => moment(a.dateCreation).format('DD/MM/YYYY') - moment(b.dateCreation).format('DD/MM/YYYY'),
+    },
+
+ /*   {
+      title: "Email de contact",
       dataIndex: "email",
       ...getColumnSearchProps('email'),
     },
 
-    {
+   {
       title: "Actif",
       dataIndex: "actif",
+      filters: [
+        { text: 'Actif', value: true },
+        { text: 'Non Actif', value: false },
+      ],
+      onFilter: (value, record) => record.actif === value,
+      //...getColumnSearchProps('actif'),
+
       render: (actif) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div
@@ -239,7 +251,7 @@ const ArchivedClients = () => {
           ></div>
         </div>
       ),
-    },
+    },*/
  
     {
       title: "Action",
@@ -248,6 +260,7 @@ const ArchivedClients = () => {
         <Space>
           <UpdateClientForm record={record} handleState={handleClients} />
           <DetailsClientForm record={record} />
+        
         </Space>
       ),
     },
@@ -260,7 +273,7 @@ const ArchivedClients = () => {
     
       <Space className="mb-4">
         <Button  onClick={ToListClients} icon={<UserOutlined />}>
-          Tous les clients
+           Les clients actifs
         </Button>
 
       </Space>

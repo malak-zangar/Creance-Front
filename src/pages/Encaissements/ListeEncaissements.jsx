@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Table, Button, Typography, Space, Input, notification } from "antd";
 import Highlighter from "react-highlight-words";
-import { SearchOutlined, DownloadOutlined } from "@ant-design/icons";
+import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
 import { AddEncaissementForm } from "../../components/Modals/Encaissements/AddEncaissementForm";
 import UpdateEncaissementForm from "../../components/Modals/Encaissements/UpdateEncaissementForm";
 import DetailsEncaissementForm from "../../components/Modals/Encaissements/DetailsEncaissementForm";
@@ -40,7 +40,7 @@ const ListeEncaissements = () => {
       >
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) =>
             setSelectedKeys(e.target.value ? [e.target.value] : [])
@@ -58,10 +58,10 @@ const ListeEncaissements = () => {
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90,
+              width: 100,
             }}
           >
-            Search
+            Rechercher
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
@@ -70,7 +70,7 @@ const ListeEncaissements = () => {
               width: 90,
             }}
           >
-            Reset
+            Réinitialiser
           </Button>
           <Button
             type="link"
@@ -83,7 +83,7 @@ const ListeEncaissements = () => {
               setSearchedColumn(dataIndex);
             }}
           >
-            Filter
+            Filtrer
           </Button>
           <Button
             type="link"
@@ -92,7 +92,7 @@ const ListeEncaissements = () => {
               close();
             }}
           >
-            close
+            Fermer
           </Button>
         </Space>
       </div>
@@ -201,12 +201,7 @@ const ListeEncaissements = () => {
   };
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "key",
-      ...getColumnSearchProps('key'),
-
-    },
+ 
     {
       title: "Référence",
       dataIndex: "reference",
@@ -241,11 +236,11 @@ const ListeEncaissements = () => {
             handleState={handleEncaissements}
           />
           <Button
-            icon={<DownloadOutlined />}
+            icon={<EyeOutlined />}
             size="small"
             onClick={() => Report(record.key)}
           >
-            Télécharger
+            
           </Button>
           <DetailsEncaissementForm record={record} />
         </Space>

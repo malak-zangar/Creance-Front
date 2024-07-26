@@ -39,7 +39,7 @@ const ActifClients = () => {
       >
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
@@ -55,10 +55,10 @@ const ActifClients = () => {
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90,
+              width: 100,
             }}
           >
-            Search
+            Rechercher 
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
@@ -67,7 +67,7 @@ const ActifClients = () => {
               width: 90,
             }}
           >
-            Reset
+            Réinitialiser
           </Button>
           <Button
             type="link"
@@ -80,7 +80,7 @@ const ActifClients = () => {
               setSearchedColumn(dataIndex);
             }}
           >
-            Filter
+            Filtrer
           </Button>
           <Button
             type="link"
@@ -89,7 +89,7 @@ const ActifClients = () => {
               close();
             }}
           >
-            close
+            Fermer
           </Button>
         </Space>
       </div>
@@ -233,11 +233,7 @@ const ActifClients = () => {
   };
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "key",
-      ...getColumnSearchProps('key'),
-    },
+
     {
       title: "Client",
       dataIndex: "username",
@@ -252,7 +248,32 @@ const ActifClients = () => {
       title: "Téléphone",
       dataIndex: "phone",
     },
- 
+  /*   
+
+   {
+      title: "Actif",
+      dataIndex: "actif",
+      filters: [
+        { text: 'Actif', value: true },
+        { text: 'Non Actif', value: false },
+      ],
+      onFilter: (value, record) => record.actif === value,
+      //...getColumnSearchProps('actif'),
+
+      render: (actif) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div
+            style={{
+              width: '13px',
+              height: '13px',
+              borderRadius:'100%',
+              backgroundColor: actif ? 'green' : 'red',
+              marginLeft: '8px',
+            }}
+          ></div>
+        </div>
+      ),
+    },*/
     {
       title: "Action",
       dataIndex: "action",

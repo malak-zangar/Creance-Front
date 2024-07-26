@@ -16,20 +16,39 @@ const DetailsFactureForm = ({ record }) => {
 
   const getColor = (statut) => {
     switch (statut) {
-      case 'Échue':
-        return 'red';
-      case 'Payée':
-        return 'green';
-      case 'Non payée':
-        return 'orange';
-      case 'En cours':
-        return 'gray';
-      default:
-        return 'gray';
-    }
-  };
+        case 'Échue':
+            return 'red';
+        case 'Non échue':
+            return 'gray';
+        case 'Payée':
+            return 'green';
 
-  const renderStatut = (statut, actif) => {
+    }
+};
+
+  const renderStatut= (statut) => {
+
+    const color = getColor(statut);
+
+    return (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+                style={{
+                    padding: '0px 2px',
+                    borderRadius: '4px',
+                    backgroundColor: color,
+                    color: 'white',
+                    fontWeight: 'bold',
+                    textAlign: 'center'
+                }}
+            >
+                {statut}
+            </div>
+        </div>
+    );
+};
+
+  /*const renderStatut = (statut, actif) => {
     if (!actif) {
       return (
         <div
@@ -64,7 +83,7 @@ const DetailsFactureForm = ({ record }) => {
         {statut}
       </div>
     );
-  };
+  };*/
 
   const formatDate = (date) => {
     
@@ -78,10 +97,9 @@ const DetailsFactureForm = ({ record }) => {
   return (
     <>
       <Button icon={<InfoCircleOutlined />} size="small" onClick={handleDetails}>
-        Détails
       </Button>
       <Modal
-        title={`Informations de la facture : ${record.numero}`}
+        title={`Informations de la facture : ${record?.numero}`}
         visible={isDetailsModalVisible}
         onCancel={handleClose}
         footer={[
@@ -100,24 +118,23 @@ const DetailsFactureForm = ({ record }) => {
             }
             description={
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{`ID : ${record.key}`}</span>
-                {renderStatut(record.statut, record.actif)}
+                <span>{`Numéro : ${record?.numero}`}</span>
+                {renderStatut(record?.statut)}
               </div>
             }
           />
           <Descriptions bordered style={{ marginTop: '16px' }} column={1}>
-            <Descriptions.Item label="Numéro">{record.numero}</Descriptions.Item>
-            <Descriptions.Item label="Client">{record.client}</Descriptions.Item>
-            <Descriptions.Item label="Contrat">{record.contrat}</Descriptions.Item>
-            <Descriptions.Item label="Date d'émission">{formatDate(record.date)}</Descriptions.Item>
-            <Descriptions.Item label="Délai de paiement (en jours)">{record.delai}</Descriptions.Item>
-            <Descriptions.Item label="Date d'échéance">{formatDate(record.echeance)}</Descriptions.Item>
-            <Descriptions.Item label="Retard">{record.retard}</Descriptions.Item>
-            <Descriptions.Item label="Montant de la facture">{record.montant} {record.devise}</Descriptions.Item>
-            <Descriptions.Item label="Montant encaissé">{record.montantEncaisse} {record.devise}</Descriptions.Item>
-            <Descriptions.Item label="Solde restant">{record.solde} {record.devise}</Descriptions.Item>
-            <Descriptions.Item label="Action de recouvrement">{record.actionRecouvrement}</Descriptions.Item>
-            <Descriptions.Item label="Date de finalisation">{formatDate(record.dateFinalisation)}</Descriptions.Item>
+            <Descriptions.Item label="Client">{record?.client}</Descriptions.Item>
+            <Descriptions.Item label="Contrat">{record?.contrat}</Descriptions.Item>
+            <Descriptions.Item label="Date d'émission">{formatDate(record?.date)}</Descriptions.Item>
+            <Descriptions.Item label="Délai de paiement (en jours)">{record?.delai}</Descriptions.Item>
+            <Descriptions.Item label="Date d'échéance">{formatDate(record?.echeance)}</Descriptions.Item>
+            <Descriptions.Item label="Retard">{record?.retard}</Descriptions.Item>
+            <Descriptions.Item label="Montant de la facture">{record?.montant} {record?.devise}</Descriptions.Item>
+            <Descriptions.Item label="Montant encaissé">{record?.montantEncaisse} {record?.devise}</Descriptions.Item>
+            <Descriptions.Item label="Solde restant">{record?.solde} {record?.devise}</Descriptions.Item>
+            <Descriptions.Item label="Action de recouvrement">{record?.actionRecouvrement}</Descriptions.Item>
+            <Descriptions.Item label="Date de finalisation">{formatDate(record?.dateFinalisation)}</Descriptions.Item>
           </Descriptions>
         </Card>
       </Modal>

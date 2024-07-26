@@ -41,7 +41,7 @@ const DetailsEncaissementForm = ({ record }) => {
         size="small"
         onClick={handleDetails}
       >
-        Détails
+        
       </Button>
       <Modal
         title={`Informations du paiement : ${record.reference}`}
@@ -69,14 +69,12 @@ const DetailsEncaissementForm = ({ record }) => {
                   alignItems: "center",
                 }}
               >
-                <span>{`ID : ${record.key}`}</span>
+                <span>{`Référence : ${record.reference}`}</span>
               </div>
             }
           />
           <Descriptions bordered style={{ marginTop: "16px" }} column={1}>
-            <Descriptions.Item label="Référence">
-              {record.reference}
-            </Descriptions.Item>
+       
             <Descriptions.Item label="Client">
               {record.client}
             </Descriptions.Item>

@@ -1,5 +1,5 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FileTextOutlined,FolderOpenOutlined  } from '@ant-design/icons';
+import { SearchOutlined, EyeOutlined,FolderOpenOutlined  } from '@ant-design/icons';
 import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import UpdateContratForm from "../../components/Modals/Contrats/UpdateContratForm";
@@ -37,7 +37,7 @@ const ActifContracts = () => {
       >
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
@@ -53,10 +53,10 @@ const ActifContracts = () => {
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90,
+              width: 100,
             }}
           >
-            Search
+            Rechercher
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
@@ -65,7 +65,7 @@ const ActifContracts = () => {
               width: 90,
             }}
           >
-            Reset
+            Réinitialiser
           </Button>
           <Button
             type="link"
@@ -78,7 +78,7 @@ const ActifContracts = () => {
               setSearchedColumn(dataIndex);
             }}
           >
-            Filter
+            Filtrer
           </Button>
           <Button
             type="link"
@@ -87,7 +87,7 @@ const ActifContracts = () => {
               close();
             }}
           >
-            close
+            Fermer
           </Button>
         </Space>
       </div>
@@ -225,7 +225,8 @@ const ActifContracts = () => {
         <Space>
           <UpdateContratForm record={record} handleState={handleContracts} />
           <DetailsContratForm record={record} />
-          <Button  disabled={!record.contratFile} icon={<FileTextOutlined  />} size="small" onClick={() => Report(record.key,record.reference)}>Visualiser le contrat</Button>
+          <Button  disabled={!record.contratFile} icon={<EyeOutlined  />} size="small"
+           onClick={() => Report(record.key,record.reference)}></Button>
         </Space>
       ),
     },

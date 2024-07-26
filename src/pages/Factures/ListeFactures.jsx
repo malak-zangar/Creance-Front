@@ -38,7 +38,7 @@ function ListeFactures() {
       >
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
@@ -54,10 +54,10 @@ function ListeFactures() {
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90,
+              width: 100,
             }}
           >
-            Search
+            Rechercher
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
@@ -66,7 +66,7 @@ function ListeFactures() {
               width: 90,
             }}
           >
-            Reset
+            Réinitialiser
           </Button>
           <Button
             type="link"
@@ -79,7 +79,7 @@ function ListeFactures() {
               setSearchedColumn(dataIndex);
             }}
           >
-            Filter
+            Filtrer
           </Button>
           <Button
             type="link"
@@ -88,7 +88,7 @@ function ListeFactures() {
               close();
             }}
           >
-            close
+            Fermer
           </Button>
         </Space>
       </div>
@@ -160,12 +160,7 @@ function ListeFactures() {
   };
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "key",
-      ...getColumnSearchProps('key'),
 
-    },
     {
       title: "Numéro",
       dataIndex: "numero",

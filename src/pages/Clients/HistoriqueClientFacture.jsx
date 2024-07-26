@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
-  DownloadOutlined,
-  RetweetOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { Button, Input, notification, Space, Table, Typography } from "antd";
 import Highlighter from "react-highlight-words";
@@ -12,7 +11,7 @@ import { useParams } from 'react-router-dom';
 import api from "../../utils/axios";
 
 
-const ValidateFacture = () => {
+const HistoriqueClientFacture = () => {
   const { param } = useParams();
   const [data, setData] = useState([]);
   const [clientName, setClientName] = useState("");
@@ -131,21 +130,9 @@ const ValidateFacture = () => {
       ),
   });
 
-  const handleActivate = (key) => {
-    console.log("activated record with key: ", key);
-    api
-      .put(`/facture/restaureFacture/${key}`)
-      .then((response) => {
-        console.log("Facture activated successfully:", response.data);
-        notification.success({ message: "Facture activée avec succès" });
-        fetchData(response.data.client_id);
-      })
-      .catch((error) => {
-        notification.error("There was an error activating the Facture!", error);
-      });
-  };
-
+ 
   const fetchData = () => {
+
     api
       .get(`/facture/getByClient/${param}`)
       .then((response) => {
@@ -187,31 +174,28 @@ const ValidateFacture = () => {
   }, []);
 
   const Report = (key) => {
-    console.log("Generating report with key: ", key);
+    console.log("Generating facture with key: ", key);
     api
-      .get(`/facture/report/${key}`, {
-        responseType: "blob",
-      })
+      .get(`/facture/report/${key}`, {responseType: 'blob', })
       .then((response) => {
-        console.log("Report generated successfully:", response.data);
-
-        const url = window.URL.createObjectURL(
-          new Blob([response.data], { type: "application/pdf" })
-        );
-        const link = document.createElement("a");
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        window.open(url); 
+       /* const link = document.createElement('a');
         link.href = url;
-        link.setAttribute("download", `report_${key}.pdf`);
+        link.setAttribute('download', `facture_${reference}.pdf`); 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        notification.success({ message: "Rapport facture généré avec succès" });
-
         fetchData();
+        notification.success({ message: "Rapport du contrat généré avec succès" });*/
+
       })
       .catch((error) => {
-        notification.error("There was an error generating the report!", error);
+        notification.error("Une erreur lors de la génération de la facture!", error);
       });
   };
+
+
 
   const columns = [
 
@@ -221,28 +205,72 @@ const ValidateFacture = () => {
       ...getColumnSearchProps("numero"),
     },
     {
-      title: "Date",
+      title: "Date d'émission",
       dataIndex: "date",
       //...getColumnSearchProps('date'),
       render: (text) => moment(text).format("DD/MM/YYYY"),
 
       sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
     },
+
     {
-      title: "Client",
-      dataIndex: "client",
-      ...getColumnSearchProps("client"),
-    },
-    {
-      title: "Contrat",
-      dataIndex: "contrat",
-      ...getColumnSearchProps("contrat"),
-    },
-    {
-      title: "Montant",
+      title: "Montant facturé",
       dataIndex: "montant",
       ...getColumnSearchProps("montant"),
       sorter: (a, b) => a.montant - b.montant,
+      render: (_, record) => `${record.montant} ${record.devise}`, 
+
+    },
+    {
+        title: "Montant payé",
+        dataIndex: "montantEncaisse",
+        ...getColumnSearchProps("montantEncaisse"),
+        sorter: (a, b) => a.montantEncaisse - b.montantEncaisse,
+        render: (_, record) => `${record.montantEncaisse} ${record.devise}`, 
+
+      },
+
+      {
+        title: "Statut",
+        dataIndex: "statut",
+        filters: [
+            { text: 'Échue', value: 'Échue' },
+            { text: 'Non échue', value: 'Non échue' },
+        ],
+        onFilter: (value, record) => record.statut === value,
+        render: (statut) => {
+            const getColor = (statut) => {
+                switch (statut) {
+                    case 'Échue':
+                        return 'red';
+                    case 'Non échue':
+                        return 'gray';
+                    case 'Payée':
+                        return 'green';
+    
+                }
+            };
+    
+            // Couleur correspondant au statut
+            const color = getColor(statut);
+    
+            return (
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div
+                        style={{
+                            padding: '0px 2px',
+                            borderRadius: '4px',
+                            backgroundColor: color,
+                            color: 'white',
+                            fontWeight: 'bold',
+                            textAlign: 'center'
+                        }}
+                    >
+                        {statut}
+                    </div>
+                </div>
+            );
+        },
     },
 
     {
@@ -250,20 +278,13 @@ const ValidateFacture = () => {
       dataIndex: "action",
       render: (_, record) => (
         <Space>
+        
           <Button
-            icon={<RetweetOutlined />}
-            size="small"
-            onClick={() => handleActivate(record.key)}
-            disabled={record.actif}
-          >
-            activer
-          </Button>
-          <Button
-            icon={<DownloadOutlined />}
+            icon={<EyeOutlined />}
             size="small"
             onClick={() => Report(record.key)}
           >
-            Télécharger
+            Visualiser la facture
           </Button>
 
           <DetailsFactureForm record={record} />
@@ -272,10 +293,53 @@ const ValidateFacture = () => {
     },
   ];
 
+  const convertCurrency = async (amount, fromCurrency, toCurrency) => {
+    try {
+      const response = await api.get(`/paramentreprise/convert`, {
+        params: {
+          base: fromCurrency,
+          target: toCurrency,
+          amount: amount,
+        },
+      });
+      return response.data.converted_amount || amount; // Return the converted amount or the original if conversion fails
+    } catch (error) {
+      notification.error({ message: "Erreur lors de la conversion de devise", description: error.message });
+      return amount; // Return the original amount if conversion fails
+    }
+  };
+
+  const calculateTotals = async () => {
+    let totalFacture = 0;
+    let totalPaye = 0;
+
+    for (const facture of data) {
+      const convertedMontant = await convertCurrency(facture.montant, facture.devise, "EUR");
+      const convertedMontantEncaisse = await convertCurrency(facture.montantEncaisse, facture.devise, "EUR");
+
+      totalFacture += convertedMontant;
+      totalPaye += convertedMontantEncaisse;
+    }
+
+    return {
+      totalFacture,
+      totalPaye
+    };
+  };
+
+  const [totals, setTotals] = useState({ totalFacture: 0, totalPaye: 0 });
+
+  useEffect(() => {
+    const calculateTotalsAsync = async () => {
+      const result = await calculateTotals();
+      setTotals(result);
+    };
+    calculateTotalsAsync();
+  }, [data]);
   return (
     <div>
       <Typography.Title level={2}>
-      {`Les factures du client : ${clientName}`}      </Typography.Title> 
+      {`Historique des factures du client : ${clientName}`}      </Typography.Title> 
 
       <Table
         size="small"
@@ -284,9 +348,19 @@ const ValidateFacture = () => {
         pagination={{
           pageSize: 6,
         }}
-      />
+        footer={() => (
+          <div style={{ textAlign: 'right', color: 'grey' }}>
+         <Typography.Title  level={4}>Totaux</Typography.Title>
+
+            <div>Montant total facturé : {totals.totalFacture.toFixed(3)} EUR</div>
+            <div>Montant total payé : {totals.totalPaye.toFixed(3)} EUR</div>
+            <div>Montant total restant : {(totals.totalFacture - totals.totalPaye).toFixed(3)} EUR</div>
+          </div>
+        )   }
+
+      /> 
     </div>
   );
 };
 
-export default ValidateFacture;
+export default HistoriqueClientFacture;

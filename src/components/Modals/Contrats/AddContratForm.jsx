@@ -8,7 +8,6 @@ import {
   DatePicker,
   Space,
   Upload,
-  Divider,
 } from "antd";
 import { PlusCircleOutlined, UploadOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
@@ -20,16 +19,14 @@ export const AddContratForm = ({ handleState }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm] = Form.useForm();
   const [clients, setClients] = useState([]);
-  const [contratFile1, setContratFile1] = useState("");
+  const [contratFile1, setContratFile1] = useState(null);
   const [type, setType] = useState(null);
   const [typeFrequenceFacturation, setTypeFrequenceFacturation] = useState(null);
-
 
   const fetchClients = () => {
     api
       .get("/user/getAll")
       .then((response) => {
-        console.log(response);
         setClients(
           response.data.map((client) => ({
             id: client.id,
@@ -38,7 +35,7 @@ export const AddContratForm = ({ handleState }) => {
         );
       })
       .catch((error) => {
-        notification.error("Error fetching clients:", error);
+        notification.error({ message: "Erreur lors de la récupération des clients", description: error.message });
       });
   };
 
@@ -46,44 +43,109 @@ export const AddContratForm = ({ handleState }) => {
     fetchClients();
   }, []);
 
-  const handleAddContrat = (values) => {
-    console.log(values);
+  const generateContractRef = (clientUsername, contratType) => {
+    const randomNumber = Math.floor(Math.random() * 10000); // Generates a random number between 0 and 9999
+    const clientPart = clientUsername ? clientUsername.slice(0, 3).toUpperCase() : 'CLT';
+    let contratPart;
+  if (contratType === 'Jour Homme') {
+    contratPart = 'JH';
+  } else {
+    contratPart = contratType ? contratType.slice(0, 3).toUpperCase() : 'CNT';
+  }
+   
+    //const contratPart = contratType ? contratType.slice(0, 3).toUpperCase() : 'CNT';
+    const contractRef = `${clientPart}-${contratPart}-${randomNumber}`;
 
-    const clientId = values.client;
+   
+    addForm.setFieldsValue({ reference: contractRef });
 
-    const dataToSend = {
-      ...values,
-      client_id: clientId,
-      dateDebut: values.dateDebut.format("YYYY-MM-DD"),
-      contratFile: contratFile1,
-    };
-    console.log(values.contratFile);
+  };
 
-    api
-      .post("/contrat/create", dataToSend)
-      .then((response) => {
-        console.log("Contract added successfully:", response.data);
-        notification.success({ message: "Contrat ajouté avec succès" });
+  const handleAddContrat = () => {
+    addForm.validateFields()
+      .then(values => {
+        const clientId = values.client;
 
-        setShowAddForm(false);
-        handleState({
-          ...response.data.contrat,
-          key: response.data.contrat.id,
+        const dataToSend = {
+          ...values,
+          client_id: clientId,
+          dateDebut: values.dateDebut.format("YYYY-MM-DD"),
+          contratFile: contratFile1,
+          //reference: generateReference(clientUsername, values.type),
+        };
+
+        Modal.confirm({
+          title: 'Confirmer l\'ajout du contrat',
+          content: (
+            <div>
+              <p>Êtes-vous sûr de vouloir ajouter ce contrat ?</p>
+              <p><strong>Référence:</strong> {values.reference}</p>
+              <p><strong>Date Début:</strong> {values.dateDebut.format("YYYY-MM-DD")}</p>
+              <p><strong>Client:</strong> {clients.find(client => client.id === values.client)?.username}</p>
+              <p><strong>Délai de paiement:</strong> {values.delai} jours</p>
+              <p><strong>Type:</strong> {values.type}</p>
+              {values.type === 'Forfait' && (
+                <>
+                  <p><strong>Total:</strong> {values.total}</p>
+                  {typeFrequenceFacturation === 'Mensuelle' && (
+                    <p><strong>Montant à facturer par Mois:</strong> {values.montantParMois}</p>
+                  )}
+                </>
+              )}
+              {values.type === 'Jour Homme' && (
+                <p><strong>Prix du jour/homme:</strong> {values.prixJourHomme}</p>
+              )}
+              {values.type === 'Mix' && (
+                <>
+                  <p><strong>Total:</strong> {values.total}</p>
+                  <p><strong>Prix du jour/homme:</strong> {values.prixJourHomme}</p>
+                </>
+              )}
+              <p><strong>Fréquence de facturation:</strong> {values.typeFrequenceFacturation}</p>
+              {values.typeFrequenceFacturation === 'Spécifique' && (
+                <p><strong>Détails spécifiques:</strong> {values.detailsFrequence}</p>
+              )}
+              <p><strong>Devise:</strong> {values.devise}</p>
+            </div>
+          ),
+          okText: 'Confirmer',
+          cancelText: 'Annuler',
+          onOk: () => {
+            api.post("/contrat/create", dataToSend)
+              .then((response) => {
+                notification.success({ message: "Contrat ajouté avec succès" });
+
+                setShowAddForm(false);
+                handleState({
+                  ...response.data.contrat,
+                  key: response.data.contrat.id,
+                });
+                addForm.resetFields();
+              })
+              .catch((error) => {
+                notification.error({
+                  description:
+                    error?.response?.data?.erreur ||
+                    `Une erreur est survenue lors de la création du contrat "${values?.reference}"`,
+                });
+              });
+          },
+          onCancel() {
+            console.log('Ajout du contrat annulé');
+          },
         });
-        addForm.resetFields();
       })
-      .catch((error) => {
-        notification.error({
-          description:
-            error?.response?.data?.erreur ||
-            `Une erreur est survenue lors de la création du contrat "${values?.reference}"`,
-        });
+      .catch(error => {
+        // Gérer les erreurs de validation du formulaire si nécessaire
+        console.error('Validation échouée:', error);
       });
   };
 
   const handleSelectClient = (client) => {
     setClients((prevClients) => [...prevClients, client]);
     addForm.setFieldsValue({ client: client.id });
+    generateContractRef(client, null); // Regenerate invoice number if only client is selected
+
   };
 
   const handleCancel = () => {
@@ -92,27 +154,25 @@ export const AddContratForm = ({ handleState }) => {
     setContratFile1(null);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.file;
-    console.log(file);
-  
-    if (file) {
+  const handleFileChange = (info) => {
+    if (info.fileList.length > 0) {
+      const file = info.fileList[0].originFileObj;
       const reader = new FileReader();
-      console.log(reader);
-  
+
       reader.onload = (event) => {
-        console.log(event);
         const base64Content = event.target.result.split(",")[1];
-        console.log(base64Content);
         setContratFile1(base64Content);
-        console.log(contratFile1);
       };
-  
-      reader.readAsDataURL(file); // This line reads the file
+
+      reader.readAsDataURL(file);
     }
   };
-  
+
   const handleTypeChange = (value) => {
+    const clientId = addForm.getFieldValue('client');
+    const clientUsername = clients.find(client => client.id === clientId)?.username;
+
+    generateContractRef(clientUsername, value); // Regenerate invoice number if contract is selected
     setType(value);
     if (value === 'Forfait') {
       addForm.setFieldsValue({ prixJourHomme: null });
@@ -147,28 +207,23 @@ export const AddContratForm = ({ handleState }) => {
       <Modal
         title="Ajouter un nouveau contrat"
         visible={showAddForm}
-        onCancel={() => setShowAddForm(false)}
+        onCancel={handleCancel}
         footer={null}
         style={{ top: 15 }}
       >
         <Form
           layout="vertical"
           name="addFactureForm"
-          onFinish={handleAddContrat}
+          onFinish={handleAddContrat} // Le traitement de la confirmation se fait via handleAddContrat
           form={addForm}
         >
           <Form.Item
             name="reference"
             label="Référence du contrat"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir la référence du contrat!",
-              },
-            ]}
+          
             style={{ marginBottom: "8px" }}
           >
-            <Input />
+            <Input readOnly  />
           </Form.Item>
           <Form.Item
             name="dateDebut"
@@ -222,8 +277,7 @@ export const AddContratForm = ({ handleState }) => {
           >
             <Input type="number" />
           </Form.Item>
-
-            <Form.Item
+          <Form.Item
             name="type"
             label="Type"
             rules={[{ required: true, message: "Veuillez sélectionner le type de contrat!" }]}
@@ -332,19 +386,28 @@ export const AddContratForm = ({ handleState }) => {
               <Input />
             </Form.Item>
           )}
-           <Form.Item
-            name="devise"
-            label="Devise"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir la devise du contrat!",
-              },
-            ]}
-            style={{ marginBottom: '8px' }}
-          >
-            <Input />
-          </Form.Item>
+         <Form.Item
+  name="devise"
+  label="Devise"
+  rules={[
+    {
+      required: true,
+      message: "Veuillez sélectionner la devise du contrat!",
+    },
+  ]}
+  style={{ marginBottom: '8px' }}
+>
+  <Select placeholder="Sélectionnez une devise">
+    <Option value="USD">USD</Option>
+    <Option value="EUR">EUR</Option>
+    <Option value="JPY">JPY</Option>
+    <Option value="TND">TND</Option>
+    <Option value="CAD">CAD</Option>
+    <Option value="DZD">DZD</Option>
+
+  </Select>
+</Form.Item>
+
           <Form.Item
             name="contratFile"
             label="Ajouter le contrat PDF"
@@ -355,9 +418,8 @@ export const AddContratForm = ({ handleState }) => {
             </Upload>
           </Form.Item>
           <Form.Item>
-            {" "}
             <Space>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" onClick={handleAddContrat}>
                 Ajouter
               </Button>
               <Button key="cancel" onClick={handleCancel}>

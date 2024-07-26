@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, notification } from "antd";
+import { Button, Form, Input, Modal, notification, Space } from "antd";
 import { useState } from "react";
 import { EditOutlined} from '@ant-design/icons';
 import api from "../../../utils/axios";
@@ -11,6 +11,11 @@ function UpdateParamForm({ record, handleState }) {
   const handleUpdate = () => {
     editForm.setFieldsValue({ ...record });
     setIsEditModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditModalVisible(false);
+    editForm.setFieldsValue({ ...record });
   };
 
   const handleEditParam = (values) => {
@@ -36,7 +41,7 @@ function UpdateParamForm({ record, handleState }) {
 
   return (
     <>
-      <Button icon={<EditOutlined />} type="primary" size="small" onClick={handleUpdate}>Modifier</Button>
+      <Button icon={<EditOutlined />}  size="small" onClick={handleUpdate}></Button>
 
       <Modal
         title={"Modifier les paramètres d'ID : "+ record?.key}
@@ -113,9 +118,14 @@ function UpdateParamForm({ record, handleState }) {
             <Input />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Modifier
-            </Button>
+          <Space>
+              <Button type="primary" htmlType="submit">
+                Modifier
+              </Button>  
+              <Button type="default" onClick={handleCancel}>
+                Annuler
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

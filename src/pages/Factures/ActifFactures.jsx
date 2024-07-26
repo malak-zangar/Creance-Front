@@ -1,6 +1,20 @@
-import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FolderOpenOutlined ,CheckOutlined,DownloadOutlined} from '@ant-design/icons';
-import { Button, Input, notification, Space, Table, Typography } from 'antd';
+import { useState, useRef, useEffect } from "react";
+import {
+  SearchOutlined,
+  FolderOpenOutlined,
+  ExportOutlined,
+  EyeOutlined,
+} from '@ant-design/icons';
+import {
+  Button,
+  Col,
+  Input,
+  notification,
+  Row,
+  Space,
+  Table,
+  Typography,
+} from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
 import UpdateFactureForm from "../../components/Modals/Factures/UpdateFactureForm";
@@ -10,21 +24,24 @@ import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureF
 import api from "../../utils/axios";
 
 const ActifFactures = () => {
-
   const [data, setData] = useState([]);
+  const [totals, setTotals] = useState({ totalMontant: 0, totalMontantEncaisse: 0 });
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
+
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
     setSearchedColumn(dataIndex);
   };
+
   const handleReset = (clearFilters) => {
     clearFilters();
     setSearchText('');
   };
+
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
       <div
@@ -35,7 +52,7 @@ const ActifFactures = () => {
       >
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
@@ -51,10 +68,10 @@ const ActifFactures = () => {
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90,
+              width: 100,
             }}
           >
-            Search
+            Rechercher
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
@@ -63,7 +80,7 @@ const ActifFactures = () => {
               width: 90,
             }}
           >
-            Reset
+            Réinitialiser
           </Button>
           <Button
             type="link"
@@ -76,7 +93,7 @@ const ActifFactures = () => {
               setSearchedColumn(dataIndex);
             }}
           >
-            Filter
+            Filtrer
           </Button>
           <Button
             type="link"
@@ -85,7 +102,7 @@ const ActifFactures = () => {
               close();
             }}
           >
-            close
+            Fermer
           </Button>
         </Space>
       </div>
@@ -120,50 +137,83 @@ const ActifFactures = () => {
       ),
   });
 
-  const fetchData = () => {
-    api
-      .get("/facture/getAllActif")
-      .then((response) => {
-        setData(
-          response.data.map((facture) => ({
-            key: facture.id,
-            numero: facture.numero,
-            date: moment(facture.date).format('YYYY-MM-DD'),
-            delai: facture.delai,
-            montant: facture.montant,
-            montantEncaisse:facture.montantEncaisse,
-            actionRecouvrement:facture.actionRecouvrement,
-            actif: facture.actif,
-            client_id:facture.client_id,
-            client : facture.client,
-            contrat : facture.contrat,
-            contrat_id : facture.contrat_id,
-            solde:facture.solde,
-            devise:facture.devise,
-            echeance:moment(facture.echeance).format('YYYY-MM-DD'),
-            retard: facture.retard,
-            statut:facture.statut,
-            dateFinalisation: facture.dateFinalisation ? moment(facture.dateFinalisation).format('YYYY-MM-DD') : null 
-                      }))
-        );
+  const ToHistorique = (clientId) => {
+    navigate(`/clients/historique/facture/${clientId}`);
+  };
 
-      })
-      .catch((error) => {
-        notification.error("There was an error fetching the factures!", error);
+  const fetchData = async () => {
+    try {
+      const response = await api.get("/facture/getAllUnpaid");
+      setData(
+        response.data.map((facture) => ({
+          key: facture.id,
+          numero: facture.numero,
+          date: moment(facture.date).format('YYYY-MM-DD'),
+          delai: facture.delai,
+          montant: facture.montant,
+          montantEncaisse: facture.montantEncaisse,
+          actionRecouvrement: facture.actionRecouvrement,
+          actif: facture.actif,
+          client_id: facture.client_id,
+          client: facture.client,
+          contrat: facture.contrat,
+          contrat_id: facture.contrat_id,
+          solde: facture.solde,
+          devise: facture.devise,
+          echeance: moment(facture.echeance).format('YYYY-MM-DD'),
+          retard: facture.retard,
+          statut: facture.statut,
+          dateFinalisation: facture.dateFinalisation ? moment(facture.dateFinalisation).format('YYYY-MM-DD') : null,
+        }))
+      );
+      await updateTotals(response.data);
+    } catch (error) {
+      notification.error({ message: "Erreur lors de la récupération des factures !", description: error.message });
+    }
+  };
+
+  const convertCurrency = async (amount, fromCurrency, toCurrency) => {
+    try {
+      const response = await api.get(`/paramentreprise/convert`, {
+        params: {
+          base: fromCurrency,
+          target: toCurrency,
+          amount: amount,
+        },
       });
+      return response.data.converted_amount || amount;
+    } catch (error) {
+      notification.error({ message: "Erreur lors de la conversion de devise", description: error.message });
+      return amount;
+    }
+  };
+
+  const updateTotals = async (factures) => {
+    let totalMontant = 0;
+    let totalMontantEncaisse = 0;
+
+    for (const facture of factures) {
+      const convertedMontant = await convertCurrency(facture.montant, facture.devise, "EUR");
+      const convertedMontantEncaisse = await convertCurrency(facture.montantEncaisse, facture.devise, "EUR");
+
+      totalMontant += convertedMontant;
+      totalMontantEncaisse += convertedMontantEncaisse;
+    }
+
+    setTotals({
+      totalMontant,
+      totalMontantEncaisse,
+    });
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-
   const ToListArchive = () => {
     console.log("Button ToListArchive clicked");
     navigate("/factures/archive");
   };
-
-
 
   const handleFactures = (record) => {
     const tempFacture = data.map((facture) => {
@@ -179,182 +229,177 @@ const ActifFactures = () => {
   };
 
   const handleAddFactureState = (record) => {
-    setData([ record, ...data,]);
+    setData([record, ...data]);
   };
 
   const Report = (key) => {
-    console.log("Generating report with key: ", key);
+    console.log("Generating facture with key: ", key);
     api
-      .get(`/facture/report/${key}`, {
-        responseType: 'blob', 
-      })
+      .get(`/facture/report/${key}`, { responseType: 'blob' })
       .then((response) => {
-        console.log("Report generated successfully:", response.data);
-  
-        
         const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `report_${key}.pdf`); 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        fetchData();
-        notification.success({ message: "Rapport facture généré avec succès" });
-
+        window.open(url);
       })
       .catch((error) => {
-        notification.error("There was an error generating the report!", error);
+        notification.error({ message: "Une erreur lors de la génération de la facture !", description: error.message });
       });
   };
 
-  const Payer=(key)=>{
-    api
-    .put(`/facture/marquerpayeFacture/${key}`, {
-      responseType: 'blob', 
-    })
-    .then((response) => {
-      
-      fetchData();
-    })
-    .catch((error) => {
-      notification.error("There was an error !", error);
-    });
-  }
+  const Export = async () => {
+    console.log("Button Export clicked");
+    try {
+      const response = await api.get('/facture/export/csv', { responseType: 'blob' });
+
+      if (response.status !== 200) {
+        throw new Error('Network response was not ok');
+      }
+
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'factures_en_cours.csv';
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('There was a problem with the fetch operation:', error);
+    }
+  };
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "key",
-      ...getColumnSearchProps('key'),
-
-    },
     {
       title: "Numéro",
       dataIndex: "numero",
       ...getColumnSearchProps('numero'),
-
     },
     {
-      title: "Date",
+      title: "Date d'émission",
       dataIndex: "date",
-      //...getColumnSearchProps('date'),
       render: (text) => moment(text).format('DD/MM/YYYY'),
-
       sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
-
     },
     {
       title: "Client",
       dataIndex: "client",
       ...getColumnSearchProps('client'),
-
-      
+      render: (text, record) => (
+        <Button
+          style={{ cursor: 'pointer', color: '#0e063b', textDecoration: 'underline' }}
+          type="link"
+          onClick={() => ToHistorique(record.client_id)}
+        >
+          {text}
+        </Button>
+      ),
     },
     {
       title: "Contrat",
       dataIndex: "contrat",
       ...getColumnSearchProps('contrat'),
-
-      
     },
     {
-        title: "Montant",
-        dataIndex: "montant",
-        ...getColumnSearchProps('montant'),
-        sorter: (a, b) => a.montant - b.montant,
-        render: (_, record) => `${record.montant} ${record.devise}`, 
+      title: "Montant total",
+      dataIndex: "montant",
+      ...getColumnSearchProps('montant'),
+      sorter: (a, b) => a.montant - b.montant,
+      render: (_, record) => `${record.montant} ${record.devise}`,
+    },
+    {
+      title: "Statut",
+      dataIndex: "statut",
+      filters: [
+        { text: 'Échue', value: 'Échue' },
+        { text: 'Non échue', value: 'Non échue' },
+      ],
+      onFilter: (value, record) => record.statut === value,
+      render: (statut) => {
+        const getColor = (statut) => {
+          switch (statut) {
+            case 'Échue':
+              return 'red';
+            case 'Non échue':
+              return 'gray';
+            default:
+              return 'grey';
+          }
+        };
+
+        const color = getColor(statut);
+
+        return (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div
+              style={{
+                padding: '0px 2px',
+                borderRadius: '4px',
+                backgroundColor: color,
+                color: 'white',
+                fontWeight: 'bold',
+                textAlign: 'center'
+              }}
+            >
+              {statut}
+            </div>
+          </div>
+        );
       },
-
-      {
-        title: "Statut",
-        dataIndex: "statut",
-        filters: [
-            { text: 'Échue', value: 'Échue' },
-            { text: 'Payée', value: 'Payée' },
-            { text: 'Non payée', value: 'Non payée' },
-            { text: 'En cours', value: 'En cours' },
-        ],
-        onFilter: (value, record) => record.statut === value,
-        render: (statut) => {
-            // Fonction pour déterminer la couleur en fonction du statut
-            const getColor = (statut) => {
-                switch (statut) {
-                    case 'Échue':
-                        return 'red';
-                    case 'Payée':
-                        return 'green';
-                    case 'Non payée':
-                        return 'orange';
-                    case 'En cours':
-                        return 'gray';
-    
-                }
-            };
-    
-            // Couleur correspondant au statut
-            const color = getColor(statut);
-    
-            return (
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <div
-                        style={{
-                            padding: '0px 2px',
-                            borderRadius: '4px',
-                            backgroundColor: color,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            textAlign: 'center'
-                        }}
-                    >
-                        {statut}
-                    </div>
-                </div>
-            );
-        },
-    }
-,    
-
-      {
-        title: "Action",
-        dataIndex: "action",
-        render: (_, record) => (
-          <Space >
-            <UpdateFactureForm record={record} handleState={handleFactures} />
-            <Button icon={<CheckOutlined />} size="small" onClick={()=>Payer(record.key)}> Payer </Button>
-
-            <Button icon={<DownloadOutlined />} size="small" onClick={()=>Report(record.key)}>Télécharger </Button>
-            <DetailsFactureForm record={record} />
-
-
-          </Space>
-        ),
-      },
+    },
+    {
+      title: "Action",
+      dataIndex: "action",
+      render: (_, record) => (
+        <Space>
+          <UpdateFactureForm record={record} handleState={handleFactures} />
+          <Button
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => Report(record.key)}
+          >
+          </Button>
+          <DetailsFactureForm record={record} />
+        </Space>
+      ),
+    },
   ];
+
   return (
     <div>
-      
-        <Typography.Title level={2}>Toutes les factures validées</Typography.Title>
-    
+      <Typography.Title level={2}>Toutes les factures en cours</Typography.Title>
       <Space className="mb-4">
-        <AddFactureForm handleState={handleAddFactureState}  />
-        <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
-          Les factures en attente de validation
+        <AddFactureForm handleState={handleAddFactureState} />
+        <Button onClick={ToListArchive} icon={<FolderOpenOutlined />}>
+          Les factures payées
         </Button>
       </Space>
       <Table
-      size="small"
+        size="small"
         columns={columns}
         dataSource={data}
         pagination={{
           pageSize: 6,
         }}
         showSorterTooltip={{ target: 'sorter-icon' }}
+        footer={() => (
+          <div style={{ textAlign: 'right', color: 'grey' }}>
+                     <Typography.Title  level={4}>Totaux</Typography.Title>
+
+            <div>Montant total à payer : {totals.totalMontant.toFixed(2)} EUR</div>
+            <div>Montant total encaissé : {totals.totalMontantEncaisse.toFixed(2)} EUR</div>
+            <div>Montant total restant : {(totals.totalMontant - totals.totalMontantEncaisse).toFixed(2)} EUR</div>
+          </div>
+        )}
       />
-
-      
-
+      <Row justify="end">
+        <Col>
+          <Button icon={<ExportOutlined />} onClick={Export}>
+            Exporter
+          </Button>
+        </Col>
+      </Row>
     </div>
   );
 };

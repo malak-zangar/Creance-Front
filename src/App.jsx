@@ -17,6 +17,8 @@ import EntrepParamHistorique from './pages/EntrepParam/EntrepParamHistorique';
 import EntrepParamActuel from './pages/EntrepParam/EntrepParamActuel';
 import AllExpiredContracts from './pages/Contrats/ExpiredContracts';
 import ActifContracts from './pages/Contrats/ActifContracts';
+import HistoriqueClientContrat from './pages/Clients/HistoriqueClientContrat';
+import HistoriqueClientFacture from './pages/Clients/HistoriqueClientFacture';
 
 
 function App() {
@@ -35,6 +37,8 @@ function App() {
               <Route path="clients" element={<ListeClients />} />
               <Route path="clients/archive" element={<ArchivedClients />} />
               <Route path="clients/actif" element={<ActifClients />} />
+              <Route path="clients/historique/contrat/:clientId" element={<HistoriqueClientContrat />} />
+              <Route path="clients/historique/facture/:param" element={<HistoriqueClientFacture />} />
               <Route path="factures" element={<ListeFactures />} />
               <Route path="factures/actif" element={<ActifFactures />} />
               <Route path="factures/archive" element={<ArchivedFactures />} />

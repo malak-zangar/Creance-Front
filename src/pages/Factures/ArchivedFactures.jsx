@@ -1,5 +1,5 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, FileDoneOutlined ,DownloadOutlined} from '@ant-design/icons';
+import { SearchOutlined, FileDoneOutlined ,EyeOutlined} from '@ant-design/icons';
 import { Button, Input, notification, Space, Table, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,8 @@ import api from "../../utils/axios";
 const ArchivedFactures = () => {
 
   const [data, setData] = useState([]);
+  const [totals, setTotals] = useState({ totalMontant: 0 });
+
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
@@ -33,7 +35,7 @@ const ArchivedFactures = () => {
       >
         <Input
           ref={searchInput}
-          placeholder={`Search ${dataIndex}`}
+          placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
@@ -49,10 +51,10 @@ const ArchivedFactures = () => {
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90,
+              width: 100,
             }}
           >
-            Search
+            Rechercher
           </Button>
           <Button
             onClick={() => clearFilters && handleReset(clearFilters)}
@@ -61,7 +63,7 @@ const ArchivedFactures = () => {
               width: 90,
             }}
           >
-            Reset
+            Réinitialiser
           </Button>
           <Button
             type="link"
@@ -74,7 +76,7 @@ const ArchivedFactures = () => {
               setSearchedColumn(dataIndex);
             }}
           >
-            Filter
+            Filtrer
           </Button>
           <Button
             type="link"
@@ -83,7 +85,7 @@ const ArchivedFactures = () => {
               close();
             }}
           >
-            close
+            Fermer
           </Button>
         </Space>
       </div>
@@ -121,8 +123,8 @@ const ArchivedFactures = () => {
 
   const fetchData = () => {
     api
-      .get("/facture/getAllArchived")
-      .then((response) => {
+      .get("/facture/getAllPaid")
+      .then(async (response) => {
         setData(
           response.data.map((facture) => ({
             key: facture.id,
@@ -145,11 +147,42 @@ const ArchivedFactures = () => {
             dateFinalisation: facture.dateFinalisation ? moment(facture.dateFinalisation).format('YYYY-MM-DD') : null // Format date
                       }))
         );
+        await updateTotals(response.data);
 
       })
       .catch((error) => {
         notification.error("There was an error fetching the factures!", error);
       });
+  };
+
+  const convertCurrency = async (amount, fromCurrency, toCurrency) => {
+    try {
+      const response = await api.get(`/paramentreprise/convert`, {
+        params: {
+          base: fromCurrency,
+          target: toCurrency,
+          amount: amount,
+        },
+      });
+      return response.data.converted_amount || amount;
+    } catch (error) {
+      notification.error({ message: "Erreur lors de la conversion de devise", description: error.message });
+      return amount;
+    }
+  };
+
+  const updateTotals = async (factures) => {
+    let totalMontant = 0;
+
+    for (const facture of factures) {
+      const convertedMontant = await convertCurrency(facture.montant, facture.devise, "EUR");
+
+      totalMontant += convertedMontant;
+    }
+
+    setTotals({
+      totalMontant,
+    });
   };
 
   useEffect(() => {
@@ -163,40 +196,30 @@ const ArchivedFactures = () => {
   };
 
   const Report = (key) => {
-    console.log("Generating report with key: ", key);
+    console.log("Generating facture with key: ", key);
     api
-      .get(`/facture/report/${key}`, {
-        responseType: 'blob', 
-      })
+      .get(`/facture/report/${key}`, {responseType: 'blob', })
       .then((response) => {
-        console.log("Report generated successfully:", response.data);
-  
-        
         const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-        const link = document.createElement('a');
+        window.open(url); 
+       /* const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `report_${key}.pdf`); 
+        link.setAttribute('download', `facture_${reference}.pdf`); 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
         fetchData();
-        notification.success({ message: "Rapport facture généré avec succès" });
+        notification.success({ message: "Rapport du contrat généré avec succès" });*/
 
       })
       .catch((error) => {
-        notification.error("There was an error generating the report!", error);
+        notification.error("Une erreur lors de la génération de la facture!", error);
       });
   };
   
 
   const columns = [
-    {
-      title: "ID",
-      dataIndex: "key",
-      ...getColumnSearchProps('key'),
-
-    },
+   
     {
       title: "Numéro",
       dataIndex: "numero",
@@ -204,7 +227,7 @@ const ArchivedFactures = () => {
 
     },
     {
-      title: "Date",
+      title: "Date d'émission",
       dataIndex: "date",
       //...getColumnSearchProps('date'),
       render: (text) => moment(text).format('DD/MM/YYYY'),
@@ -227,7 +250,7 @@ const ArchivedFactures = () => {
       
     },
     {
-        title: "Montant",
+        title: "Montant total",
         dataIndex: "montant",
         ...getColumnSearchProps('montant'),
         sorter: (a, b) => a.montant - b.montant,
@@ -240,8 +263,12 @@ const ArchivedFactures = () => {
         dataIndex: "action",
         render: (_, record) => (
           <Space >
-            <Button icon={<DownloadOutlined />} size="small" onClick={()=>Report(record.key)}>Télécharger </Button>
-     
+ <Button
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => Report(record.key)}
+          >
+          </Button>     
             <DetailsFactureForm record={record} />
             </Space>
         ),
@@ -252,11 +279,11 @@ const ArchivedFactures = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Toutes les factures en attente de validation</Typography.Title>
+        <Typography.Title level={2}>Toutes les factures payées</Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToListActif} icon={<FileDoneOutlined />}>
-          Les Factures validées
+          Les factures en cours
         </Button>
   
       </Space>
@@ -267,6 +294,13 @@ const ArchivedFactures = () => {
         pagination={{
           pageSize: 6,
         }}
+        footer={() => (
+          <div style={{ textAlign: 'right', color: 'grey' }}>
+                     <Typography.Title  level={4}>Totaux</Typography.Title>
+
+            <div>Montant total payé : {totals.totalMontant.toFixed(2)} EUR</div>
+               </div>
+        )}
       />
 
       

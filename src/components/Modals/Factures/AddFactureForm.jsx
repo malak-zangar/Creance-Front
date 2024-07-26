@@ -1,4 +1,13 @@
-import { Button, DatePicker, Form, Input, Modal, notification, Select, Space } from "antd";
+import {
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Select,
+  Space,
+} from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import api from "../../../utils/axios";
@@ -27,17 +36,12 @@ export const AddFactureForm = ({ handleState }) => {
   };
 
   const fetchContrats = (clientId) => {
-    console.log(clientId)
     api
       .get(`/contrat/getByClient/${clientId}`)
       .then((response) => {
         if (response.data.contracts) {
-          console.log(response)
           setContrats([response.data.contracts]);
-          console.log(contrats)
         } else {
-          console.log(response)
-
           setContrats([]);
         }
       })
@@ -52,50 +56,81 @@ export const AddFactureForm = ({ handleState }) => {
 
   const handleClientChange = (value) => {
     if (value) {
-      console.log(value)
-      console.log(contrats)
-
       fetchContrats(value);
-      console.log(contrats)
-
+      generateInvoiceNumber(value, null); // Regenerate invoice number if only client is selected
     } else {
-      console.log(contrats)
-
       setContrats([]);
+      generateInvoiceNumber(null, null); // Reset invoice number if no client is selected
     }
   };
 
+  const handleContratChange = (value) => {
+    const clientId = addForm.getFieldValue('client');
+    generateInvoiceNumber(clientId, value); // Regenerate invoice number if contract is selected
+  };
+
+  const generateInvoiceNumber = (clientId, contratId) => {
+    const client = clients.find((client) => client.id === clientId);
+    const contrat = contrats.find((contrat) => contrat.id === contratId);
+    const randomNumber = Math.floor(Math.random() * 10000); // Generate a random number between 0 and 9999
+
+    const clientPart = client ? client.username.slice(0, 3).toUpperCase() : 'CLT';
+    const contratPart = contrat ? contrat.reference.slice(0, 3).toUpperCase() : 'CNT';
+    const invoiceNumber = `${clientPart}-${contratPart}-${randomNumber}`;
+
+    addForm.setFieldsValue({ numero: invoiceNumber });
+  };
+
   const handleAddFacture = (values) => {
-   // const clientId = values.client;
     const contratId = values.contrat;
 
     const dataToSend = {
       ...values,
-      //client_id: clientId,
       contrat_id: contratId,
       date: values.date.format('YYYY-MM-DD'),
     };
 
-    api
-      .post("/facture/create", dataToSend)
-      .then((response) => {
-        console.log("Facture added successfully:", response.data);
-        notification.success({ message: "Facture ajoutée avec succès" });
+    Modal.confirm({
+      title: 'Confirmer l\'ajout de la facture',
+      content: (
+        <div>
+          <p><strong>Numéro:</strong> {values.numero}</p>
+          <p><strong>Client:</strong> {clients.find(client => client.id === values.client)?.username}</p>
+          <p><strong>Contrat:</strong> {contrats.flat().find(contrat => contrat.id === values.contrat)?.reference}</p>
+          <p><strong>Montant:</strong> {values.montant}</p>
+          <p><strong>Délai de paiement:</strong> {values.delai} jours</p>
+          <p><strong>Montant encaissé:</strong> {values.montantEncaisse}</p>
+          <p><strong>Action de recouvrement:</strong> {values.actionRecouvrement}</p>
+          <p><strong>Date de facture:</strong> {values.date.format('YYYY-MM-DD')}</p>
+        </div>
+      ),
+      okText: 'Confirmer',
+      cancelText: 'Annuler',
+      onOk: () => {
+        api
+          .post("/facture/create", dataToSend)
+          .then((response) => {
+            notification.success({ message: "Facture ajoutée avec succès" });
 
-        setShowAddForm(false);
-        handleState({
-          ...response.data.facture,
-          key: response.data.facture.id,
-        });
-        addForm.resetFields();
-      })
-      .catch((error) => {
-        notification.error({
-          description:
-            error?.response?.data?.erreur ||
-            `Une erreur lors de la creation de la facture "${values?.numero}"`,
-        });
-      });
+            setShowAddForm(false);
+            handleState({
+              ...response.data.facture,
+              key: response.data.facture.id,
+            });
+            addForm.resetFields();
+          })
+          .catch((error) => {
+            notification.error({
+              description:
+                error?.response?.data?.erreur ||
+                `Une erreur est survenue lors de la création de la facture "${values?.numero}"`,
+            });
+          });
+      },
+      onCancel() {
+        console.log('Ajout de la facture annulé');
+      },
+    });
   };
 
   const handleCancel = () => {
@@ -115,7 +150,7 @@ export const AddFactureForm = ({ handleState }) => {
       <Modal
         title="Ajouter une nouvelle facture"
         visible={showAddForm}
-        onCancel={() => setShowAddForm(false)}
+        onCancel={handleCancel}
         footer={null}
         style={{ top: 15 }}
       >
@@ -128,12 +163,9 @@ export const AddFactureForm = ({ handleState }) => {
           <Form.Item
             name="numero"
             label="Numéro de facture"
-            rules={[
-              { required: true, message: "Veuillez saisir le numéro de la facture!" },
-            ]}
             style={{ marginBottom: '8px' }}
           >
-            <Input />
+            <Input readOnly  />
           </Form.Item>
           <Form.Item
             name="date"
@@ -180,30 +212,28 @@ export const AddFactureForm = ({ handleState }) => {
               ]}
               style={{ marginBottom: '8px' }}
             >
-             <Select placeholder="Sélectionner un contrat" allowClear>
-  {contrats.flat().map((contrat) => ( 
-    <Option key={contrat.id} value={contrat.id}>
-      {contrat.reference}
-    </Option>
-  ))}
-</Select>
-
+              <Select placeholder="Sélectionner un contrat" allowClear onChange={handleContratChange}>
+                {contrats.flat().map((contrat) => (
+                  <Option key={contrat.id} value={contrat.id}>
+                    {contrat.reference}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           )}
           <Form.Item
             name="montant"
-            label={`Montant `}
+            label="Montant"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le montant de la facture! ",
+                message: "Veuillez saisir le montant de la facture!",
               },
             ]}
             style={{ marginBottom: '8px' }}
           >
             <Input type="number" step="0.001" />
           </Form.Item>
-         
           <Form.Item
             name="delai"
             label="Délai de paiement (en jours)"
@@ -223,7 +253,7 @@ export const AddFactureForm = ({ handleState }) => {
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le montant encaisse de la facture!",
+                message: "Veuillez saisir le montant encaissé de la facture!",
               },
             ]}
             style={{ marginBottom: '8px' }}
@@ -244,7 +274,7 @@ export const AddFactureForm = ({ handleState }) => {
             <Input />
           </Form.Item>
           <Form.Item>
-          <Space>
+            <Space>
               <Button type="primary" htmlType="submit">
                 Ajouter
               </Button>
