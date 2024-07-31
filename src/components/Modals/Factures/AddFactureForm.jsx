@@ -7,10 +7,12 @@ import {
   notification,
   Select,
   Space,
+  Tooltip,
 } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import api from "../../../utils/axios";
+import moment from "moment";
 
 export const AddFactureForm = ({ handleState }) => {
   const { Option } = Select;
@@ -18,6 +20,9 @@ export const AddFactureForm = ({ handleState }) => {
   const [addForm] = Form.useForm();
   const [clients, setClients] = useState([]);
   const [contrats, setContrats] = useState([]);
+  const [contratDevise, setContratDevise] = useState("");
+  const [contratDateDebut, setContratDateDebut] = useState(moment());
+  const [contratDateFin, setContratDateFin] = useState(moment());
 
   const fetchClients = () => {
     api
@@ -34,6 +39,28 @@ export const AddFactureForm = ({ handleState }) => {
         notification.error("Error fetching clients:", error);
       });
   };
+
+ 
+
+  const handleDateCreationDisabledDate = (current) => {
+    const delai = addForm.getFieldValue('delai'); // Récupérer le délai du formulaire
+    if (!contratDateDebut || !contratDateFin) {
+      return false;
+    }
+    const currentDateWithDelai = current.clone().add(delai, 'days');
+    return current < contratDateDebut.startOf("day") || currentDateWithDelai > contratDateFin.endOf("day");
+};
+
+  const validateDelai = (e) => {
+    let value = e.target.value;
+    value = value.replace(/,/g, "");
+    if (parseInt(value, 10) < 1) {
+      value = 1;
+    }
+   
+    addForm.setFieldsValue({ delai: value });
+  };
+  
 
   const fetchContrats = (clientId) => {
     api
@@ -52,7 +79,8 @@ export const AddFactureForm = ({ handleState }) => {
 
   useEffect(() => {
     fetchClients();
-  }, []);
+    addForm.validateFields(["montantEncaisse"]);
+  }, [addForm]);
 
   const handleClientChange = (value) => {
     if (value) {
@@ -64,8 +92,16 @@ export const AddFactureForm = ({ handleState }) => {
     }
   };
 
+
+
   const handleContratChange = (value) => {
-    const clientId = addForm.getFieldValue('client');
+    const clientId = addForm.getFieldValue("client");
+    const contrat = contrats.flat().find((contrat) => contrat.id === value);
+    if (contrat) {
+      setContratDevise(contrat.devise);
+      setContratDateDebut(moment(contrat.dateDebut));
+      setContratDateFin(moment(contrat.dateFin));
+    }
     generateInvoiceNumber(clientId, value); // Regenerate invoice number if contract is selected
   };
 
@@ -74,8 +110,12 @@ export const AddFactureForm = ({ handleState }) => {
     const contrat = contrats.find((contrat) => contrat.id === contratId);
     const randomNumber = Math.floor(Math.random() * 10000); // Generate a random number between 0 and 9999
 
-    const clientPart = client ? client.username.slice(0, 3).toUpperCase() : 'CLT';
-    const contratPart = contrat ? contrat.reference.slice(0, 3).toUpperCase() : 'CNT';
+    const clientPart = client
+      ? client.username.slice(0, 3).toUpperCase()
+      : "CLT";
+    const contratPart = contrat
+      ? contrat.reference.slice(0, 3).toUpperCase()
+      : "CNT";
     const invoiceNumber = `${clientPart}-${contratPart}-${randomNumber}`;
 
     addForm.setFieldsValue({ numero: invoiceNumber });
@@ -87,25 +127,46 @@ export const AddFactureForm = ({ handleState }) => {
     const dataToSend = {
       ...values,
       contrat_id: contratId,
-      date: values.date.format('YYYY-MM-DD'),
+      date: values.date.format("YYYY-MM-DD"),
     };
 
     Modal.confirm({
-      title: 'Confirmer l\'ajout de la facture',
+      title: "Confirmer l'ajout de la facture",
       content: (
         <div>
-          <p><strong>Numéro:</strong> {values.numero}</p>
-          <p><strong>Client:</strong> {clients.find(client => client.id === values.client)?.username}</p>
-          <p><strong>Contrat:</strong> {contrats.flat().find(contrat => contrat.id === values.contrat)?.reference}</p>
-          <p><strong>Montant:</strong> {values.montant}</p>
-          <p><strong>Délai de paiement:</strong> {values.delai} jours</p>
-          <p><strong>Montant encaissé:</strong> {values.montantEncaisse}</p>
-          <p><strong>Action de recouvrement:</strong> {values.actionRecouvrement}</p>
-          <p><strong>Date de facture:</strong> {values.date.format('YYYY-MM-DD')}</p>
+          <p>
+            <strong>Numéro:</strong> {values.numero}
+          </p>
+          <p>
+            <strong>Client:</strong>{" "}
+            {clients.find((client) => client.id === values.client)?.username}
+          </p>
+          <p>
+            <strong>Contrat:</strong>{" "}
+            {
+              contrats.flat().find((contrat) => contrat.id === values.contrat)
+                ?.reference
+            }
+          </p>
+          <p>
+            <strong>Montant:</strong> {values.montant}
+          </p>
+          <p>
+            <strong>Délai de paiement:</strong> {values.delai} jours
+          </p>
+          <p>
+            <strong>Montant encaissé:</strong> {values.montantEncaisse}
+          </p>
+          <p>
+            <strong>Action de recouvrement:</strong> {values.actionRecouvrement}
+          </p>
+          <p>
+            <strong>Date de facture:</strong> {values.date.format("YYYY-MM-DD")}
+          </p>
         </div>
       ),
-      okText: 'Confirmer',
-      cancelText: 'Annuler',
+      okText: "Confirmer",
+      cancelText: "Annuler",
       onOk: () => {
         api
           .post("/facture/create", dataToSend)
@@ -128,7 +189,7 @@ export const AddFactureForm = ({ handleState }) => {
           });
       },
       onCancel() {
-        console.log('Ajout de la facture annulé');
+        console.log("Ajout de la facture annulé");
       },
     });
   };
@@ -136,6 +197,18 @@ export const AddFactureForm = ({ handleState }) => {
   const handleCancel = () => {
     setShowAddForm(false);
     addForm.resetFields();
+  };
+
+  const validateMontantEncaisse = () => {
+    const montant = addForm.getFieldValue("montant");
+    const montantEncaisse = addForm.getFieldValue("montantEncaisse");
+
+    if (montantEncaisse > montant) {
+      return Promise.reject(
+        new Error("Le montant encaissé ne doit pas dépasser le montant total!")
+      );
+    }
+    return Promise.resolve();
   };
 
   return (
@@ -163,20 +236,11 @@ export const AddFactureForm = ({ handleState }) => {
           <Form.Item
             name="numero"
             label="Numéro de facture"
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
-            <Input readOnly  />
+            <Input readOnly disabled />
           </Form.Item>
-          <Form.Item
-            name="date"
-            label="Date"
-            rules={[
-              { required: true, message: "Veuillez saisir la date de la facture!" },
-            ]}
-            style={{ marginBottom: '8px' }}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
+  
           <Form.Item
             name="client"
             label="Client"
@@ -186,7 +250,7 @@ export const AddFactureForm = ({ handleState }) => {
                 message: "Veuillez choisir le client!",
               },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
             <Select
               placeholder="Sélectionner un client"
@@ -210,9 +274,13 @@ export const AddFactureForm = ({ handleState }) => {
                   message: "Veuillez choisir le contrat!",
                 },
               ]}
-              style={{ marginBottom: '8px' }}
+              style={{ marginBottom: "8px" }}
             >
-              <Select placeholder="Sélectionner un contrat" allowClear onChange={handleContratChange}>
+              <Select
+                placeholder="Sélectionner un contrat"
+                allowClear
+                onChange={handleContratChange}
+              >
                 {contrats.flat().map((contrat) => (
                   <Option key={contrat.id} value={contrat.id}>
                     {contrat.reference}
@@ -221,44 +289,87 @@ export const AddFactureForm = ({ handleState }) => {
               </Select>
             </Form.Item>
           )}
+ <Form.Item
+            name="delai"
+            label={`Délai de paiement (en jours)`}
+            rules={[
+              {
+                required: true,
+                message:
+                  "Veuillez saisir le délai de paiement (en jours) de la facture!",
+              },
+            ]}
+            style={{ marginBottom: "8px" }}
+          >
+            <Input
+              type="number"
+              placeholder="Délai de paiement (en jours)"
+              min={1}
+              onChange={validateDelai}
+              onKeyPress={(e) => {
+                if (e.key === ",") {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </Form.Item>
+
+        
+<Form.Item
+            name="date"
+            label="Date d'émission"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez saisir la date d'émission de la facture!",
+              },
+            ]}
+            style={{ marginBottom: "8px" }}
+          >
+            <DatePicker
+              style={{ width: "100%" }}
+              disabledDate={handleDateCreationDisabledDate}
+            />
+          </Form.Item>
           <Form.Item
             name="montant"
-            label="Montant"
+            label={`Montant total (TTC) de la facture en : ${contratDevise}`}
             rules={[
               {
                 required: true,
                 message: "Veuillez saisir le montant de la facture!",
               },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
-            <Input type="number" step="0.001" />
-          </Form.Item>
-          <Form.Item
-            name="delai"
-            label="Délai de paiement (en jours)"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir le délai de paiement (en jours) de la facture!",
-              },
-            ]}
-            style={{ marginBottom: '8px' }}
-          >
-            <Input type="number" />
+            <Input
+              type="number"
+              min={1}
+              step="0.001"
+              placeholder="Montant total (TTC)"
+              onChange={() => addForm.validateFields(["montantEncaisse"])}
+            />
           </Form.Item>
           <Form.Item
             name="montantEncaisse"
-            label="Montant Encaisse"
+            label={`Montant encaisse de la facture en : ${contratDevise}`}
             rules={[
               {
                 required: true,
                 message: "Veuillez saisir le montant encaissé de la facture!",
               },
+              {
+                validator: validateMontantEncaisse,
+              },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
-            <Input type="number" step="0.001" />
+            <Input
+              type="number"
+              min={1}
+              step="0.001"
+              placeholder="Montant encaissé"
+            />
           </Form.Item>
           <Form.Item
             name="actionRecouvrement"
@@ -266,10 +377,11 @@ export const AddFactureForm = ({ handleState }) => {
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir l'action de recouvrement de la facture!",
+                message:
+                  "Veuillez saisir l'action de recouvrement de la facture!",
               },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>

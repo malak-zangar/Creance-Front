@@ -220,7 +220,7 @@ const EntrepParamHistorique = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
       />
 

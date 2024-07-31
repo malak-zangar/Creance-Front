@@ -4,18 +4,21 @@ import {
   FolderOpenOutlined,
   ExportOutlined,
   EyeOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 import {
   Button,
+  Checkbox,
   Col,
   Input,
+  Modal,
   notification,
   Row,
   Space,
   Table,
+  Tooltip,
   Typography,
-} from 'antd';
-import Highlighter from 'react-highlight-words';
+} from "antd";
+import Highlighter from "react-highlight-words";
 import { useNavigate } from "react-router-dom";
 import UpdateFactureForm from "../../components/Modals/Factures/UpdateFactureForm";
 import { AddFactureForm } from "../../components/Modals/Factures/AddFactureForm";
@@ -25,10 +28,13 @@ import api from "../../utils/axios";
 
 const ActifFactures = () => {
   const [data, setData] = useState([]);
-  const [totals, setTotals] = useState({ totalMontant: 0, totalMontantEncaisse: 0 });
+  const [totals, setTotals] = useState({
+    totalMontant: 0,
+    totalMontantEncaisse: 0,
+  });
   const navigate = useNavigate();
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -39,11 +45,17 @@ const ActifFactures = () => {
 
   const handleReset = (clearFilters) => {
     clearFilters();
-    setSearchText('');
+    setSearchText("");
   };
 
   const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
       <div
         style={{
           padding: 8,
@@ -54,11 +66,13 @@ const ActifFactures = () => {
           ref={searchInput}
           placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
             marginBottom: 8,
-            display: 'block',
+            display: "block",
           }}
         />
         <Space>
@@ -110,7 +124,7 @@ const ActifFactures = () => {
     filterIcon: (filtered) => (
       <SearchOutlined
         style={{
-          color: filtered ? '#1677ff' : undefined,
+          color: filtered ? "#1677ff" : undefined,
         }}
       />
     ),
@@ -125,12 +139,12 @@ const ActifFactures = () => {
       searchedColumn === dataIndex ? (
         <Highlighter
           highlightStyle={{
-            backgroundColor: '#ffc069',
+            backgroundColor: "#ffc069",
             padding: 0,
           }}
           searchWords={[searchText]}
           autoEscape
-          textToHighlight={text ? text.toString() : ''}
+          textToHighlight={text ? text.toString() : ""}
         />
       ) : (
         text
@@ -148,7 +162,7 @@ const ActifFactures = () => {
         response.data.map((facture) => ({
           key: facture.id,
           numero: facture.numero,
-          date: moment(facture.date).format('YYYY-MM-DD'),
+          date: moment(facture.date).format("YYYY-MM-DD"),
           delai: facture.delai,
           montant: facture.montant,
           montantEncaisse: facture.montantEncaisse,
@@ -160,15 +174,20 @@ const ActifFactures = () => {
           contrat_id: facture.contrat_id,
           solde: facture.solde,
           devise: facture.devise,
-          echeance: moment(facture.echeance).format('YYYY-MM-DD'),
+          echeance: moment(facture.echeance).format("YYYY-MM-DD"),
           retard: facture.retard,
           statut: facture.statut,
-          dateFinalisation: facture.dateFinalisation ? moment(facture.dateFinalisation).format('YYYY-MM-DD') : null,
+          dateFinalisation: facture.dateFinalisation
+            ? moment(facture.dateFinalisation).format("YYYY-MM-DD")
+            : null,
         }))
       );
       await updateTotals(response.data);
     } catch (error) {
-      notification.error({ message: "Erreur lors de la récupération des factures !", description: error.message });
+      notification.error({
+        message: "Erreur lors de la récupération des factures !",
+        description: error.message,
+      });
     }
   };
 
@@ -183,7 +202,10 @@ const ActifFactures = () => {
       });
       return response.data.converted_amount || amount;
     } catch (error) {
-      notification.error({ message: "Erreur lors de la conversion de devise", description: error.message });
+      notification.error({
+        message: "Erreur lors de la conversion de devise",
+        description: error.message,
+      });
       return amount;
     }
   };
@@ -193,8 +215,16 @@ const ActifFactures = () => {
     let totalMontantEncaisse = 0;
 
     for (const facture of factures) {
-      const convertedMontant = await convertCurrency(facture.montant, facture.devise, "EUR");
-      const convertedMontantEncaisse = await convertCurrency(facture.montantEncaisse, facture.devise, "EUR");
+      const convertedMontant = await convertCurrency(
+        facture.montant,
+        facture.devise,
+        "EUR"
+      );
+      const convertedMontantEncaisse = await convertCurrency(
+        facture.montantEncaisse,
+        facture.devise,
+        "EUR"
+      );
 
       totalMontant += convertedMontant;
       totalMontantEncaisse += convertedMontantEncaisse;
@@ -235,17 +265,22 @@ const ActifFactures = () => {
   const Report = (key) => {
     console.log("Generating facture with key: ", key);
     api
-      .get(`/facture/report/${key}`, { responseType: 'blob' })
+      .get(`/facture/report/${key}`, { responseType: "blob" })
       .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], { type: "application/pdf" })
+        );
         window.open(url);
       })
       .catch((error) => {
-        notification.error({ message: "Une erreur lors de la génération de la facture !", description: error.message });
+        notification.error({
+          message: "Une erreur lors de la génération de la facture !",
+          description: error.message,
+        });
       });
   };
 
-  const Export = async () => {
+  /* const Export = async () => {
     console.log("Button Export clicked");
     try {
       const response = await api.get('/facture/export/csv', { responseType: 'blob' });
@@ -268,27 +303,106 @@ const ActifFactures = () => {
     } catch (error) {
       console.error('There was a problem with the fetch operation:', error);
     }
+  };*/
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const columns1 = [
+    { label: "Numéro de facture", value: "numero" },
+    { label: "Date d'émission", value: "date" },
+    { label: "Délai de paiement", value: "delai" },
+    { label: "Date d'échéance", value: "echeance" },
+    { label: "Retard", value: "retard" },
+    { label: "Montant total", value: "montant" },
+    { label: "Montant encaissé", value: "montantEncaisse" },
+    { label: "Solde restant", value: "solde" },
+    { label: "Devise", value: "devise" },
+    { label: "Statut", value: "statut" },
+    { label: "Action de recouvrement", value: "actionRecouvrement" },
+    { label: "Actif", value: "actif" },
+    { label: "Client", value: "client" },
+    { label: "Contrat", value: "contrat" },
+  ];
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = async () => {
+    setIsModalVisible(false);
+    try {
+      const response = await api.get(
+        `/facture/export/csv?columns=${selectedColumns.join(",")}`,
+        {
+          responseType: "blob",
+        }
+      );
+      console.log(response);
+
+      if (response.status !== 200) {
+        throw new Error("Network response was not ok");
+      }
+
+     /* const blob = new Blob([response.data.text()], { type: "text/csv;charset=utf-8" });
+      console.log("Blob:", blob);
+*/
+
+    // Convertir le blob en texte pour vérifier les caractères spéciaux
+    const text = await response.data.text();
+    console.log('CSV Content:', text); // Log the CSV content
+
+    // Re-créer le Blob avec l'encodage UTF-8
+    const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = "FacturesEncours.csv";
+
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      notification.error({
+        message: "There was a problem with the fetch operation:",
+        description: error.message,
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setSelectedColumns([]); // Reset selected columns
+  };
+
+  const onChange = (checkedValues) => {
+    setSelectedColumns(checkedValues);
   };
 
   const columns = [
     {
       title: "Numéro",
       dataIndex: "numero",
-      ...getColumnSearchProps('numero'),
+      ...getColumnSearchProps("numero"),
     },
     {
       title: "Date d'émission",
       dataIndex: "date",
-      render: (text) => moment(text).format('DD/MM/YYYY'),
+      render: (text) => moment(text).format("DD/MM/YYYY"),
       sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
     },
     {
       title: "Client",
       dataIndex: "client",
-      ...getColumnSearchProps('client'),
+      ...getColumnSearchProps("client"),
       render: (text, record) => (
         <Button
-          style={{ cursor: 'pointer', color: '#0e063b', textDecoration: 'underline' }}
+          style={{
+            cursor: "pointer",
+            color: "#0e063b",
+            textDecoration: "underline",
+          }}
           type="link"
           onClick={() => ToHistorique(record.client_id)}
         >
@@ -299,12 +413,12 @@ const ActifFactures = () => {
     {
       title: "Contrat",
       dataIndex: "contrat",
-      ...getColumnSearchProps('contrat'),
+      ...getColumnSearchProps("contrat"),
     },
     {
-      title: "Montant total",
+      title: "Montant total (TTC)",
       dataIndex: "montant",
-      ...getColumnSearchProps('montant'),
+      ...getColumnSearchProps("montant"),
       sorter: (a, b) => a.montant - b.montant,
       render: (_, record) => `${record.montant} ${record.devise}`,
     },
@@ -312,34 +426,34 @@ const ActifFactures = () => {
       title: "Statut",
       dataIndex: "statut",
       filters: [
-        { text: 'Échue', value: 'Échue' },
-        { text: 'Non échue', value: 'Non échue' },
+        { text: "Échue", value: "Échue" },
+        { text: "Non échue", value: "Non échue" },
       ],
       onFilter: (value, record) => record.statut === value,
       render: (statut) => {
         const getColor = (statut) => {
           switch (statut) {
-            case 'Échue':
-              return 'red';
-            case 'Non échue':
-              return 'gray';
+            case "Échue":
+              return "red";
+            case "Non échue":
+              return "gray";
             default:
-              return 'grey';
+              return "grey";
           }
         };
 
         const color = getColor(statut);
 
         return (
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
             <div
               style={{
-                padding: '0px 2px',
-                borderRadius: '4px',
+                padding: "0px 2px",
+                borderRadius: "4px",
                 backgroundColor: color,
-                color: 'white',
-                fontWeight: 'bold',
-                textAlign: 'center'
+                color: "white",
+                fontWeight: "bold",
+                textAlign: "center",
               }}
             >
               {statut}
@@ -354,12 +468,13 @@ const ActifFactures = () => {
       render: (_, record) => (
         <Space>
           <UpdateFactureForm record={record} handleState={handleFactures} />
-          <Button
-            icon={<EyeOutlined />}
-            size="small"
-            onClick={() => Report(record.key)}
-          >
-          </Button>
+          <Tooltip title="Visualiser">
+            <Button
+              icon={<EyeOutlined />}
+              size="small"
+              onClick={() => Report(record.key)}
+            ></Button>
+          </Tooltip>
           <DetailsFactureForm record={record} />
         </Space>
       ),
@@ -368,11 +483,11 @@ const ActifFactures = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Toutes les factures en cours</Typography.Title>
+      <Typography.Title level={2}>Liste des factures en cours</Typography.Title>
       <Space className="mb-4">
         <AddFactureForm handleState={handleAddFactureState} />
         <Button onClick={ToListArchive} icon={<FolderOpenOutlined />}>
-          Les factures payées
+          Factures payées
         </Button>
       </Space>
       <Table
@@ -380,24 +495,43 @@ const ActifFactures = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
-        showSorterTooltip={{ target: 'sorter-icon' }}
+        showSorterTooltip={{ target: "sorter-icon" }}
         footer={() => (
-          <div style={{ textAlign: 'right', color: 'grey' }}>
-                     <Typography.Title  level={4}>Totaux</Typography.Title>
+          <div style={{ textAlign: "right", color: "grey" }}>
+            <Typography.Title level={4}>Totaux</Typography.Title>
 
-            <div>Montant total à payer : {totals.totalMontant.toFixed(2)} EUR</div>
-            <div>Montant total encaissé : {totals.totalMontantEncaisse.toFixed(2)} EUR</div>
-            <div>Montant total restant : {(totals.totalMontant - totals.totalMontantEncaisse).toFixed(2)} EUR</div>
+            <div>
+              Montant total à payer : {totals.totalMontant.toFixed(2)} EUR
+            </div>
+            <div>
+              Montant total encaissé : {totals.totalMontantEncaisse.toFixed(2)}{" "}
+              EUR
+            </div>
+            <div>
+              Montant total restant :{" "}
+              {(totals.totalMontant - totals.totalMontantEncaisse).toFixed(2)}{" "}
+              EUR
+            </div>
           </div>
         )}
       />
       <Row justify="end">
         <Col>
-          <Button icon={<ExportOutlined />} onClick={Export}>
-            Exporter
-          </Button>
+          <>
+            <Button type="primary" onClick={showModal}>
+              Exporter
+            </Button>
+            <Modal
+              title="Selectionner les colonnes à exporter"
+              visible={isModalVisible}
+              onOk={handleOk}
+              onCancel={handleCancel}
+            >
+              <Checkbox.Group options={columns1} onChange={onChange} />
+            </Modal>
+          </>
         </Col>
       </Row>
     </div>

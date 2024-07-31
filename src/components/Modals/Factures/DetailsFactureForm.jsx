@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Button, Descriptions, Card, Avatar } from 'antd';
+import { Modal, Button, Descriptions, Card, Avatar, Tooltip } from 'antd';
 import { InfoCircleOutlined, FileDoneOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
@@ -95,9 +95,9 @@ const DetailsFactureForm = ({ record }) => {
   };
 
   return (
-    <>
+    <> <Tooltip title="Détails">
       <Button icon={<InfoCircleOutlined />} size="small" onClick={handleDetails}>
-      </Button>
+      </Button></Tooltip>
       <Modal
         title={`Informations de la facture : ${record?.numero}`}
         visible={isDetailsModalVisible}

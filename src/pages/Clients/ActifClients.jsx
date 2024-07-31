@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, FolderOpenOutlined ,ExportOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography,Select, notification } from 'antd';
+import { Button, Input, Space, Table, Typography,Select, notification, Modal, Checkbox } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
 import UpdateClientForm from "../../components/Modals/Clients/UpdateClientForm";
@@ -175,7 +175,7 @@ const ActifClients = () => {
     navigate("/clients/archive");
   };
 
-  const Export = async () => {
+  /*const Export = async () => {
     console.log("Button Export clicked");
     try {
       const response = await fetch(
@@ -204,7 +204,62 @@ const ActifClients = () => {
     } catch (error) {
       notification.error("There was a problem with the fetch operation:", error);
     }
-  };
+  };*/
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const columns1 = [
+    { label: 'Name', value: 'name' },
+    { label: 'Email', value: 'email' },
+    { label: 'Username', value: 'username' },
+    // Add more columns as needed
+  ];
+
+   
+    const showModal = () => {
+      setIsModalVisible(true);
+    };
+  
+    const handleOk = async () => {
+      setIsModalVisible(false);
+      try {
+        const response = await fetch(
+          `/user/export/csv/actifusers?columns=${selectedColumns.join(',')}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'text/csv',
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+  
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'actifusers.csv';
+  
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        notification.error({
+          message: 'There was a problem with the fetch operation:',
+          description: error.message,
+        });
+      }
+    };
+  
+    const handleCancel = () => {
+      setIsModalVisible(false);
+    };
+  
+    const onChange = (checkedValues) => {
+      setSelectedColumns(checkedValues);
+    };
 
   const handleClients = (record) => {
     const tempClient = data.map((client) => {
@@ -290,23 +345,29 @@ const ActifClients = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Tous les clients actifs</Typography.Title>
+        <Typography.Title level={2}> Liste des clients actifs</Typography.Title>
     
       <Space className="mb-4">
         <AddClientForm handleState={handleAddClientState} />
         <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
           Archive
         </Button>
-        <Button icon={<ExportOutlined />} onClick={Export}>
-          Exporter
-        </Button>
+    
+        <>
+      <Button type="primary" onClick={showModal}>
+        Exporter
+      </Button>
+      <Modal title="Select Columns to Export" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+        <Checkbox.Group options={columns1} onChange={onChange} />
+      </Modal>
+    </>
       </Space>
       <Table
       size="small"
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
       />
 

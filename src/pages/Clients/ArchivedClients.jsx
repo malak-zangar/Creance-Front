@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined,HistoryOutlined, UserOutlined ,ExportOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography,Select,Row,Col, notification } from 'antd';
+import { Button, Input, Space, Table, Typography,Select,Row,Col, notification, Modal, Checkbox } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
 import UpdateClientForm from "../../components/Modals/Clients/UpdateClientForm";
@@ -166,7 +166,7 @@ const ArchivedClients = () => {
 
   
 
-  const Export = async () => {
+ /* const Export = async () => {
     console.log("Button Export clicked");
     try {
         const response = await api.get('/user/export/csv/nonactif', {
@@ -193,7 +193,72 @@ const ArchivedClients = () => {
     } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
     }
-  };
+  };*/
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const columns1 = [
+    { label: 'Nom dutilisateur', value: 'username' },
+    { label: 'Email', value: 'email' },
+    { label: 'Email cc', value: 'emailcc' },
+    { label: 'Téléphone', value: 'phone' },
+    { label: 'Adresse', value: 'adresse' },
+    { label: 'Identifiant Fiscal', value: 'identifiantFiscal' },
+    { label: 'Date de creation', value: 'dateCreation' },
+    { label: 'Actif', value: 'actif' },
+    { label: 'Contrats', value: 'contrats' },
+
+  ];
+               
+    const showModal = () => {
+      setIsModalVisible(true);
+    };
+  
+    const handleOk = async () => {
+      setIsModalVisible(false);
+      try {
+        const response = await api.get(
+          `/user/export/csv/nonactif?columns=${selectedColumns.join(',')}`,
+          {
+            responseType: 'blob'
+
+          }
+        );
+        console.log(response)
+        
+        if (response.status !== 200) {
+          throw new Error('Network response was not ok');
+      }
+  
+        const blob = new Blob([response.data], { type: 'text/csv' });
+      console.log('Blob:', blob);
+  
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'actifusers.csv';
+  
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+     
+      } catch (error) {
+        notification.error({
+          message: 'There was a problem with the fetch operation:',
+          description: error.message,
+        });
+      }
+    };
+  
+    const handleCancel = () => {
+      setIsModalVisible(false);
+      setSelectedColumns([]); // Reset selected columns
+          };
+  
+    const onChange = (checkedValues) => {
+      setSelectedColumns(checkedValues);
+    };
 
   const handleClients = (record) => {
     const tempClient = data.map((client) => {
@@ -219,7 +284,8 @@ const ArchivedClients = () => {
       title: "Date de creation",
       dataIndex: "dateCreation",
       render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => moment(a.dateCreation).format('DD/MM/YYYY') - moment(b.dateCreation).format('DD/MM/YYYY'),
+      sorter: (a, b) => moment(a.dateCreation).unix()- moment(b.dateCreation).unix(),
+  
     },
 
  /*   {
@@ -269,11 +335,11 @@ const ArchivedClients = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Tous les clients non actifs </Typography.Title>
+        <Typography.Title level={2}>Liste des clients inactifs </Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToListClients} icon={<UserOutlined />}>
-           Les clients actifs
+           Clients actifs
         </Button>
 
       </Space>
@@ -282,15 +348,22 @@ const ArchivedClients = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
+        showSorterTooltip={{ target: "sorter-icon" }}
+
       />
 
 <Row justify="end" >
       <Col>
-        <Button icon={<ExportOutlined />} onClick={Export}>
-          Exporter
-        </Button>
+      <>
+      <Button type="primary" onClick={showModal}>
+        Exporter
+      </Button>
+      <Modal title="Selectionner les colonnes à exporter" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+        <Checkbox.Group options={columns1} onChange={onChange} />
+      </Modal>
+    </>
       </Col>
     </Row>
 

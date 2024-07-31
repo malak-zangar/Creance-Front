@@ -1,26 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Button, Descriptions, Card, Avatar } from "antd";
+import { Modal, Button, Descriptions, Card, Avatar, Tooltip, notification } from "antd";
 import { InfoCircleOutlined, MoneyCollectOutlined } from "@ant-design/icons";
 import moment from "moment";
 import api from "../../../utils/axios";
+import DetailsFactureForm from '../Factures/DetailsFactureForm';
 
 const DetailsEncaissementForm = ({ record }) => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [facture, setFacture] = useState(null); // État pour stocker la facture associée
+  const [isFactModalVisible, setIsFactModalVisible] = useState(false);
+  const [selectedFact, setSelectedFact] = useState(null);
 
   useEffect(() => {
     if (record?.facture) {
       api
-        .get(`/facture/getByID/${record.key}`)
+        .get(`/facture/getByID/${record.facture_id}`)
         .then((response) => {
-          console.log(response.data.facture)
-          setFacture(response.data.facture); // Mettre à jour l'état avec la facture
+          console.log(response?.data?.facture)
+          setFacture(response?.data?.facture); // Mettre à jour l'état avec la facture
         })
         .catch((error) => {
           notification.error("Erreur lors de la récupération de la facture:", error);
         });
     }
-  }, [record]);
+
+  
+    console.log(record)
+  }, [record,isDetailsModalVisible]);
 
   const handleDetails = () => {
     setIsDetailsModalVisible(true);
@@ -28,21 +34,25 @@ const DetailsEncaissementForm = ({ record }) => {
 
   const handleClose = () => {
     setIsDetailsModalVisible(false);
+    setSelectedFact(null);
   };
 
   const formatDate = (date) => {
     return moment(date).format("DD/MM/YYYY");
   };
-
+  const handleFactClick = (fact) => {
+    setSelectedFact(fact);
+    setIsFactModalVisible(true);
+  };
   return (
-    <>
+    <>       <Tooltip title="Détails">
       <Button
         icon={<InfoCircleOutlined />}
         size="small"
         onClick={handleDetails}
       >
-        
-      </Button>
+      </Button>        </Tooltip>
+
       <Modal
         title={`Informations du paiement : ${record.reference}`}
         visible={isDetailsModalVisible}
@@ -79,7 +89,10 @@ const DetailsEncaissementForm = ({ record }) => {
               {record.client}
             </Descriptions.Item>
             <Descriptions.Item label="Facture">
-              {record.facture}
+              <span onClick={() => handleFactClick(facture)}
+              >{record.facture}</span>
+        <DetailsFactureForm record={facture} />
+      
             </Descriptions.Item>
             <Descriptions.Item label="Contrat">
               {record.contrat}
@@ -88,7 +101,7 @@ const DetailsEncaissementForm = ({ record }) => {
               {formatDate(record.date)}
             </Descriptions.Item>
             <Descriptions.Item label="Montant encaissé">
-              {record.montantEncaisse} {facture?.devise}
+              {record.montantEncaisse} {record.devise}
 
             </Descriptions.Item>
             <Descriptions.Item label="Mode de règlement">

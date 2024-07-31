@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, EyeOutlined,FolderOpenOutlined  } from '@ant-design/icons';
-import { Button, Input, notification, Space, Table, Typography } from 'antd';
+import { Button, Input, notification, Space, Table, Tooltip, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import UpdateContratForm from "../../components/Modals/Contrats/UpdateContratForm";
 import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
@@ -202,22 +202,23 @@ const ActifContracts = () => {
       ...getColumnSearchProps('reference'),
     },
     {
+      title: "Client",
+      dataIndex: "client",
+      ...getColumnSearchProps('client'),
+    },
+    {
       title: "Date début",
       dataIndex: "dateDebut",
       render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => moment(a.dateDebut).format('DD/MM/YYYY') - moment(b.dateDebut).format('DD/MM/YYYY'),
+      sorter: (a, b) => moment(a.dateDebut).unix() - moment(b.dateDebut).unix(),
     },
     {
       title: "Date fin",
       dataIndex: "dateFin",
       render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => moment(a.dateFin).format('DD/MM/YYYY') - moment(b.dateFin).format('DD/MM/YYYY'),
+      sorter: (a, b) => moment(a.dateFin).unix() - moment(b.dateFin).unix(),
     },
-    {
-      title: "Client",
-      dataIndex: "client",
-      ...getColumnSearchProps('client'),
-    },
+
     {
       title: "Action",
       dataIndex: "action",
@@ -225,8 +226,9 @@ const ActifContracts = () => {
         <Space>
           <UpdateContratForm record={record} handleState={handleContracts} />
           <DetailsContratForm record={record} />
+          <Tooltip title="Visualiser">
           <Button  disabled={!record.contratFile} icon={<EyeOutlined  />} size="small"
-           onClick={() => Report(record.key,record.reference)}></Button>
+           onClick={() => Report(record.key,record.reference)}></Button> </Tooltip>
         </Space>
       ),
     },
@@ -235,12 +237,12 @@ const ActifContracts = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Tous les Contrats</Typography.Title>
+        <Typography.Title level={2}>Liste des Contrats</Typography.Title>
     
       <Space className="mb-4">
         <AddContratForm handleState={handleAddContractState}  />
         <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
-          Les contrats archivés
+          Contrats archivés
         </Button>
       </Space>
       <Table
@@ -248,7 +250,7 @@ const ActifContracts = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
         showSorterTooltip={{ target: 'sorter-icon' }}
       />

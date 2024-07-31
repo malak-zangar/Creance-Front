@@ -1,4 +1,4 @@
-import { Button, Form, Input, Modal, notification, Space } from "antd";
+import { Button, Form, Input, Modal, notification, Space, Tooltip } from "antd";
 import { useState } from "react";
 import { EditOutlined} from '@ant-design/icons';
 import api from "../../../utils/axios";
@@ -40,9 +40,9 @@ function UpdateParamForm({ record, handleState }) {
   };
 
   return (
-    <>
+    <>  <Tooltip title="Modifier">
       <Button icon={<EditOutlined />}  size="small" onClick={handleUpdate}></Button>
-
+</Tooltip>
       <Modal
         title={"Modifier les paramètres d'ID : "+ record?.key}
         visible={isEditModalVisible}

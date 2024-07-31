@@ -1,7 +1,16 @@
-import { Button, DatePicker, Form, Input, Modal, notification, Space } from "antd";
+import {
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Space,
+} from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import api from "../../../utils/axios";
+import moment from "moment";
 
 export const AddClientForm = ({ handleState }) => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -13,38 +22,54 @@ export const AddClientForm = ({ handleState }) => {
     addForm.resetFields();
   };
 
+  const handleDateCreationDisabledDate = (current) => {
+    const currentDate = moment();
+    return currentDate ? current > currentDate.startOf("day") : false;
+  };
 
   const handleAddClient = () => {
-
-    addForm.validateFields()
-      .then(values => {
+    addForm
+      .validateFields()
+      .then((values) => {
         const dataToSend = {
           ...values,
           dateCreation: values.dateCreation.format("YYYY-MM-DD"),
         };
-        setFormValues(values); 
+        setFormValues(values);
         Modal.confirm({
-          title: 'Confirmer l\'ajout du client',
+          title: "Confirmer l'ajout du client",
           content: (
             <div>
               <p>Êtes-vous sûr de vouloir ajouter ce client ?</p>
-              <p><strong>Nom:</strong> {values.username}</p>
-              <p><strong>Email:</strong> {values.email}</p>
-              <p><strong>Email à copier en cc:</strong> {values.emailcc}</p>
-              <p><strong>Téléphone:</strong> {values.phone}</p>
-              <p><strong>ID Fiscal:</strong> {values.identifiantFiscal}</p>
-              <p><strong>Adresse:</strong> {values.adresse}</p>
-              <p><strong>Date de création:</strong>
-{             values.dateCreation.format('DD/MM/YYYY')
-}
+              <p>
+                <strong>Nom:</strong> {values.username}
               </p>
-
+              <p>
+                <strong>Email:</strong> {values.email}
+              </p>
+              <p>
+                <strong>Email à copier en cc:</strong> {values.emailcc}
+              </p>
+              <p>
+                <strong>Téléphone:</strong> {values.phone}
+              </p>
+              <p>
+                <strong>ID Fiscal:</strong> {values.identifiantFiscal}
+              </p>
+              <p>
+                <strong>Adresse:</strong> {values.adresse}
+              </p>
+              <p>
+                <strong>Date de création:</strong>
+                {values.dateCreation.format("DD/MM/YYYY")}
+              </p>
             </div>
           ),
-          okText: 'Confirmer',
-          cancelText: 'Annuler',
+          okText: "Confirmer",
+          cancelText: "Annuler",
           onOk: () => {
-            api.post("/user/create", dataToSend)
+            api
+              .post("/user/create", dataToSend)
               .then((response) => {
                 console.log("Client ajouté avec succès:", response.data);
                 notification.success({ message: "Client ajouté avec succès" });
@@ -65,13 +90,12 @@ export const AddClientForm = ({ handleState }) => {
               });
           },
           onCancel() {
-            console.log('Ajout du client annulé');
+            console.log("Ajout du client annulé");
           },
         });
       })
-      .catch(error => {
-        // Gérer les erreurs de validation du formulaire si nécessaire
-        console.error('Validation échouée:', error);
+      .catch((error) => {
+        console.error("Validation échouée:", error);
       });
   };
 
@@ -102,8 +126,14 @@ export const AddClientForm = ({ handleState }) => {
             label="Nom du client"
             rules={[
               { required: true, message: "Veuillez saisir le nom du client!" },
+              { min: 3, message: "Le nom doit comporter au moins 3 lettres!" },
+              { max: 25, message: "Le nom doit comporter au plus 25 lettres!" },
+              {
+                pattern: /^\S.*\S$|^\S{1,2}$/,
+                message: "Le nom ne doit pas commencer ou finir par un espace!",
+              },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -112,8 +142,9 @@ export const AddClientForm = ({ handleState }) => {
             label="Email de contact "
             rules={[
               { required: true, message: "Veuillez saisir l'email du client!" },
+              { type: "email", message: "Veuillez saisir un email valide!" },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -121,9 +152,13 @@ export const AddClientForm = ({ handleState }) => {
             name="emailcc"
             label="Email à copier en cc"
             rules={[
-              { required: true, message: "Veuillez saisir l'email à copier en cc du client!" },
+              {
+                required: true,
+                message: "Veuillez saisir l'email à copier en cc du client!",
+              },
+              { type: "email", message: "Veuillez saisir un email valide!" },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -135,10 +170,16 @@ export const AddClientForm = ({ handleState }) => {
                 required: true,
                 message: "Veuillez saisir le numéro de téléphone du client!",
               },
+
+              {
+                pattern: /^\d{7,15}$/,
+                message:
+                  "Le numéro de téléphone doit comporter entre 7 et 15 chiffres!",
+              },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
-            <Input />
+            <Input type="number" />
           </Form.Item>
           <Form.Item
             name="identifiantFiscal"
@@ -148,8 +189,13 @@ export const AddClientForm = ({ handleState }) => {
                 required: true,
                 message: "Veuillez saisir l'identifiant fiscal' du client!",
               },
+              {
+                pattern: /^[a-zA-Z0-9]{6,20}$/,
+                message:
+                  "L'identifiant fiscal doit comporter entre 6 et 20 caractères alphanumériques!",
+              },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -161,8 +207,17 @@ export const AddClientForm = ({ handleState }) => {
                 required: true,
                 message: "Veuillez saisir l'adresse du client!",
               },
+              {
+                min: 6,
+                message: "L'adresse doit comporter au moins 6 lettres!",
+              },
+              {
+                pattern: /^\S.*\S$|^\S{1,2}$/,
+                message:
+                  "L'adresse ne doit pas commencer ou finir par un espace!",
+              },
             ]}
-            style={{ marginBottom: '8px' }}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -178,7 +233,10 @@ export const AddClientForm = ({ handleState }) => {
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <DatePicker style={{ width: "100%" }} />
+            <DatePicker
+              disabledDate={handleDateCreationDisabledDate}
+              style={{ width: "100%" }}
+            />
           </Form.Item>
 
           <Form.Item>

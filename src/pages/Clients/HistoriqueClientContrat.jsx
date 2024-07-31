@@ -179,7 +179,7 @@ const HistoriqueClientContrat = () => {
       title: 'Date de Début',
       dataIndex: 'dateDebut',
       render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => moment(a.dateDebut).diff(moment(b.dateDebut)),
+      sorter: (a, b) => moment(a.dateDebut).unix()-moment(b.dateDebut).unix(),
 
     },
     {
@@ -204,17 +204,17 @@ const HistoriqueClientContrat = () => {
       <Typography.Title level={2}>Historique d'activité du client : {username}</Typography.Title>
       <Space className="mb-4">
         <Button onClick={ToListClients} icon={<UserOutlined />}>
-          Les clients actifs
+          Clients actifs
         </Button>
         <Button onClick={ToListArchive} icon={<FolderOpenOutlined />}>
-          Les clients non actifs
+          Clients inactifs
         </Button>
       </Space>
       <Table 
         size="small"
         dataSource={historicData} 
         columns={columns} 
-        pagination={{ pageSize: 6 }} 
+        pagination={{ pageSize: 10 }} 
         footer={() => <div style={{ textAlign: 'right' }}>Durée totale d'activité: {totalDuration} jours</div>}
       />
     </div>

@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, FileDoneOutlined ,EyeOutlined} from '@ant-design/icons';
-import { Button, Input, notification, Space, Table, Typography } from 'antd';
+import { Button, Input, notification, Space, Table, Tooltip, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
 import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
@@ -250,7 +250,7 @@ const ArchivedFactures = () => {
       
     },
     {
-        title: "Montant total",
+        title: "Montant total (TTC)",
         dataIndex: "montant",
         ...getColumnSearchProps('montant'),
         sorter: (a, b) => a.montant - b.montant,
@@ -263,12 +263,13 @@ const ArchivedFactures = () => {
         dataIndex: "action",
         render: (_, record) => (
           <Space >
- <Button
+           <Tooltip title="Visualiser">
+           <Button
             icon={<EyeOutlined />}
             size="small"
             onClick={() => Report(record.key)}
           >
-          </Button>     
+          </Button>    </Tooltip> 
             <DetailsFactureForm record={record} />
             </Space>
         ),
@@ -279,11 +280,11 @@ const ArchivedFactures = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Toutes les factures payées</Typography.Title>
+        <Typography.Title level={2}>Liste des factures payées</Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToListActif} icon={<FileDoneOutlined />}>
-          Les factures en cours
+          Factures en cours
         </Button>
   
       </Space>
@@ -292,7 +293,7 @@ const ArchivedFactures = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
         footer={() => (
           <div style={{ textAlign: 'right', color: 'grey' }}>

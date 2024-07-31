@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Button, Descriptions, Card, Avatar } from 'antd';
+import { Modal, Button, Descriptions, Card, Avatar, Tooltip } from 'antd';
 import { InfoCircleOutlined, FileDoneOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
@@ -22,11 +22,11 @@ const DetailsContratForm = ({ record }) => {
   const renderDescriptions = () => {
     const fields = [
       { label: "Date de début", value: formatDate(record?.dateDebut) },
-      { label: "Délai de paiement (en jours)", value: record?.delai },
       { label: "Date de fin", value: record?.dateFin && formatDate(record?.dateFin) },
+      { label: "Délai de paiement (en jours)", value: record?.delai },
       { label: "Client", value: record?.client },
       { label: "Type de contrat", value: record?.type },
-      { label: "Total à payer", value: record?.total !== undefined && record?.total !== null && record?.devise ? `${record?.total} ${record?.devise}` : null },   
+      { label: "Montant total du contrat (TTC)", value: record?.total !== undefined && record?.total !== null && record?.devise ? `${record?.total} ${record?.devise}` : null },   
       { label: "Prix du jour/homme", value: record?.prixJourHomme !== undefined && record?.prixJourHomme !== null && record?.devise ? `${record?.prixJourHomme} ${record?.devise}` : null },   
       { label: "Fréquence de facturation", value: record?.typeFrequenceFacturation },
       { label: "Détails spécifiques à la fréquence de facturation", value: record?.detailsFrequence },
@@ -44,9 +44,9 @@ const DetailsContratForm = ({ record }) => {
   };
 
   return (
-    <>
+    <>      <Tooltip title="Détails">
       <Button icon={<InfoCircleOutlined />} size="small" onClick={handleDetails}>
-      </Button>
+      </Button> </Tooltip>
       <Modal
         title={`Détails du contrat : ${record?.reference}`}
         visible={isDetailsModalVisible}

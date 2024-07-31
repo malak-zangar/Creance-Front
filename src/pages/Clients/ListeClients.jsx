@@ -1,7 +1,25 @@
 import { useState, useRef, useEffect } from "react";
-import { SearchOutlined, FolderOpenOutlined, ExportOutlined,HistoryOutlined } from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography, Row, Col, notification, List } from 'antd';
-import Highlighter from 'react-highlight-words';
+import {
+  SearchOutlined,
+  FolderOpenOutlined,
+  ExportOutlined,
+  HistoryOutlined,FileTextOutlined,FileDoneOutlined
+} from "@ant-design/icons";
+import {
+  Button,
+  Input,
+  Space,
+  Table,
+  Typography,
+  Row,
+  Col,
+  notification,
+  List,
+  Tooltip,
+  Modal,
+  Checkbox,
+} from "antd";
+import Highlighter from "react-highlight-words";
 import { useNavigate } from "react-router-dom";
 import UpdateClientForm from "../../components/Modals/Clients/UpdateClientForm";
 import { AddClientForm } from "../../components/Modals/Clients/AddClientForm";
@@ -15,8 +33,8 @@ const ListeClients = () => {
   const [isContractModalVisible, setIsContractModalVisible] = useState(false);
   const [selectedContract, setSelectedContract] = useState(null);
   const navigate = useNavigate();
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -25,7 +43,7 @@ const ListeClients = () => {
   };
   const handleReset = (clearFilters) => {
     clearFilters();
-    setSearchText('');
+    setSearchText("");
   };
   /*const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -123,7 +141,13 @@ const ListeClients = () => {
   });*/
 
   const getColumnSearchProps = (dataIndex, isNestedArray = false) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
       <div
         style={{
           padding: 8,
@@ -134,11 +158,13 @@ const ListeClients = () => {
           ref={searchInput}
           placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
             marginBottom: 8,
-            display: 'block',
+            display: "block",
           }}
         />
         <Space>
@@ -190,7 +216,7 @@ const ListeClients = () => {
     filterIcon: (filtered) => (
       <SearchOutlined
         style={{
-          color: filtered ? '#1677ff' : undefined,
+          color: filtered ? "#1677ff" : undefined,
         }}
       />
     ),
@@ -200,14 +226,17 @@ const ListeClients = () => {
           item.reference.toLowerCase().includes(value.toLowerCase())
         );
       }
-      return record[dataIndex].toString().toLowerCase().includes(value.toLowerCase());
+      return record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes(value.toLowerCase());
     },
     onFilterDropdownOpenChange: (visible) => {
       if (visible) {
         setTimeout(() => searchInput.current?.select(), 100);
       }
     },
-   /* render: (text) =>
+    /* render: (text) =>
       searchedColumn === dataIndex ? (
         <Highlighter
           highlightStyle={{
@@ -221,41 +250,47 @@ const ListeClients = () => {
       ) : (
         text
       ),*/
-      render: (text, record) => {
-        if (isNestedArray) {
-          return text.map(contract => (
-            searchedColumn === dataIndex ? (
-              <Highlighter
-                key={contract.id}
-                highlightStyle={{
-                  backgroundColor: '#ffc069',
-                  padding: 0,
-                }}
-                searchWords={[searchText]}
-                autoEscape
-                textToHighlight={contract.reference ? contract.reference.toString() : ''}
-              />
-            ) : (
-              <span key={contract.id} onClick={() => handleContractClick(contract)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>
+    render: (text, record) => {
+      if (isNestedArray) {
+        return text.map((contract) =>
+          searchedColumn === dataIndex ? (
+            <Highlighter
+              key={contract.id}
+              highlightStyle={{
+                backgroundColor: "#ffc069",
+                padding: 0,
+              }}
+              searchWords={[searchText]}
+              autoEscape
+              textToHighlight={
+                contract.reference ? contract.reference.toString() : ""
+              }
+            />
+          ) : (
+            <span
+              key={contract.id}
+              onClick={() => handleContractClick(contract)}
+              style={{ cursor: "pointer", textDecoration: "underline" }}
+            >
               {contract.reference}
-            </span>            )
-          ));
-        }
-        return searchedColumn === dataIndex ? (
-          <Highlighter
-            highlightStyle={{
-              backgroundColor: '#ffc069',
-              padding: 0,
-            }}
-            searchWords={[searchText]}
-            autoEscape
-            textToHighlight={text ? text.toString() : ''}
-          />
-        ) : (
-          text
+            </span>
+          )
         );
-      },
-    
+      }
+      return searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{
+            backgroundColor: "#ffc069",
+            padding: 0,
+          }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ) : (
+        text
+      );
+    },
   });
 
   const handleContractClick = (contract) => {
@@ -271,7 +306,6 @@ const ListeClients = () => {
       return [];
     }
   };
-
 
   /*const fetchData = async () => {
     try {
@@ -304,12 +338,11 @@ const ListeClients = () => {
     }
   };*/
 
-
   const fetchData = async () => {
     try {
       const response = await api.get("/user/getAllActif");
       const clients = response.data;
-  
+
       const updatedClients = await Promise.all(
         clients.map(async (client) => {
           const activeContracts = await fetchContracts(client.id);
@@ -327,20 +360,22 @@ const ListeClients = () => {
             adresse: client.adresse,
             identifiantFiscal: client.identifiantFiscal,
             actif: client.actif,
-            dateCreation: moment(client.dateCreation).format('YYYY-MM-DD'),
+            dateCreation: moment(client.dateCreation).format("YYYY-MM-DD"),
             activeContracts: activeContracts,
             contrats: client.contrats,
           };
         })
       );
-  
+
       setData(updatedClients);
     } catch (error) {
-      notification.error({ message: "Une erreur lors de la récupération des clients!", description: error.message });
+      notification.error({
+        message: "Une erreur lors de la récupération des clients!",
+        description: error.message,
+      });
     }
   };
 
-  
   useEffect(() => {
     fetchData();
   }, []);
@@ -348,88 +383,138 @@ const ListeClients = () => {
   const ToListArchive = () => {
     navigate("/clients/archive");
   };
-  const ToHistorique = (clientId) => {
+  const ToHistoriqueContrat = (clientId) => {
     navigate(`/clients/historique/contrat/${clientId}`);
+  };
+  const ToHistoriqueFact = (clientId) => {
+    navigate(`/clients/historique/facture/${clientId}`);
   };
 
   const Export = async () => {
     console.log("Button Export clicked");
     try {
-        const response = await api.get('/user/export/csv/actifusers', {
-            responseType: 'blob'
-        });
+      const response = await api.get("/user/export/csv/actifusers", {
+        responseType: "blob",
+      });
 
-        console.log("Response:", response);
+      console.log("Response:", response);
 
-        if (response.status !== 200) {
-            throw new Error('Network response was not ok');
-        }
+      if (response.status !== 200) {
+        throw new Error("Network response was not ok");
+      }
 
-        const blob = new Blob([response.data], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'actifusers.csv';  // Nom du fichier CSV
+      const blob = new Blob([response.data], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = "actifusers.csv"; // Nom du fichier CSV
 
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
+      console.error("There was a problem with the fetch operation:", error);
     }
-  };
-
-  const handleClients = (record) => {
-    setData(data.map((client) => (client.key === record.key ? record : client)));
-    fetchData();
   };
 
   const handleAddClientState = (record) => {
     setData([record, ...data]);
   };
 
+  const handleClients = (record) => {
+    const tempClient = data.map((client) => {
+      if (client.key === record.key) {
+        return record;
+      } else {
+        return client;
+      }
+    });
+    setData(tempClient);
+/*
+    setData(
+      data.map((client) => (client.key === record.key ? record : client))
+    );
+    fetchData();*/
+  };
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedColumns, setSelectedColumns] = useState([]);
+  const columns1 = [
+    { label: 'Nom dutilisateur', value: 'username' },
+    { label: 'Email', value: 'email' },
+    { label: 'Email cc', value: 'emailcc' },
+    { label: 'Téléphone', value: 'phone' },
+    { label: 'Adresse', value: 'adresse' },
+    { label: 'Identifiant Fiscal', value: 'identifiantFiscal' },
+    { label: 'Date de creation', value: 'dateCreation' },
+    { label: 'Actif', value: 'actif' },
+    { label: 'Contrats', value: 'contrats' },
+
+  ];
+               
+    const showModal = () => {
+      setIsModalVisible(true);
+    };
+  
+    const handleOk = async () => {
+      setIsModalVisible(false);
+      try {
+        const response = await api.get(
+          `/user/export/csv/actifusers?columns=${selectedColumns.join(',')}`,
+          {
+            responseType: 'blob'
+
+          }
+        );
+        console.log(response)
+        
+        if (response.status !== 200) {
+          throw new Error('Network response was not ok');
+      }
+  
+        const blob = new Blob([response.data], { type: 'text/csv' });
+      console.log('Blob:', blob);
+  
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'actifusers.csv';
+  
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+     
+      } catch (error) {
+        notification.error({
+          message: 'There was a problem with the fetch operation:',
+          description: error.message,
+        });
+      }
+    };
+  
+    const handleCancel = () => {
+      setIsModalVisible(false);
+      setSelectedColumns([]); // Reset selected columns
+          };
+  
+    const onChange = (checkedValues) => {
+      setSelectedColumns(checkedValues);
+    };
   const columns = [
     {
       title: "Client",
       dataIndex: "username",
-      ...getColumnSearchProps('username'),
+      ...getColumnSearchProps("username"),
     },
     {
       title: "Date de création",
       dataIndex: "dateCreation",
-      render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => moment(a.dateCreation).diff(moment(b.dateCreation)),
+      render: (text) => moment(text).format("DD/MM/YYYY"),
+      sorter: (a, b) => moment(a.dateCreation)-(moment(b.dateCreation)),
     },
-    {
-      title: "Contrats en cours",
-      dataIndex: "activeContracts",
-      render: (contracts) => (
-        contracts.length > 0 ? (
-          <List
-            size="small"
-            grid
-            dataSource={contracts}
-            renderItem={(contract) => (
-              <List.Item
-                onClick={() => handleContractClick(contract)}
-                style={{ cursor: 'pointer', color: '#0e063b' }}
-              >
-                <span style={{ textDecoration: 'underline' }}>
-                  {contract.reference}
-                </span>    {isContractModalVisible && selectedContract && (
-        <DetailsContratForm record={selectedContract} />
-      )}
-              </List.Item>
-            )}
-          />
-        ) : (
-          <span>-</span>
-        )
-      ),
-      //...getColumnSearchProps('activeContracts', true),
-    },
+
     {
       title: "Action",
       dataIndex: "action",
@@ -437,39 +522,57 @@ const ListeClients = () => {
         <Space>
           <UpdateClientForm record={record} handleState={handleClients} />
           <DetailsClientForm record={record} />
-          <Button icon={<HistoryOutlined />} size="small" onClick={()=>ToHistorique(record.key)}>
-        
-      </Button>        </Space>
+          <Tooltip title="Historique Factures">
+            <Button
+              icon={<FileTextOutlined />}
+              size="small"
+              onClick={() => ToHistoriqueFact(record.key)}
+            ></Button>{" "}
+          </Tooltip>{" "}
+          <Tooltip title="Historique Contrats">
+            <Button
+              icon={<HistoryOutlined />}
+              size="small"
+              onClick={() => ToHistoriqueContrat(record.key)}
+            ></Button>{" "}
+          </Tooltip>{" "}
+         
+        </Space>
       ),
     },
   ];
-  
+
   return (
     <div>
-      <Typography.Title level={2}>Tous les clients actifs</Typography.Title>
+      <Typography.Title level={2}>Liste des clients actifs</Typography.Title>
       <Space className="mb-4">
         <AddClientForm handleState={handleAddClientState} />
         <Button onClick={ToListArchive} icon={<FolderOpenOutlined />}>
-          Les clients non actifs
+          Clients inactifs
         </Button>
       </Space>
       <Table
         size="small"
         columns={columns}
         dataSource={data}
-        pagination={{ pageSize: 6 }}
+        pagination={{ pageSize: 10 }}
+        showSorterTooltip={{ target: "sorter-icon" }}
+
       />
       <Row justify="end">
         <Col>
-          <Button icon={<ExportOutlined />} onClick={Export}>
-            Exporter
-          </Button>
+        <>
+      <Button type="primary" onClick={showModal}>
+        Exporter
+      </Button>
+      <Modal title="Selectionner les colonnes à exporter" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+        <Checkbox.Group options={columns1} onChange={onChange} />
+      </Modal>
+    </>
         </Col>
       </Row>
-   
     </div>
   );
-  
 };
 
 export default ListeClients;

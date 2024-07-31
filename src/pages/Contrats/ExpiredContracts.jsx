@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
 import { SearchOutlined, EyeOutlined,FolderOpenOutlined  } from '@ant-design/icons';
-import { Button, Input, notification, Space, Table, Typography } from 'antd';
+import { Button, Input, notification, Space, Table, Tooltip, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
 import moment from "moment";
@@ -169,7 +169,7 @@ const AllExpiredContracts = () => {
   const Report = (key,reference) => {
     console.log("Generating contract with key: ", key," and reference : ", reference);
     api
-      .get(`/contrat/contratFile/${key}`, {responseType: 'blob', })
+      .get(`/contrat/contratFile/${key}/${reference}`, {responseType: 'blob', })
       .then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
         window.open(url); 
@@ -196,30 +196,33 @@ const AllExpiredContracts = () => {
       ...getColumnSearchProps('reference'),
     },
     {
+      title: "Client",
+      dataIndex: "client",
+      ...getColumnSearchProps('client'),
+    },
+    {
       title: "Date début",
       dataIndex: "dateDebut",
       render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => moment(a.dateDebut).format('DD/MM/YYYY') - moment(b.dateDebut).format('DD/MM/YYYY'),
+      sorter: (a, b) => moment(a.dateDebut).unix() - moment(b.dateDebut).unix(),
     },
     {
       title: "Date fin",
       dataIndex: "dateFin",
       render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => moment(a.dateFin).format('DD/MM/YYYY') - moment(b.dateFin).format('DD/MM/YYYY'),
+      sorter: (a, b) => moment(a.dateFin).unix()- moment(b.dateFin).unix(),
     },
-    {
-      title: "Client",
-      dataIndex: "client",
-      ...getColumnSearchProps('client'),
-    },
+
     {
       title: "Action",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
           <DetailsContratForm record={record} />
+          <Tooltip title="Visualiser">
+
           <Button  disabled={!record.contratFile} icon={<EyeOutlined  />} size="small" onClick={() => Report(record.key,record.reference)}></Button>
-        </Space>
+      </Tooltip>  </Space>
       ),
     },
   ];
@@ -227,11 +230,11 @@ const AllExpiredContracts = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Tous les Contrats archivés</Typography.Title>
+        <Typography.Title level={2}>Liste des Contrats archivés</Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToListActif} icon={<FolderOpenOutlined />}>
-          Les contrats actifs
+          Contrats actifs
         </Button>
       </Space>
       <Table
@@ -239,7 +242,7 @@ const AllExpiredContracts = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
         showSorterTooltip={{ target: 'sorter-icon' }}
       />

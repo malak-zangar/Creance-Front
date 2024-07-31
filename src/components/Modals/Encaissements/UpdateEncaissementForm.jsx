@@ -163,10 +163,11 @@ function UpdateEncaissementForm({ record, handleState }) {
 export default UpdateEncaissementForm;
 */
 
-import { Button, Form, Input, Modal, notification, Space } from "antd";
+import { Button, DatePicker, Form, Input, Modal, notification, Space, Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { EditOutlined } from '@ant-design/icons';
 import api from "../../../utils/axios";
+import moment from "moment";
 
 function UpdateEncaissementForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -174,17 +175,19 @@ function UpdateEncaissementForm({ record, handleState }) {
   const [editForm] = Form.useForm();
 
   const [facture, setFacture] = useState(null); // État pour stocker la facture associée
-
+ 
   useEffect(() => {
     if (record?.facture) {
       api
-        .get(`/facture/getByID/${record.facture}`)
+        .get(`/facture/getByID/${record.facture_id}`)
         .then((response) => {
-          setFacture(response.data.facture); // Mettre à jour l'état avec la facture
+          setFacture(response.data.facture); 
         })
-   
     }
-  }, [record]);
+
+    editForm.validateFields(["montantEncaisse"]);
+
+  }, [record,editForm]);
 
   const handleCancel = () => {
     setIsEditModalVisible(false);
@@ -213,6 +216,8 @@ function UpdateEncaissementForm({ record, handleState }) {
         handleState({
           ...values,
           key: record.key,
+          date: values.date.format("YYYY-MM-DD"),
+
         });
         setIsEditModalVisible(false);
         notification.success({ message: "Encaissement modifié avec succès" });
@@ -226,8 +231,24 @@ function UpdateEncaissementForm({ record, handleState }) {
       });
   };
 
+  const validateMontantEncaisse = () => {
+    const solde = facture?.solde;
+    console.log(solde);
+    const montantEncaisse = editForm.getFieldValue("montantEncaisse");
+    console.log(montantEncaisse);
+
+    if (montantEncaisse > solde || montantEncaisse < 1) {
+      return Promise.reject(
+        new Error(
+          "Le montant encaissé doit etre supérieur à 1!"
+        )
+      );
+    }
+    return Promise.resolve();
+  };
+
   return (
-    <>
+    <>  <Tooltip title="Modifier">
       <Button
         icon={<EditOutlined />}
         size="small"
@@ -235,7 +256,7 @@ function UpdateEncaissementForm({ record, handleState }) {
       >
         
       </Button>
-
+      </Tooltip>
       <Modal
         title={"Modifier le paiement " + record?.reference}
         visible={isEditModalVisible}
@@ -253,6 +274,19 @@ function UpdateEncaissementForm({ record, handleState }) {
           layout="vertical"
           onFinish={handleConfirmEdit}
         >
+            <Form.Item
+            name="modeReglement"
+            label="Mode de règlement"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez saisir le mode de règlement du paiement!",
+              },
+            ]}
+            style={{ marginBottom: '8px' }}
+          >
+            <Input disabled />
+          </Form.Item>
           <Form.Item
             name="reference"
             label="Référence du paiement"
@@ -297,34 +331,30 @@ function UpdateEncaissementForm({ record, handleState }) {
             ]}
             style={{ marginBottom: '8px' }}
           >
-            <Input type="date" />
+            <Input type="date"
+            
+            />
           </Form.Item>
 
-          <Form.Item
-            name="modeReglement"
-            label="Mode de règlement"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir le mode de règlement du paiement!",
-              },
-            ]}
-            style={{ marginBottom: '8px' }}
-          >
-            <Input disabled />
-          </Form.Item>
+        
           <Form.Item
             name="montantEncaisse"
-            label={`Montant encaissé en ${facture?.devise}`}
+            label={`Montant encaissé en ${record?.devise}`}
+          
             rules={[
               {
                 required: true,
                 message: "Veuillez saisir le montant encaissé du paiement!",
               },
+              {
+                validator: validateMontantEncaisse,
+              },
             ]}
             style={{ marginBottom: '8px' }}
           >
-            <Input type="number" step="0.001" />
+            <Input type="number"   min={1}
+                  step="0.001"
+                  placeholder="Montant à encaisser " />
           </Form.Item>
           <Form.Item>
             <Space>

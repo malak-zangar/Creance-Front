@@ -313,15 +313,15 @@ function ListeFactures() {
 
   return (
     <div>
-      <Typography.Title level={2}>Toutes les factures  </Typography.Title>
+      <Typography.Title level={2}>Liste des factures </Typography.Title>
 
       <Space className="mb-4">
         <AddFactureForm />
         <Button icon={<FileDoneOutlined />} type="default" onClick={ToListActif}>
-        Les factures validées
+        Factures validées
         </Button>
         <Button icon={<FolderOpenOutlined />} onClick={ToListArchive}>
-        Les factures en attente de validation
+        Factures en attente de validation
 
         </Button>
       </Space>
@@ -330,7 +330,7 @@ function ListeFactures() {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
       />
     </div>

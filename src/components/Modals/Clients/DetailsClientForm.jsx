@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal, Button, Descriptions, Card, Avatar, List } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Modal, Button, Descriptions, Card, Avatar, List, Tooltip } from 'antd';
 import { InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import DetailsContratForm from '../Contrats/DetailsContratForm';
@@ -15,6 +15,7 @@ const DetailsClientForm = ({ record }) => {
 
   const handleClose = () => {
     setIsDetailsModalVisible(false);
+    setSelectedContract(null); // Clear the selected contract when closing the modal
   };
 
   const handleContractClick = (contract) => {
@@ -23,18 +24,39 @@ const DetailsClientForm = ({ record }) => {
   };
 
   const formatDate = (date) => {
-    if (date == null) {
-      return '-';
-    } else {
-      return moment(date).format('DD/MM/YYYY');
-    }
+    return date ? moment(date).format('DD/MM/YYYY') : '-';
   };
+
+  const currentDate = moment();
+
+  const ongoingContracts = record.contrats?.filter((contrat) =>
+    moment(contrat.dateDebut).isBefore(currentDate) &&
+    moment(contrat.dateFin).isAfter(currentDate)
+  )|| [];
+
+  const notOngoingContracts = record.contrats?.filter((contrat) =>
+    !(moment(contrat.dateDebut).isBefore(currentDate) && moment(contrat.dateFin).isAfter(currentDate))
+  )|| [];
+
+  useEffect(() => {
+    if (isDetailsModalVisible) {
+      const defaultContract = ongoingContracts[0] || notOngoingContracts[0] || null;
+      if (defaultContract) {
+        handleContractClick(defaultContract); // Show the details of the first contract
+      }
+    }
+  }, [isDetailsModalVisible]);
 
   return (
     <>
-      <Button icon={<InfoCircleOutlined />} size="small" onClick={handleDetails}>
-        
-      </Button>
+      <Tooltip title="Details">
+        <Button 
+          icon={<InfoCircleOutlined />} 
+          size="small" 
+          onClick={handleDetails} 
+          style={{ margin: '8px' }}
+        />
+      </Tooltip>
       <Modal
         title={`Informations du client : ${record.username}`}
         visible={isDetailsModalVisible}
@@ -74,19 +96,44 @@ const DetailsClientForm = ({ record }) => {
             <Descriptions.Item label="ID Fiscal">{record.identifiantFiscal}</Descriptions.Item>
             <Descriptions.Item label="Adresse">{record.adresse}</Descriptions.Item>
             <Descriptions.Item label="Date de création">{formatDate(record.dateCreation)}</Descriptions.Item>
-            <Descriptions.Item label="Contrats">
-              {record.contrats?.length > 0 ? (
+            <Descriptions.Item label="Contrats en cours">
+              {ongoingContracts?.length > 0 ? (
                 <List
                   size="small"
-                  dataSource={record.contrats}
+                  dataSource={ongoingContracts}
                   renderItem={(contrat) => (
-              
-                  <List.Item
-                  onClick={() => handleContractClick(contrat)} style={{ cursor: 'pointer', color: '#0e063b' }} >
-                  <span style={{ textDecoration: 'underline' }}>{contrat?.reference}</span>
-                  {selectedContract && (
-                <DetailsContratForm record={selectedContract} />  )}
-                  </List.Item>
+                    <List.Item
+                      key={contrat.id}
+                      onClick={() => handleContractClick(contrat)}
+                      style={{ color: '#0e063b' }}
+                    >
+                      <span >{contrat?.reference}</span>
+                      {isContractModalVisible && selectedContract && (
+        <DetailsContratForm record={selectedContract} />
+      )}
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                'Aucun contrat'
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Contrats non en cours">
+              {notOngoingContracts?.length > 0 ? (
+                <List
+                  size="small"
+                  dataSource={notOngoingContracts}
+                  renderItem={(contrat) => (
+                    <List.Item
+                      key={contrat.id}
+                      onClick={() => handleContractClick(contrat)}
+                      style={{color: '#0e063b' }}
+                    >
+                      <span>{contrat?.reference}</span>
+                      {isContractModalVisible && selectedContract && (
+        <DetailsContratForm record={selectedContract} />
+      )}
+                    </List.Item>
                   )}
                 />
               ) : (
@@ -97,7 +144,7 @@ const DetailsClientForm = ({ record }) => {
         </Card>
       </Modal>
 
-     
+    
     </>
   );
 };

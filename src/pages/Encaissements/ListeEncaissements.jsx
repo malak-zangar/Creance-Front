@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Table, Button, Typography, Space, Input, notification } from "antd";
+import { Table, Button, Typography, Space, Input, notification, Tooltip } from "antd";
 import Highlighter from "react-highlight-words";
 import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
 import { AddEncaissementForm } from "../../components/Modals/Encaissements/AddEncaissementForm";
@@ -138,11 +138,11 @@ const ListeEncaissements = () => {
         responseType: "blob",
       })
       .then((response) => {
-        console.log("Report generated successfully:", response.data);
 
-        const url = window.URL.createObjectURL(
-          new Blob([response.data], { type: "application/pdf" })
-        );
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        window.open(url); 
+
+       /* 
         const link = document.createElement("a");
         link.href = url;
         link.setAttribute("download", `report_${key}.pdf`);
@@ -151,7 +151,7 @@ const ListeEncaissements = () => {
         document.body.removeChild(link);
 
         fetchData();
-        notification.success({ message: "Rapport paiement généré avec succès" });
+        notification.success({ message: "Rapport paiement généré avec succès" });*/
 
       })
       .catch((error) => {
@@ -192,6 +192,7 @@ const ListeEncaissements = () => {
             facture: encaissement.facture,
             client: encaissement.client,
             contrat: encaissement.contrat,
+            devise:encaissement.devise,
           }))
         );
       })
@@ -234,14 +235,15 @@ const ListeEncaissements = () => {
           <UpdateEncaissementForm
             record={record}
             handleState={handleEncaissements}
-          />
+          />            <Tooltip title="Visualiser">
+
           <Button
             icon={<EyeOutlined />}
             size="small"
             onClick={() => Report(record.key)}
           >
             
-          </Button>
+          </Button></Tooltip>
           <DetailsEncaissementForm record={record} />
         </Space>
       ),
@@ -250,7 +252,7 @@ const ListeEncaissements = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Tous les paiements</Typography.Title>
+      <Typography.Title level={2}>Liste des paiements</Typography.Title>
 
       <Space className="mb-4">
         <AddEncaissementForm handleState={handleAddEncaissementState} />
@@ -260,7 +262,7 @@ const ListeEncaissements = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
         showSorterTooltip={{ target: "sorter-icon" }}
       />

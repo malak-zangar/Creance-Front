@@ -3,7 +3,7 @@ import {
   SearchOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
-import { Button, Input, notification, Space, Table, Typography } from "antd";
+import { Button, Input, notification, Space, Table, Tooltip, Typography } from "antd";
 import Highlighter from "react-highlight-words";
 import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
 import moment from "moment";
@@ -195,8 +195,6 @@ const HistoriqueClientFacture = () => {
       });
   };
 
-
-
   const columns = [
 
     {
@@ -278,15 +276,16 @@ const HistoriqueClientFacture = () => {
       dataIndex: "action",
       render: (_, record) => (
         <Space>
-        
+           <Tooltip title="Visualiser">
+
           <Button
             icon={<EyeOutlined />}
             size="small"
             onClick={() => Report(record.key)}
           >
-            Visualiser la facture
+          
           </Button>
-
+</Tooltip>
           <DetailsFactureForm record={record} />
         </Space>
       ),
@@ -346,7 +345,7 @@ const HistoriqueClientFacture = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 6,
+          pageSize: 10,
         }}
         footer={() => (
           <div style={{ textAlign: 'right', color: 'grey' }}>
