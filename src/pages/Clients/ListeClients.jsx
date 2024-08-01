@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
   FolderOpenOutlined,
-  ExportOutlined,
-  HistoryOutlined,FileTextOutlined,FileDoneOutlined
+  HistoryOutlined,FileTextOutlined
 } from "@ant-design/icons";
 import {
   Button,
@@ -14,7 +13,6 @@ import {
   Row,
   Col,
   notification,
-  List,
   Tooltip,
   Modal,
   Checkbox,
@@ -26,7 +24,6 @@ import { AddClientForm } from "../../components/Modals/Clients/AddClientForm";
 import DetailsClientForm from "../../components/Modals/Clients/DetailsClientForm";
 import api from "../../utils/axios";
 import moment from "moment";
-import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm"; // Assurez-vous que ce chemin est correct
 
 const ListeClients = () => {
   const [data, setData] = useState([]);
@@ -45,100 +42,6 @@ const ListeClients = () => {
     clearFilters();
     setSearchText("");
   };
-  /*const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-      <div
-        style={{
-          padding: 8,
-        }}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <Input
-          ref={searchInput}
-          placeholder={`Rechercher ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          style={{
-            marginBottom: 8,
-            display: 'block',
-          }}
-        />
-        <Space>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{
-              width: 100,
-            }}
-          >
-            Rechercher
-          </Button>
-          <Button
-            onClick={() => clearFilters && handleReset(clearFilters)}
-            size="small"
-            style={{
-              width: 90,
-            }}
-          >
-            Réinitialiser
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              confirm({
-                closeDropdown: false,
-              });
-              setSearchText(selectedKeys[0]);
-              setSearchedColumn(dataIndex);
-            }}
-          >
-            Filtrer
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              close();
-            }}
-          >
-            Fermer
-          </Button>
-        </Space>
-      </div>
-    ),
-    filterIcon: (filtered) => (
-      <SearchOutlined
-        style={{
-          color: filtered ? '#1677ff' : undefined,
-        }}
-      />
-    ),
-    onFilter: (value, record) =>
-      record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        setTimeout(() => searchInput.current?.select(), 100);
-      }
-    },
-    render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{
-            backgroundColor: '#ffc069',
-            padding: 0,
-          }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ''}
-        />
-      ) : (
-        text
-      ),
-  });*/
 
   const getColumnSearchProps = (dataIndex, isNestedArray = false) => ({
     filterDropdown: ({
@@ -307,37 +210,6 @@ const ListeClients = () => {
     }
   };
 
-  /*const fetchData = async () => {
-    try {
-      const response = await api.get("/user/getAllActif");
-      const clients = response.data;
-
-      const updatedClients = await Promise.all(
-        clients.map(async (client) => {
-          const activeContracts = await fetchContracts(client.id);
-          console.log(activeContracts);
-          return {
-            key: client.id,
-            username: client.username,
-            email: client.email,
-            emailcc: client.emailcc,
-            phone: client.phone,
-            adresse: client.adresse,
-            identifiantFiscal: client.identifiantFiscal,
-            actif: client.actif,
-            dateCreation: moment(client.dateCreation).format('YYYY-MM-DD'),
-            activeContracts: activeContracts,
-            contrats: client.contrats,
-          };
-        })
-      );
-
-      setData(updatedClients);
-    } catch (error) {
-      notification.error({ message: "Une erreur lors de la récupération des clients!", description: error.message });
-    }
-  };*/
-
   const fetchData = async () => {
     try {
       const response = await api.get("/user/getAllActif");
@@ -346,10 +218,9 @@ const ListeClients = () => {
       const updatedClients = await Promise.all(
         clients.map(async (client) => {
           const activeContracts = await fetchContracts(client.id);
-          // Sélectionner le premier contrat actif s'il existe
           const defaultContract = activeContracts[0] || null;
           if (defaultContract) {
-            handleContractClick(defaultContract); // Afficher les détails du premier contrat
+            handleContractClick(defaultContract); 
           }
           return {
             key: client.id,
@@ -389,36 +260,6 @@ const ListeClients = () => {
   const ToHistoriqueFact = (clientId) => {
     navigate(`/clients/historique/facture/${clientId}`);
   };
-
-  const Export = async () => {
-    console.log("Button Export clicked");
-    try {
-      const response = await api.get("/user/export/csv/actifusers", {
-        responseType: "blob",
-      });
-
-      console.log("Response:", response);
-
-      if (response.status !== 200) {
-        throw new Error("Network response was not ok");
-      }
-
-      const blob = new Blob([response.data], { type: "text/csv" });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = url;
-      a.download = "actifusers.csv"; // Nom du fichier CSV
-
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("There was a problem with the fetch operation:", error);
-    }
-  };
-
   const handleAddClientState = (record) => {
     setData([record, ...data]);
   };
@@ -432,12 +273,9 @@ const ListeClients = () => {
       }
     });
     setData(tempClient);
-/*
-    setData(
-      data.map((client) => (client.key === record.key ? record : client))
-    );
-    fetchData();*/
+
   };
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState([]);
   const columns1 = [
@@ -496,7 +334,7 @@ const ListeClients = () => {
   
     const handleCancel = () => {
       setIsModalVisible(false);
-      setSelectedColumns([]); // Reset selected columns
+      setSelectedColumns([]); 
           };
   
     const onChange = (checkedValues) => {

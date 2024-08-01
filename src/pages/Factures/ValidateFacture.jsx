@@ -150,7 +150,7 @@ const ValidateFacture = () => {
       .get(`/facture/getByClient/${param}`)
       .then((response) => {
         if (response.data.length > 0) {
-          setClientName(response.data[0].client); // Set the client name
+          setClientName(response.data[0].client); 
         }
         setData(
           response.data.map((facture) => ({
@@ -223,7 +223,6 @@ const ValidateFacture = () => {
     {
       title: "Date",
       dataIndex: "date",
-      //...getColumnSearchProps('date'),
       render: (text) => moment(text).format("DD/MM/YYYY"),
 
       sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),

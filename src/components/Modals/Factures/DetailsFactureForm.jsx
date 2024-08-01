@@ -48,43 +48,6 @@ const DetailsFactureForm = ({ record }) => {
     );
 };
 
-  /*const renderStatut = (statut, actif) => {
-    if (!actif) {
-      return (
-        <div
-          style={{
-            padding: '0px 2px',
-            borderRadius: '4px',
-            backgroundColor: 'gray',
-            color: 'white',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            display: 'inline-block',
-          }}
-        >
-          Non encore validée
-        </div>
-      );
-    }
-
-    const color = getColor(statut);
-    return (
-      <div
-        style={{
-          padding: '4px 8px',
-          borderRadius: '4px',
-          backgroundColor: color,
-          color: 'white',
-          fontWeight: 'bold',
-          textAlign: 'center',
-          display: 'inline-block',
-        }}
-      >
-        {statut}
-      </div>
-    );
-  };*/
-
   const formatDate = (date) => {
     
     if (date == null) {

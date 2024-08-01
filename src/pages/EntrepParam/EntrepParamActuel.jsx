@@ -37,7 +37,6 @@ const EntrepParamActuel = () => {
           adresse: param.adresse,
           identifiantFiscal: param.identifiantFiscal,
         });
-        //setData(response.data.paramentreprise);
         console.log(data);
       })
       .catch((error) => {

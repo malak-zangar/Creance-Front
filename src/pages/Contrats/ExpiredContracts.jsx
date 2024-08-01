@@ -156,11 +156,6 @@ const AllExpiredContracts = () => {
     fetchData();
   }, []);
 
-
-  const handleAddContractState = (record) => {
-    setData([ record, ...data,]);
-  };
-
   const ToListActif = () => {
     console.log("Button ToListActif clicked");
     navigate("/contrats/actif");

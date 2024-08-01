@@ -26,11 +26,6 @@ function UpdateFactureForm({ record, handleState }) {
     }
   }, [isEditModalVisible, record, editForm]);
 
-  /*const handleDateCreationDisabledDate = (current) => {
-    const currentDate = moment();
-    return currentDate ? current > currentDate.startOf("day") : false;
-  };*/
-
   const handleDateCreationDisabledDate = (current) => {
     const contrat = editForm.getFieldValue('contrat');
     console.log(contrat)

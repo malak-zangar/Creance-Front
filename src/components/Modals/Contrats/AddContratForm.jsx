@@ -8,6 +8,7 @@ import {
   DatePicker,
   Space,
   Upload,
+  message,
 } from "antd";
 import { PlusCircleOutlined, UploadOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
@@ -201,6 +202,14 @@ export const AddContratForm = ({ handleState }) => {
     const handleDateFinDisabledDate = (current) => {
       const dateDebut = addForm.getFieldValue('dateDebut');
       return dateDebut ? current <= dateDebut.startOf('day') : false;
+    };
+
+    const beforeUpload = (file) => {
+      const isPDF = file.type === 'application/pdf';
+      if (!isPDF) {
+        message.error('Vous ne pouvez télécharger que des fichiers PDF!');
+      }
+      return isPDF || Upload.LIST_IGNORE;
     };
 
   return (
@@ -428,7 +437,8 @@ export const AddContratForm = ({ handleState }) => {
             <Upload
               name="contratFile"
               listType="text"
-              beforeUpload={() => false}
+              //beforeUpload={() => false}
+              beforeUpload={beforeUpload}
               onChange={handleFileChange}
             >
               <Button icon={<UploadOutlined />}>Cliquez pour télécharger</Button>

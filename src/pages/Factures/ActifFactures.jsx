@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
   FolderOpenOutlined,
-  ExportOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
 import {
@@ -280,32 +279,7 @@ const ActifFactures = () => {
       });
   };
 
-  /* const Export = async () => {
-    console.log("Button Export clicked");
-    try {
-      const response = await api.get('/facture/export/csv', { responseType: 'blob' });
-
-      if (response.status !== 200) {
-        throw new Error('Network response was not ok');
-      }
-
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'factures_en_cours.csv';
-
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('There was a problem with the fetch operation:', error);
-    }
-  };*/
-
-  const [isModalVisible, setIsModalVisible] = useState(false);
+ const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState([]);
   const columns1 = [
     { label: "Numéro de facture", value: "numero" },
@@ -342,16 +316,8 @@ const ActifFactures = () => {
       if (response.status !== 200) {
         throw new Error("Network response was not ok");
       }
-
-     /* const blob = new Blob([response.data.text()], { type: "text/csv;charset=utf-8" });
-      console.log("Blob:", blob);
-*/
-
-    // Convertir le blob en texte pour vérifier les caractères spéciaux
     const text = await response.data.text();
-    console.log('CSV Content:', text); // Log the CSV content
-
-    // Re-créer le Blob avec l'encodage UTF-8
+    console.log('CSV Content:', text); 
     const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
 
       const url = window.URL.createObjectURL(blob);
@@ -373,7 +339,7 @@ const ActifFactures = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-    setSelectedColumns([]); // Reset selected columns
+    setSelectedColumns([]); 
   };
 
   const onChange = (checkedValues) => {

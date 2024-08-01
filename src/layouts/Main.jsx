@@ -12,7 +12,6 @@ import {
 import { Layout, Menu, Dropdown, Avatar } from "antd";
 import { Outlet, Link,useNavigate } from "react-router-dom";
 import {removeaccess_token} from '../utils/auth'
-//import { useAuth } from "../context/AuthContext";
 
 
 const { Header, Content, Sider } = Layout;
@@ -54,7 +53,6 @@ const items = [
 
 const Main = () => {
   const navigate = useNavigate();
- // const { currentUser } = useAuth(); // Get currentUser from AuthContext
   const currentUser = localStorage.getItem('currentUser');
 
 
@@ -100,7 +98,7 @@ const Main = () => {
                 display: "flex",
                 justifyContent: "flex-end",
                 alignItems: "center",
-                background: "#fff", // Replace with your desired background color
+                background: "#fff", 
                 paddingRight: "16px",
               }}
             >
@@ -127,8 +125,8 @@ const Main = () => {
                 style={{
                   padding: 24,
                   minHeight: "95%",
-                  background: "#fff", // Replace with your desired background color
-                  borderRadius: "8px", // Replace with your desired border radius
+                  background: "#fff", 
+                  borderRadius: "8px", 
                 }}
               >
                 <Outlet />

@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { Table, Button, Typography, Space, Input, notification, Tooltip } from "antd";
+import {
+  Table,
+  Button,
+  Typography,
+  Space,
+  Input,
+  notification,
+  Tooltip,
+} from "antd";
 import Highlighter from "react-highlight-words";
 import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
 import { AddEncaissementForm } from "../../components/Modals/Encaissements/AddEncaissementForm";
@@ -138,11 +146,12 @@ const ListeEncaissements = () => {
         responseType: "blob",
       })
       .then((response) => {
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], { type: "application/pdf" })
+        );
+        window.open(url);
 
-        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-        window.open(url); 
-
-       /* 
+        /* 
         const link = document.createElement("a");
         link.href = url;
         link.setAttribute("download", `report_${key}.pdf`);
@@ -152,7 +161,6 @@ const ListeEncaissements = () => {
 
         fetchData();
         notification.success({ message: "Rapport paiement généré avec succès" });*/
-
       })
       .catch((error) => {
         notification.error("There was an error generating the report!", error);
@@ -187,12 +195,11 @@ const ListeEncaissements = () => {
             date: moment(encaissement.date).format("YYYY-MM-DD"),
             modeReglement: encaissement.modeReglement,
             montantEncaisse: encaissement.montantEncaisse,
-            actif: encaissement.actif,
             facture_id: encaissement.facture_id,
             facture: encaissement.facture,
             client: encaissement.client,
             contrat: encaissement.contrat,
-            devise:encaissement.devise,
+            devise: encaissement.devise,
           }))
         );
       })
@@ -202,7 +209,6 @@ const ListeEncaissements = () => {
   };
 
   const columns = [
- 
     {
       title: "Référence",
       dataIndex: "reference",
@@ -211,7 +217,6 @@ const ListeEncaissements = () => {
     {
       title: "Date",
       dataIndex: "date",
-      //...getColumnSearchProps("date"),
       render: (text) => moment(text).format("DD/MM/YYYY"),
 
       sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
@@ -235,15 +240,14 @@ const ListeEncaissements = () => {
           <UpdateEncaissementForm
             record={record}
             handleState={handleEncaissements}
-          />            <Tooltip title="Visualiser">
-
-          <Button
-            icon={<EyeOutlined />}
-            size="small"
-            onClick={() => Report(record.key)}
-          >
-            
-          </Button></Tooltip>
+          />{" "}
+          <Tooltip title="Visualiser">
+            <Button
+              icon={<EyeOutlined />}
+              size="small"
+              onClick={() => Report(record.key)}
+            ></Button>
+          </Tooltip>
           <DetailsEncaissementForm record={record} />
         </Space>
       ),

@@ -7,7 +7,6 @@ import {
   notification,
   Select,
   Space,
-  Tooltip,
 } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Modal, Button, Descriptions, Card, Avatar, Tooltip } from 'antd';
-import { InfoCircleOutlined, FileDoneOutlined } from '@ant-design/icons';
+import { Modal, Button, Descriptions, Card, Avatar, Tooltip, notification } from 'antd';
+import { InfoCircleOutlined, FileDoneOutlined,EyeOutlined } from '@ant-design/icons';
 import moment from 'moment';
+import api from '../../../utils/axios';
 
 const DetailsContratForm = ({ record }) => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
@@ -19,6 +20,20 @@ const DetailsContratForm = ({ record }) => {
     return moment(date).format('DD/MM/YYYY');
   };
 
+  const Report = (key,reference) => {
+    console.log("Generating contract with key: ", key," and reference : ", reference);
+    api
+      .get(`/contrat/contratFile/${key}/${reference}`, {responseType: 'blob', })
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        window.open(url); 
+
+      })
+      .catch((error) => {
+        notification.error("Une erreur lors de la génération du contrat!", error);
+      });
+  };
+
   const renderDescriptions = () => {
     const fields = [
       { label: "Date de début", value: formatDate(record?.dateDebut) },
@@ -31,6 +46,9 @@ const DetailsContratForm = ({ record }) => {
       { label: "Fréquence de facturation", value: record?.typeFrequenceFacturation },
       { label: "Détails spécifiques à la fréquence de facturation", value: record?.detailsFrequence },
       { label: "Montant à facturer par mois", value: record?.montantParMois !== undefined && record?.montantParMois !== null && record?.devise ? `${record?.montantParMois} ${record?.devise}` : null },   
+      { label: "Contrat numérique", value:  <Tooltip title="Visualiser">
+        <Button  disabled={!record.contratFile} icon={<EyeOutlined  />} size="small"
+         onClick={() => Report(record.key,record.reference)}></Button> </Tooltip> },
 
     ];
 

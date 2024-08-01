@@ -19,7 +19,9 @@ const DetailsClientForm = ({ record }) => {
   };
 
   const handleContractClick = (contract) => {
-    setSelectedContract(contract);
+    const contractWithKey = { ...contract, key: contract.id };
+    setSelectedContract(contractWithKey);
+    console.log(selectedContract)
     setIsContractModalVisible(true);
   };
 
@@ -107,7 +109,7 @@ const DetailsClientForm = ({ record }) => {
                       onClick={() => handleContractClick(contrat)}
                       style={{ color: '#0e063b' }}
                     >
-                      <span >{contrat?.reference}</span>
+                      <span > {contrat?.reference}</span>
                       {isContractModalVisible && selectedContract && (
         <DetailsContratForm record={selectedContract} />
       )}

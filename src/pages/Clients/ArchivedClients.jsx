@@ -1,6 +1,6 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined,HistoryOutlined, UserOutlined ,ExportOutlined} from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography,Select,Row,Col, notification, Modal, Checkbox } from 'antd';
+import { SearchOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Input, Space, Table, Typography,Row,Col, notification, Modal, Checkbox } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
 import UpdateClientForm from "../../components/Modals/Clients/UpdateClientForm";
@@ -122,8 +122,6 @@ const ArchivedClients = () => {
       ),
   });
 
-
-
   const fetchData = () => {
     api
       .get("/user/getAllArchived")
@@ -163,37 +161,6 @@ const ArchivedClients = () => {
     console.log("Button ToListClients clicked");
     navigate("/clients");
   };
-
-  
-
- /* const Export = async () => {
-    console.log("Button Export clicked");
-    try {
-        const response = await api.get('/user/export/csv/nonactif', {
-            responseType: 'blob'
-        });
-
-        console.log("Response:", response);
-
-        if (response.status !== 200) {
-            throw new Error('Network response was not ok');
-        }
-
-        const blob = new Blob([response.data], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'nonactifusers.csv';  // Nom du fichier CSV
-
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    } catch (error) {
-        console.error('There was a problem with the fetch operation:', error);
-    }
-  };*/
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState([]);
@@ -253,7 +220,7 @@ const ArchivedClients = () => {
   
     const handleCancel = () => {
       setIsModalVisible(false);
-      setSelectedColumns([]); // Reset selected columns
+      setSelectedColumns([]); 
           };
   
     const onChange = (checkedValues) => {
@@ -287,37 +254,6 @@ const ArchivedClients = () => {
       sorter: (a, b) => moment(a.dateCreation).unix()- moment(b.dateCreation).unix(),
   
     },
-
- /*   {
-      title: "Email de contact",
-      dataIndex: "email",
-      ...getColumnSearchProps('email'),
-    },
-
-   {
-      title: "Actif",
-      dataIndex: "actif",
-      filters: [
-        { text: 'Actif', value: true },
-        { text: 'Non Actif', value: false },
-      ],
-      onFilter: (value, record) => record.actif === value,
-      //...getColumnSearchProps('actif'),
-
-      render: (actif) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div
-            style={{
-              width: '13px',
-              height: '13px',
-              borderRadius:'100%',
-              backgroundColor: actif ? 'green' : 'red',
-              marginLeft: '8px',
-            }}
-          ></div>
-        </div>
-      ),
-    },*/
  
     {
       title: "Action",
