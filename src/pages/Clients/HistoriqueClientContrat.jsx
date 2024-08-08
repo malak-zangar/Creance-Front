@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Input, Space, Table, Typography, notification } from 'antd';
 import api from '../../utils/axios';
 import moment from 'moment';
-import { FolderOpenOutlined,SearchOutlined, UserOutlined } from '@ant-design/icons';
+import { FolderOpenOutlined,SearchOutlined, UserOutlined ,HistoryOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 
 const HistoriqueClientContrat = () => {
@@ -14,6 +14,8 @@ const HistoriqueClientContrat = () => {
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
+  const [loading, setLoading] = useState(true);
+
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
@@ -152,6 +154,8 @@ const HistoriqueClientContrat = () => {
         }));
 
         setHistoricData(historicEntries);
+        setLoading(false);
+
       } catch (error) {
         notification.error({ message: "Erreur lors de la récupération du client!", description: error.message });
       }
@@ -201,7 +205,10 @@ const HistoriqueClientContrat = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Historique d'activité du client : {username}</Typography.Title>
+      <Typography.Title level={4}>
+      <span> <HistoryOutlined /> </span>
+ 
+        Historique d'activité du client : {username}</Typography.Title>
       <Space className="mb-4">
         <Button onClick={ToListClients} icon={<UserOutlined />}>
           Clients actifs
@@ -211,6 +218,11 @@ const HistoriqueClientContrat = () => {
         </Button>
       </Space>
       <Table 
+       scroll={{
+        x: "max-content"
+      }}
+      loading={loading}
+
         size="small"
         dataSource={historicData} 
         columns={columns} 

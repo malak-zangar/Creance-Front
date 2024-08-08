@@ -9,6 +9,7 @@ import {
   Upload,
   Space,
   Tooltip,
+  message,
 } from "antd";
 import { useState, useEffect } from "react";
 import { EditOutlined, UploadOutlined } from "@ant-design/icons";
@@ -155,7 +156,6 @@ function UpdateContratForm({ record, handleState }) {
     editForm.setFieldsValue({ delai: value });
   };
 
-    // Function to update the minDate for the end date based on the start date
     const handleDateDebutChange = (date, dateString) => {
       editForm.setFieldsValue({ dateDebut: date });
       if (date) {
@@ -167,6 +167,16 @@ function UpdateContratForm({ record, handleState }) {
       const dateDebut = editForm.getFieldValue('dateDebut');
       return dateDebut ? current <= dateDebut.startOf('day') : false;
     };
+
+    const beforeUpload = (file) => {
+      const isPDF = file.type === 'application/pdf';
+      if (!isPDF) {
+        message.error('Vous ne pouvez télécharger que des fichiers PDF!');
+      }
+      return isPDF || Upload.LIST_IGNORE;
+    };
+
+
   return (
     <>
       {" "}
@@ -197,6 +207,8 @@ function UpdateContratForm({ record, handleState }) {
           >
             <Input disabled />
           </Form.Item>
+          <Input.Group compact>
+
           <Form.Item
             name="dateDebut"
             label="Date de début"
@@ -206,10 +218,10 @@ function UpdateContratForm({ record, handleState }) {
                 message: "Veuillez saisir la date de début du contrat!",
               },
             ]}
-            style={{ marginBottom: "8px" }}
+            style={{ marginBottom: "8px" , width: '50%' ,border: 'none'}}
           >
             <DatePicker format="YYYY-MM-DD" 
-             style={{ width: "100%" }}
+             style={{ width: "152%"  }}
              onChange={handleDateDebutChange} />
           </Form.Item>
           <Form.Item
@@ -221,14 +233,14 @@ function UpdateContratForm({ record, handleState }) {
                 message: "Veuillez saisir la date de fin du contrat!",
               },
             ]}
-            style={{ marginBottom: "8px" }}
+            style={{ marginBottom: "8px",width: '50%',border: 'none' }}
           >
             <DatePicker
             format="YYYY-MM-DD" 
-               style={{ width: "100%" }}
+               style={{ width: "157%" }}
                disabledDate={handleDateFinDisabledDate}
            />
-          </Form.Item>
+          </Form.Item> </Input.Group>
           <Form.Item
             name="client"
             label="Client"
@@ -409,7 +421,10 @@ function UpdateContratForm({ record, handleState }) {
             label="Modifier le contrat PDF"
             style={{ marginBottom: "8px" }}
           >
-            <Upload beforeUpload={() => false} onChange={handleFileChange}>
+            <Upload
+            // beforeUpload={() => false}
+            beforeUpload={beforeUpload}
+              onChange={handleFileChange}>
               <Button icon={<UploadOutlined />}>Sélectionner un fichier</Button>
             </Upload>
           </Form.Item>

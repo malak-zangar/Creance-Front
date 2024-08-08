@@ -4,136 +4,150 @@ import {
   FileDoneOutlined,
   SettingOutlined,
   TeamOutlined,
-  DollarOutlined,
+  EuroCircleOutlined ,
   DashboardOutlined,
   UserOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
-import { Layout, Menu, Dropdown, Avatar } from "antd";
-import { Outlet, Link,useNavigate } from "react-router-dom";
-import {removeaccess_token} from '../utils/auth'
-
+import { Layout, Menu, Dropdown, Avatar, theme } from "antd";
+import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
+import { removeaccess_token } from '../utils/auth';
 
 const { Header, Content, Sider } = Layout;
 
 const items = [
   {
     key: "1",
-    icon: React.createElement(DashboardOutlined),
+    icon: <DashboardOutlined />,
     label: <Link to="/dashboard">Tableau de bord</Link>,
+    path: "/dashboard"
   },
   {
     key: "2",
-    icon: React.createElement(FileDoneOutlined),
+    icon: <FileDoneOutlined />,
     label: <Link to="/contrats/actif">Contrats</Link>,
+    path: "/contrats"
   },
   {
     key: "3",
-    icon: React.createElement(TeamOutlined),
+    icon: <TeamOutlined />,
     label: <Link to="/clients">Clients</Link>,
+    path: "/clients"
   },
   {
     key: "4",
-    icon: React.createElement(FileTextOutlined),
+    icon: <FileTextOutlined />,
     label: <Link to="/factures/actif">Factures</Link>,
+    path: "/factures"
   },
   {
     key: "5",
-    icon: React.createElement(DollarOutlined),
+    icon: <EuroCircleOutlined />,
     label: <Link to="/encaissements">Paiements</Link>,
+    path: "/encaissements"
   },
   {
     key: "6",
-    icon: React.createElement(SettingOutlined),
+    icon: <SettingOutlined />,
     label: <Link to="/parametres/actuels">Paramétrage</Link>,
+    path: "/parametres"
   },
 ];
 
-
-
 const Main = () => {
+  const {
+    token: { colorBgContainer }
+  } = theme.useToken()
   const navigate = useNavigate();
+  const location = useLocation(); // Use useLocation to get the current URL path
   const currentUser = localStorage.getItem('currentUser');
-
 
   const handleLogout = () => {
     removeaccess_token();
     navigate("/login");
-
   };
 
   const profileMenu = (
     <Menu>
-      <Menu.Item key="1" icon={<UserOutlined />}>{currentUser}
-      </Menu.Item>
+      <Menu.Item key="1" icon={<UserOutlined />}>{currentUser}</Menu.Item>
       <Menu.Item key="2" icon={<LogoutOutlined />} onClick={handleLogout}>
         Déconnexion
       </Menu.Item>
     </Menu>
   );
+
+  // Determine the selected key based on the current URL path
+  const selectedKey = items.find(item => location.pathname.startsWith(item.path))?.key || "1";
+
   return (
     <Layout className="h-[100vh]">
-<Sider
+      <Sider
+        className="h-[100vh]"
+        breakpoint="lg"
+        collapsedWidth="0"
+        onBreakpoint={(broken) => {
+          console.log(broken);
+        }}
+        onCollapse={(collapsed, type) => {
+          console.log(collapsed, type);
+        }}
+      >
+        <div className="demo-logo-vertical" />
+        <Menu
+          theme="light"
           className="h-[100vh]"
-          breakpoint="lg"
-          collapsedWidth="0"
-          onBreakpoint={(broken) => {
-            console.log(broken);
-          } }
-          onCollapse={(collapsed, type) => {
-            console.log(collapsed, type);
-          } }
+          mode="inline"
+          selectedKeys={[selectedKey]} // Set the selected key based on the current URL
         >
-          <div className="demo-logo-vertical" />
-          <Menu
-            theme="dark"
-            className="h-[100vh]"
-            mode="inline"
-            defaultSelectedKeys={["1"]}
-            items={items} />
-        </Sider><Layout>
-            <Header
+          {items.map((item) => (
+            <Menu.Item key={item.key} icon={item.icon}>
+              {item.label}
+            </Menu.Item>
+          ))}
+        </Menu>
+      </Sider>
+      <Layout>
+        <Header
+          style={{
+            padding: 0,
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            background: colorBgContainer,
+            paddingRight: "16px",
+          }}
+        >
+          <Dropdown overlay={profileMenu}>
+            <div
               style={{
-                padding: 0,
                 display: "flex",
-                justifyContent: "flex-end",
                 alignItems: "center",
-                background: "#fff", 
-                paddingRight: "16px",
+                cursor: "pointer",
               }}
             >
-              <Dropdown overlay={profileMenu}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Avatar style={{}} icon={<UserOutlined />} />
-                  <span style={{ marginLeft: "8px" }}>{currentUser}</span>
-                </div>
-              </Dropdown>
-            </Header>
-            <Content
-              style={{
-                margin: "24px 16px 0",
-                overflowY: "scroll",
-              }}
-            >
-              <div
-                style={{
-                  padding: 24,
-                  minHeight: "95%",
-                  background: "#fff", 
-                  borderRadius: "8px", 
-                }}
-              >
-                <Outlet />
-              </div>
-            </Content>
-          </Layout>
-
+              <Avatar icon={<UserOutlined />} />
+              <span style={{ marginLeft: "8px" }}>{currentUser}</span>
+            </div>
+          </Dropdown>
+        </Header>
+        <Content
+          style={{
+            margin: "24px 16px 0",
+            overflowY: "scroll",
+          }}
+        >
+          <div
+            style={{
+              padding: 24,
+              minHeight: "95%",
+              background: colorBgContainer,
+              borderRadius: "8px",
+            }}
+          >
+            <Outlet />
+          </div>
+        </Content>
+      </Layout>
     </Layout>
   );
 };

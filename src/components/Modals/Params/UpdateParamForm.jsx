@@ -1,6 +1,6 @@
 import { Button, Form, Input, Modal, notification, Space, Tooltip } from "antd";
 import { useState } from "react";
-import { EditOutlined} from '@ant-design/icons';
+import { EditOutlined  ,EditTwoTone } from '@ant-design/icons';
 import api from "../../../utils/axios";
 
 function UpdateParamForm({ record, handleState }) {
@@ -41,7 +41,7 @@ function UpdateParamForm({ record, handleState }) {
 
   return (
     <>  <Tooltip title="Modifier">
-      <Button icon={<EditOutlined />}  size="small" onClick={handleUpdate}></Button>
+      <Button icon={<EditTwoTone />}  size="small" onClick={handleUpdate}></Button>
 </Tooltip>
       <Modal
         title={"Modifier les paramètres d'ID : "+ record?.key}
@@ -116,6 +116,28 @@ function UpdateParamForm({ record, handleState }) {
             ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
+          </Form.Item>
+          <Form.Item label="Taux de change | EUR">
+            <Input.Group compact>
+              <Form.Item
+                name="tauxTndEur"
+                rules={[
+                  { required: true, message: "Veuillez saisir le taux de change TND!" },
+                ]}
+                style={{ width: '48%', marginRight: '4px',border: 'none' }}
+              >
+                <Input type="number" min={0} step={0.01} addonBefore="TND" />
+              </Form.Item>
+              <Form.Item
+                name="tauxUsdEur"
+                rules={[
+                  { required: true, message: "Veuillez saisir le taux de change USD!" },
+                ]}
+                style={{ width: '48%',border: 'none' }}
+              >
+                <Input type="number" step={0.01} min={0} addonBefore="USD" />
+              </Form.Item>
+            </Input.Group>
           </Form.Item>
           <Form.Item>
           <Space>

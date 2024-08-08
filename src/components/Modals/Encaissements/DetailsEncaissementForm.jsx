@@ -64,25 +64,24 @@ const DetailsEncaissementForm = ({ record }) => {
         ]}
         style={{ top: 20 }}
       >
-        <Card>
-          <Card.Meta
-            avatar={
-              <div style={{ position: "relative", display: "inline-block" }}>
+     <hr style={{ backgroundColor: '#CCCCCC', height: '1px', border: 'none' }}/>    
+    <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+                 <span>
+
+              <div style={{ position: "relative", display: "inline-block", marginRight: 10 , marginTop:5 }}>
                 <Avatar icon={<MoneyCollectOutlined />} />
               </div>
-            }
-            description={
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span>{`Référence : ${record.reference}`}</span>
+             {`Référence : ${record.reference}`}
+                </span>
+
               </div>
-            }
-          />
+            
           <Descriptions bordered style={{ marginTop: "16px" }} column={1}>
        
             <Descriptions.Item label="Client">
@@ -108,7 +107,6 @@ const DetailsEncaissementForm = ({ record }) => {
               {record.modeReglement}
             </Descriptions.Item>
           </Descriptions>
-        </Card>
       </Modal>
     </>
   );

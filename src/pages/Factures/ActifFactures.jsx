@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
   FolderOpenOutlined,
-  EyeOutlined,
+  EyeTwoTone,FileTextOutlined
 } from "@ant-design/icons";
 import {
   Button,
@@ -14,6 +14,7 @@ import {
   Row,
   Space,
   Table,
+  Tag,
   Tooltip,
   Typography,
 } from "antd";
@@ -27,10 +28,8 @@ import api from "../../utils/axios";
 
 const ActifFactures = () => {
   const [data, setData] = useState([]);
-  const [totals, setTotals] = useState({
-    totalMontant: 0,
-    totalMontantEncaisse: 0,
-  });
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -181,58 +180,14 @@ const ActifFactures = () => {
             : null,
         }))
       );
-      await updateTotals(response.data);
+      setLoading(false);
+
     } catch (error) {
       notification.error({
         message: "Erreur lors de la récupération des factures !",
         description: error.message,
       });
     }
-  };
-
-  const convertCurrency = async (amount, fromCurrency, toCurrency) => {
-    try {
-      const response = await api.get(`/paramentreprise/convert`, {
-        params: {
-          base: fromCurrency,
-          target: toCurrency,
-          amount: amount,
-        },
-      });
-      return response.data.converted_amount || amount;
-    } catch (error) {
-      notification.error({
-        message: "Erreur lors de la conversion de devise",
-        description: error.message,
-      });
-      return amount;
-    }
-  };
-
-  const updateTotals = async (factures) => {
-    let totalMontant = 0;
-    let totalMontantEncaisse = 0;
-
-    for (const facture of factures) {
-      const convertedMontant = await convertCurrency(
-        facture.montant,
-        facture.devise,
-        "EUR"
-      );
-      const convertedMontantEncaisse = await convertCurrency(
-        facture.montantEncaisse,
-        facture.devise,
-        "EUR"
-      );
-
-      totalMontant += convertedMontant;
-      totalMontantEncaisse += convertedMontantEncaisse;
-    }
-
-    setTotals({
-      totalMontant,
-      totalMontantEncaisse,
-    });
   };
 
   useEffect(() => {
@@ -279,7 +234,7 @@ const ActifFactures = () => {
       });
   };
 
- const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState([]);
   const columns1 = [
     { label: "Numéro de facture", value: "numero" },
@@ -316,9 +271,9 @@ const ActifFactures = () => {
       if (response.status !== 200) {
         throw new Error("Network response was not ok");
       }
-    const text = await response.data.text();
-    console.log('CSV Content:', text); 
-    const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+      const text = await response.data.text();
+      console.log("CSV Content:", text);
+      const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -339,7 +294,7 @@ const ActifFactures = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-    setSelectedColumns([]); 
+    setSelectedColumns([]);
   };
 
   const onChange = (checkedValues) => {
@@ -366,8 +321,9 @@ const ActifFactures = () => {
         <Button
           style={{
             cursor: "pointer",
-            color: "#0e063b",
-            textDecoration: "underline",
+            fontWeight: 600,
+            color:'#6666FF',
+            //textDecoration: "underline",
           }}
           type="link"
           onClick={() => ToHistorique(record.client_id)}
@@ -402,41 +358,26 @@ const ActifFactures = () => {
             case "Échue":
               return "red";
             case "Non échue":
-              return "gray";
+              return "orange";
             default:
-              return "grey";
+              return "green";
           }
         };
 
         const color = getColor(statut);
 
-        return (
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <div
-              style={{
-                padding: "0px 2px",
-                borderRadius: "4px",
-                backgroundColor: color,
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-            >
-              {statut}
-            </div>
-          </div>
-        );
+        return <Tag color={color}>{statut}</Tag>;
       },
     },
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
           <UpdateFactureForm record={record} handleState={handleFactures} />
           <Tooltip title="Visualiser">
             <Button
-              icon={<EyeOutlined />}
+              icon={<EyeTwoTone />}
               size="small"
               onClick={() => Report(record.key)}
             ></Button>
@@ -449,7 +390,10 @@ const ActifFactures = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Liste des factures en cours</Typography.Title>
+      <Typography.Title level={4}>
+      <span> <FileTextOutlined/> </span>
+
+        Liste des factures en cours</Typography.Title>
       <Space className="mb-4">
         <AddFactureForm handleState={handleAddFactureState} />
         <Button onClick={ToListArchive} icon={<FolderOpenOutlined />}>
@@ -457,31 +401,19 @@ const ActifFactures = () => {
         </Button>
       </Space>
       <Table
-        size="small"
+        scroll={{
+          x: "max-content"
+        }}
+        loading={loading}
+
         columns={columns}
         dataSource={data}
         pagination={{
           pageSize: 10,
         }}
+        size="small"
         showSorterTooltip={{ target: "sorter-icon" }}
-        footer={() => (
-          <div style={{ textAlign: "right", color: "grey" }}>
-            <Typography.Title level={4}>Totaux</Typography.Title>
-
-            <div>
-              Montant total à payer : {totals.totalMontant.toFixed(2)} EUR
-            </div>
-            <div>
-              Montant total encaissé : {totals.totalMontantEncaisse.toFixed(2)}{" "}
-              EUR
-            </div>
-            <div>
-              Montant total restant :{" "}
-              {(totals.totalMontant - totals.totalMontantEncaisse).toFixed(2)}{" "}
-              EUR
-            </div>
-          </div>
-        )}
+        footer={null}
       />
       <Row justify="end">
         <Col>

@@ -11,6 +11,8 @@ const EntrepParamHistorique = () => {
 
 
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
@@ -132,9 +134,11 @@ const EntrepParamHistorique = () => {
             phone: param.phone,
             adresse: param.adresse,
             identifiantFiscal : param.identifiantFiscal,
-
+            tauxTndEur:param.tauxTndEur,
+            tauxUsdEur:param.tauxUsdEur
           }))
         );
+        setLoading(false);
 
       }
     
@@ -192,10 +196,18 @@ const EntrepParamHistorique = () => {
       title: "ID fiscal",
       dataIndex: "identifiantFiscal",
     },
+    {
+      title: "TND -> EUR",
+      dataIndex: "tauxTndEur",
+    },
+    {
+      title: "USD -> EUR",
+      dataIndex: "tauxUsdEur",
+    },
 
  
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
@@ -208,7 +220,7 @@ const EntrepParamHistorique = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Historique des paramètres </Typography.Title>
+        <Typography.Title level={4}>Historique des paramètres </Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToLatestParam} icon={<ControlOutlined />}>
@@ -216,6 +228,11 @@ const EntrepParamHistorique = () => {
         </Button>
       </Space>
       <Table
+           scroll={{
+            x: "max-content"
+          }}
+          loading={loading}
+
       size="small"
         columns={columns}
         dataSource={data}

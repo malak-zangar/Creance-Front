@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
   FolderOpenOutlined,
-  HistoryOutlined,FileTextOutlined
+  HistoryOutlined,FileTextOutlined,FileTextTwoTone,TeamOutlined
 } from "@ant-design/icons";
 import {
   Button,
@@ -24,6 +24,7 @@ import { AddClientForm } from "../../components/Modals/Clients/AddClientForm";
 import DetailsClientForm from "../../components/Modals/Clients/DetailsClientForm";
 import api from "../../utils/axios";
 import moment from "moment";
+import { ColorFactory } from "antd/es/color-picker/color";
 
 const ListeClients = () => {
   const [data, setData] = useState([]);
@@ -33,6 +34,8 @@ const ListeClients = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [loading, setLoading] = useState(true);
+
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
@@ -239,6 +242,8 @@ const ListeClients = () => {
       );
 
       setData(updatedClients);
+      setLoading(false);
+
     } catch (error) {
       notification.error({
         message: "Une erreur lors de la récupération des clients!",
@@ -354,27 +359,28 @@ const ListeClients = () => {
     },
 
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
           <UpdateClientForm record={record} handleState={handleClients} />
-          <DetailsClientForm record={record} />
-          <Tooltip title="Historique Factures">
-            <Button
-              icon={<FileTextOutlined />}
-              size="small"
-              onClick={() => ToHistoriqueFact(record.key)}
-            ></Button>{" "}
-          </Tooltip>{" "}
+
           <Tooltip title="Historique Contrats">
-            <Button
-              icon={<HistoryOutlined />}
+            <Button 
+              icon={<HistoryOutlined /> }
               size="small"
               onClick={() => ToHistoriqueContrat(record.key)}
-            ></Button>{" "}
-          </Tooltip>{" "}
-         
+            ></Button>
+          </Tooltip>
+          <Tooltip title="Historique Factures">
+            <Button
+              icon={<FileTextTwoTone />}
+              size="small"
+              onClick={() => ToHistoriqueFact(record.key)}
+            ></Button>
+          </Tooltip>
+          <DetailsClientForm record={record} />
+
         </Space>
       ),
     },
@@ -382,7 +388,10 @@ const ListeClients = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Liste des clients actifs</Typography.Title>
+      <Typography.Title level={4}>
+      <span> <TeamOutlined/> </span>
+
+        Liste des clients actifs</Typography.Title>
       <Space className="mb-4">
         <AddClientForm handleState={handleAddClientState} />
         <Button onClick={ToListArchive} icon={<FolderOpenOutlined />}>
@@ -390,6 +399,10 @@ const ListeClients = () => {
         </Button>
       </Space>
       <Table
+       scroll={{
+        x: "max-content"
+      }}
+      loading={loading}
         size="small"
         columns={columns}
         dataSource={data}

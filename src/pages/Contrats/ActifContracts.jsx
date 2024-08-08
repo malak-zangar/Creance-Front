@@ -1,5 +1,5 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, EyeOutlined,FolderOpenOutlined  } from '@ant-design/icons';
+import { SearchOutlined,FileDoneOutlined, EyeTwoTone,FolderOpenOutlined  } from '@ant-design/icons';
 import { Button, Input, notification, Space, Table, Tooltip, Typography } from 'antd';
 import Highlighter from 'react-highlight-words';
 import UpdateContratForm from "../../components/Modals/Contrats/UpdateContratForm";
@@ -16,6 +16,7 @@ const ActifContracts = () => {
   const [searchedColumn, setSearchedColumn] = useState('');
   const searchInput = useRef(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
@@ -147,6 +148,8 @@ const ActifContracts = () => {
 
           }))
         );
+        setLoading(false);
+
       })
       .catch((error) => {
         notification.error("Une erreur lors de la recherche des contrats!", error);
@@ -220,15 +223,16 @@ const ActifContracts = () => {
     },
 
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
           <UpdateContratForm record={record} handleState={handleContracts} />
-          <DetailsContratForm record={record} />
           <Tooltip title="Visualiser">
-          <Button  disabled={!record.contratFile} icon={<EyeOutlined  />} size="small"
+          <Button  disabled={!record.contratFile} icon={<EyeTwoTone  />} size="small"
            onClick={() => Report(record.key,record.reference)}></Button> </Tooltip>
+          <DetailsContratForm record={record} />
+         
         </Space>
       ),
     },
@@ -236,8 +240,10 @@ const ActifContracts = () => {
   
   return (
     <div>
-      
-        <Typography.Title level={2}>Liste des Contrats</Typography.Title>
+        <Typography.Title level={4}>
+      <span> <FileDoneOutlined/> </span>
+
+          Liste des Contrats</Typography.Title>
     
       <Space className="mb-4">
         <AddContratForm handleState={handleAddContractState}  />
@@ -246,6 +252,11 @@ const ActifContracts = () => {
         </Button>
       </Space>
       <Table
+       scroll={{
+        x: "max-content"
+      }}
+      loading={loading}
+
       size="small"
         columns={columns}
         dataSource={data}

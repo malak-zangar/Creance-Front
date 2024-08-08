@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
   DownloadOutlined,
-  RetweetOutlined,
+  RetweetOutlined,FileTextOutlined
 } from "@ant-design/icons";
 import { Button, Input, notification, Space, Table, Typography } from "antd";
 import Highlighter from "react-highlight-words";
@@ -15,6 +15,7 @@ import api from "../../utils/axios";
 const ValidateFacture = () => {
   const { param } = useParams();
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [clientName, setClientName] = useState("");
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
@@ -176,6 +177,8 @@ const ValidateFacture = () => {
               : null, 
           }))
         );
+        setLoading(false);
+
       })
       .catch((error) => {
         notification.error("There was an error fetching the factures!", error);
@@ -245,7 +248,7 @@ const ValidateFacture = () => {
     },
 
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
@@ -273,10 +276,17 @@ const ValidateFacture = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>
+      <Typography.Title level={4}>
+      <span> <FileTextOutlined/> </span>
+
       {`Les factures du client : ${clientName}`}      </Typography.Title> 
 
       <Table
+           scroll={{
+            x: "max-content"
+          }}
+          loading={loading}
+
         size="small"
         columns={columns}
         dataSource={data}
@@ -284,6 +294,7 @@ const ValidateFacture = () => {
           pageSize: 10,
         }}
       />
+
     </div>
   );
 };

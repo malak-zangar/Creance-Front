@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { ControlOutlined } from "@ant-design/icons";
-import {
-  Button,
-  Descriptions,
-  notification,
-  Typography,
-  Row,
-  Col,
-} from "antd";
+import { Button, Descriptions, notification, Typography, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 import UpdateParamForm from "../../components/Modals/Params/UpdateParamForm";
 import api from "../../utils/axios";
@@ -26,8 +19,6 @@ const EntrepParamActuel = () => {
       .get("/paramentreprise/getLatest")
       .then((response) => {
         const param = response.data.paramentreprise;
-        console.log(response.data.paramentreprise);
-
         setData({
           key: param.id,
           raisonSociale: param.raisonSociale,
@@ -36,14 +27,15 @@ const EntrepParamActuel = () => {
           phone: param.phone,
           adresse: param.adresse,
           identifiantFiscal: param.identifiantFiscal,
+          tauxTndEur:param.tauxTndEur,
+          tauxUsdEur:param.tauxUsdEur
         });
-        console.log(data);
       })
       .catch((error) => {
-        notification.error(
-          "Erreur lors de la récupération des paramètres!",
-          error.message
-        );
+        notification.error({
+          message: "Erreur lors de la récupération des paramètres!",
+          description: error.message,
+        });
       });
   };
 
@@ -61,18 +53,19 @@ const EntrepParamActuel = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Les paramètres actuels</Typography.Title>
+      <Typography.Title level={4}>Les paramètres actuels</Typography.Title>
 
       <Button icon={<ControlOutlined />} onClick={ToHistoriqueParam}>
         Historique des paramètres
       </Button>
       <Descriptions
         bordered
-        column={1}
+        column={2}
         size="small"
-        className="mb-6 mt-6 ml-12 mr-12 "
+        className="mb-6 mt-6"
+
       >
-        <Descriptions.Item labelStyle={{ width: "350px" }} label="ID">
+        <Descriptions.Item label="ID">
           {data.key}
         </Descriptions.Item>
         <Descriptions.Item label="Raison sociale">
@@ -83,16 +76,22 @@ const EntrepParamActuel = () => {
         <Descriptions.Item label="ID Fiscal">
           {data.identifiantFiscal}
         </Descriptions.Item>
-        <Descriptions.Item label="Adresse">{data.adresse}</Descriptions.Item>
+        
         <Descriptions.Item label="Date d'insertion">
           {formatDate(data.dateInsertion)}
         </Descriptions.Item>
+        <Descriptions.Item label="Taux de change (TND -> EUR)">
+          {data.tauxTndEur}
+        </Descriptions.Item>
+        <Descriptions.Item label="Taux de change (USD -> EUR)">
+        {data.tauxUsdEur}
+        </Descriptions.Item>
+        <Descriptions.Item label="Adresse">{data.adresse}</Descriptions.Item>
+        <Descriptions.Item label="Action(s)">
+        <UpdateParamForm record={data} handleState={handleParams} />
+        </Descriptions.Item>
       </Descriptions>
-      <Row justify="end">
-        <Col>
-          <UpdateParamForm record={data} handleState={handleParams} />{" "}
-        </Col>
-      </Row>
+      
     </div>
   );
 };

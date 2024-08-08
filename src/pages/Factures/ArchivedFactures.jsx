@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
-  FileDoneOutlined,
-  EyeOutlined,
+  FileDoneOutlined,FileTextOutlined,
+  EyeTwoTone,
 } from "@ant-design/icons";
 import {
   Button,
@@ -21,7 +21,7 @@ import api from "../../utils/axios";
 
 const ArchivedFactures = () => {
   const [data, setData] = useState([]);
-  const [totals, setTotals] = useState({ totalMontant: 0 });
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
@@ -167,48 +167,12 @@ const ArchivedFactures = () => {
               : null, // Format date
           }))
         );
-        await updateTotals(response.data);
+        setLoading(false);
+
       })
       .catch((error) => {
         notification.error("There was an error fetching the factures!", error);
       });
-  };
-
-  const convertCurrency = async (amount, fromCurrency, toCurrency) => {
-    try {
-      const response = await api.get(`/paramentreprise/convert`, {
-        params: {
-          base: fromCurrency,
-          target: toCurrency,
-          amount: amount,
-        },
-      });
-      return response.data.converted_amount || amount;
-    } catch (error) {
-      notification.error({
-        message: "Erreur lors de la conversion de devise",
-        description: error.message,
-      });
-      return amount;
-    }
-  };
-
-  const updateTotals = async (factures) => {
-    let totalMontant = 0;
-
-    for (const facture of factures) {
-      const convertedMontant = await convertCurrency(
-        facture.montant,
-        facture.devise,
-        "EUR"
-      );
-
-      totalMontant += convertedMontant;
-    }
-
-    setTotals({
-      totalMontant,
-    });
   };
 
   useEffect(() => {
@@ -278,13 +242,13 @@ const ArchivedFactures = () => {
     },
 
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
           <Tooltip title="Visualiser">
             <Button
-              icon={<EyeOutlined />}
+              icon={<EyeTwoTone />}
               size="small"
               onClick={() => Report(record.key)}
             ></Button>{" "}
@@ -297,27 +261,29 @@ const ArchivedFactures = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Liste des factures payées</Typography.Title>
+      <Typography.Title level={4}>
+      <span> <FileTextOutlined/> </span>
+
+        Liste des factures payées</Typography.Title>
 
       <Space className="mb-4">
-        <Button onClick={ToListActif} icon={<FileDoneOutlined />}>
+        <Button onClick={ToListActif} icon={<FileTextOutlined />}>
           Factures en cours
         </Button>
       </Space>
       <Table
+           scroll={{
+            x: "max-content"
+          }}
+          loading={loading}
+
         size="small"
         columns={columns}
         dataSource={data}
         pagination={{
           pageSize: 10,
         }}
-        footer={() => (
-          <div style={{ textAlign: "right", color: "grey" }}>
-            <Typography.Title level={4}>Totaux</Typography.Title>
-
-            <div>Montant total payé : {totals.totalMontant.toFixed(2)} EUR</div>
-          </div>
-        )}
+       
       />
     </div>
   );

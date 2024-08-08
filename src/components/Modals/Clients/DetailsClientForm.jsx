@@ -56,13 +56,15 @@ const DetailsClientForm = ({ record }) => {
           icon={<InfoCircleOutlined />} 
           size="small" 
           onClick={handleDetails} 
-          style={{ margin: '8px' }}
+         // style={{ margin: '8px' }}
         />
       </Tooltip>
       <Modal
         title={`Informations du client : ${record.username}`}
         visible={isDetailsModalVisible}
         onCancel={handleClose}
+        width={900}
+
         footer={[
           <Button key="close" onClick={handleClose}>
             Fermer
@@ -70,10 +72,17 @@ const DetailsClientForm = ({ record }) => {
         ]}
         style={{ top: 20 }}
       >
-        <Card>
-          <Card.Meta
-            avatar={
-              <div style={{ position: 'relative', display: 'inline-block' }}>
+
+<hr style={{ backgroundColor: '#CCCCCC', height: '1px', border: 'none' }}/>    
+<div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+           <span >
+              <div style={{ position: 'relative', display: 'inline-block', marginRight: 10 , marginTop:5 }}>
                 <Avatar icon={<UserOutlined />} />
                 <div
                   style={{
@@ -88,10 +97,10 @@ const DetailsClientForm = ({ record }) => {
                   }}
                 />
               </div>
-            }
-            description={`Nom d'utilisateur : ${record.username}`}
-          />
-          <Descriptions bordered style={{ marginTop: '16px' }} column={1}>
+            
+          {`Nom d'utilisateur : ${record?.username}`}
+            </span> </div>
+          <Descriptions bordered style={{ marginTop: '16px' }} column={2}>
             <Descriptions.Item label="Email de contact">{record.email}</Descriptions.Item>
             <Descriptions.Item label="Email à copier en cc">{record.emailcc}</Descriptions.Item>
             <Descriptions.Item label="Téléphone">{record.phone}</Descriptions.Item>
@@ -107,7 +116,8 @@ const DetailsClientForm = ({ record }) => {
                     <List.Item
                       key={contrat.id}
                       onClick={() => handleContractClick(contrat)}
-                      style={{ color: '#0e063b' }}
+                      style={{ color: '#6666FF',           
+                      }}
                     >
                       <span > {contrat?.reference}</span>
                       {isContractModalVisible && selectedContract && (
@@ -129,7 +139,7 @@ const DetailsClientForm = ({ record }) => {
                     <List.Item
                       key={contrat.id}
                       onClick={() => handleContractClick(contrat)}
-                      style={{color: '#0e063b' }}
+                      style={{color: '#6666FF' }}
                     >
                       <span>{contrat?.reference}</span>
                       {isContractModalVisible && selectedContract && (
@@ -143,7 +153,7 @@ const DetailsClientForm = ({ record }) => {
               )}
             </Descriptions.Item>
           </Descriptions>
-        </Card>
+   
       </Modal>
 
     

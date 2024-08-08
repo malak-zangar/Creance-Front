@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "antd";
 import Highlighter from "react-highlight-words";
-import { SearchOutlined, EyeOutlined } from "@ant-design/icons";
+import { SearchOutlined, EyeTwoTone,EuroCircleOutlined } from "@ant-design/icons";
 import { AddEncaissementForm } from "../../components/Modals/Encaissements/AddEncaissementForm";
 import UpdateEncaissementForm from "../../components/Modals/Encaissements/UpdateEncaissementForm";
 import DetailsEncaissementForm from "../../components/Modals/Encaissements/DetailsEncaissementForm";
@@ -18,7 +18,7 @@ import api from "../../utils/axios";
 
 const ListeEncaissements = () => {
   const [data, setData] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
@@ -202,6 +202,7 @@ const ListeEncaissements = () => {
             devise: encaissement.devise,
           }))
         );
+        setLoading(false);
       })
       .catch((error) => {
         notification.error("There was an error fetching the paiement!", error);
@@ -233,7 +234,7 @@ const ListeEncaissements = () => {
     },
 
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
@@ -243,7 +244,7 @@ const ListeEncaissements = () => {
           />{" "}
           <Tooltip title="Visualiser">
             <Button
-              icon={<EyeOutlined />}
+              icon={<EyeTwoTone />}
               size="small"
               onClick={() => Report(record.key)}
             ></Button>
@@ -256,12 +257,19 @@ const ListeEncaissements = () => {
 
   return (
     <div>
-      <Typography.Title level={2}>Liste des paiements</Typography.Title>
+      <Typography.Title level={4}>
+      <span> <EuroCircleOutlined/> </span>
+
+        Liste des paiements</Typography.Title>
 
       <Space className="mb-4">
         <AddEncaissementForm handleState={handleAddEncaissementState} />
       </Space>
       <Table
+           scroll={{
+            x: "max-content"
+          }}
+        loading={loading}
         size="small"
         columns={columns}
         dataSource={data}

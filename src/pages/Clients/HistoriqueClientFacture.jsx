@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
-  EyeOutlined,
+  EyeTwoTone,FolderOpenOutlined,UserOutlined,HistoryOutlined
 } from "@ant-design/icons";
-import { Button, Input, notification, Space, Table, Tooltip, Typography } from "antd";
+import { Button, Input, notification, Space, Table, Tag, Tooltip, Typography } from "antd";
 import Highlighter from "react-highlight-words";
 import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
 import moment from "moment";
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from "../../utils/axios";
 
 
@@ -18,6 +18,10 @@ const HistoriqueClientFacture = () => {
   const [searchText, setSearchText] = useState("");
   const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
+  const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
+
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
     setSearchText(selectedKeys[0]);
@@ -163,6 +167,8 @@ const HistoriqueClientFacture = () => {
               : null, 
           }))
         );
+        setLoading(false);
+
       })
       .catch((error) => {
         notification.error("There was an error fetching the factures!", error);
@@ -242,44 +248,29 @@ const HistoriqueClientFacture = () => {
                     case 'Échue':
                         return 'red';
                     case 'Non échue':
-                        return 'gray';
+                        return 'orange';
                     case 'Payée':
                         return 'green';
     
                 }
             };
     
-            // Couleur correspondant au statut
             const color = getColor(statut);
     
-            return (
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <div
-                        style={{
-                            padding: '0px 2px',
-                            borderRadius: '4px',
-                            backgroundColor: color,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            textAlign: 'center'
-                        }}
-                    >
-                        {statut}
-                    </div>
-                </div>
-            );
+            return <Tag color={color}>{statut}</Tag>;
+
         },
     },
 
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
            <Tooltip title="Visualiser">
 
           <Button
-            icon={<EyeOutlined />}
+            icon={<EyeTwoTone />}
             size="small"
             onClick={() => Report(record.key)}
           >
@@ -326,21 +317,34 @@ const HistoriqueClientFacture = () => {
     };
   };
 
-  const [totals, setTotals] = useState({ totalFacture: 0, totalPaye: 0 });
+  const ToListArchive = () => {
+    navigate("/clients/archive");
+  };
 
-  useEffect(() => {
-    const calculateTotalsAsync = async () => {
-      const result = await calculateTotals();
-      setTotals(result);
-    };
-    calculateTotalsAsync();
-  }, [data]);
+  const ToListClients = () => {
+    navigate("/clients");
+  };
+
   return (
     <div>
-      <Typography.Title level={2}>
-      {`Historique des factures du client : ${clientName}`}      </Typography.Title> 
+      <Typography.Title level={4}>
+      <span> <HistoryOutlined/> </span>
 
+      {`Historique des factures du client : ${clientName}`}      </Typography.Title> 
+      <Space className="mb-4">
+        <Button onClick={ToListClients} icon={<UserOutlined />}>
+          Clients actifs
+        </Button>
+        <Button onClick={ToListArchive} icon={<FolderOpenOutlined />}>
+          Clients inactifs
+        </Button>
+      </Space>
       <Table
+       scroll={{
+        x: "max-content"
+      }}
+      loading={loading}
+
         size="small"
         columns={columns}
         dataSource={data}
@@ -348,13 +352,7 @@ const HistoriqueClientFacture = () => {
           pageSize: 10,
         }}
         footer={() => (
-          <div style={{ textAlign: 'right', color: 'grey' }}>
-         <Typography.Title  level={4}>Totaux</Typography.Title>
-
-            <div>Montant total facturé : {totals.totalFacture.toFixed(3)} EUR</div>
-            <div>Montant total payé : {totals.totalPaye.toFixed(3)} EUR</div>
-            <div>Montant total restant : {(totals.totalFacture - totals.totalPaye).toFixed(3)} EUR</div>
-          </div>
+          null
         )   }
 
       /> 

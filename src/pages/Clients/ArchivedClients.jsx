@@ -1,5 +1,5 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, UserOutlined } from '@ant-design/icons';
+import { SearchOutlined,TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Input, Space, Table, Typography,Row,Col, notification, Modal, Checkbox } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ const ArchivedClients = () => {
 
 
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState('');
   const [searchedColumn, setSearchedColumn] = useState('');
@@ -141,6 +142,7 @@ const ArchivedClients = () => {
           }))
         );
 
+        setLoading(false);
 
          usernames = response.data.map((client) => client.username);
          console.log(usernames)
@@ -256,7 +258,7 @@ const ArchivedClients = () => {
     },
  
     {
-      title: "Action",
+      title: "Action(s)",
       dataIndex: "action",
       render: (_, record) => (
         <Space>
@@ -271,7 +273,10 @@ const ArchivedClients = () => {
   return (
     <div>
       
-        <Typography.Title level={2}>Liste des clients inactifs </Typography.Title>
+        <Typography.Title level={4}>
+        <span> <TeamOutlined/> </span>
+
+          Liste des clients inactifs </Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToListClients} icon={<UserOutlined />}>
@@ -281,13 +286,17 @@ const ArchivedClients = () => {
       </Space>
       <Table
       size="small"
+      loading={loading}
+
         columns={columns}
         dataSource={data}
         pagination={{
           pageSize: 10,
         }}
         showSorterTooltip={{ target: "sorter-icon" }}
-
+        scroll={{
+          x: "max-content"
+        }}
       />
 
 <Row justify="end" >
