@@ -1,5 +1,5 @@
 import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, ControlOutlined } from '@ant-design/icons';
+import { SearchOutlined, ControlOutlined,SettingOutlined } from '@ant-design/icons';
 import { Button, Input, Space, Table, Typography, notification } from 'antd';
 import Highlighter from 'react-highlight-words';
 import { useNavigate } from "react-router-dom";
@@ -220,7 +220,10 @@ const EntrepParamHistorique = () => {
   return (
     <div>
       
-        <Typography.Title level={4}>Historique des paramètres </Typography.Title>
+        <Typography.Title level={4}>
+        <span> <SettingOutlined/> </span>
+
+          Historique des paramètres </Typography.Title>
     
       <Space className="mb-4">
         <Button  onClick={ToLatestParam} icon={<ControlOutlined />}>

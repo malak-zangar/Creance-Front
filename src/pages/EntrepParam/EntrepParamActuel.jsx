@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ControlOutlined } from "@ant-design/icons";
+import { ControlOutlined ,SettingOutlined} from "@ant-design/icons";
 import { Button, Descriptions, notification, Typography, Row, Col } from "antd";
 import { useNavigate } from "react-router-dom";
 import UpdateParamForm from "../../components/Modals/Params/UpdateParamForm";
@@ -53,7 +53,10 @@ const EntrepParamActuel = () => {
 
   return (
     <div>
-      <Typography.Title level={4}>Les paramètres actuels</Typography.Title>
+      <Typography.Title level={4}>
+      <span> <SettingOutlined/> </span>
+
+        Les paramètres actuels</Typography.Title>
 
       <Button icon={<ControlOutlined />} onClick={ToHistoriqueParam}>
         Historique des paramètres

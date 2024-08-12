@@ -2,7 +2,7 @@ import { Route, Routes, BrowserRouter } from "react-router-dom";
 import "./App.css";
 import Main from "./layouts/Main";
 import Dashboard from "./pages/Dashboard/Dashboard";
-import Login from "./pages/Login/Login";
+import Login from "./pages/Utilisateurs/Login";
 import ListeClients from "./pages/Clients/ListeClients";
 import ArchivedClients from "./pages/Clients/ArchivedClients";
 import ArchivedFactures from "./pages/Factures/ArchivedFactures";
@@ -20,6 +20,10 @@ import HistoriqueClientFacture from "./pages/Clients/HistoriqueClientFacture";
 import { ConfigProvider, FloatButton, theme } from "antd";
 import React, { useState } from "react";
 import { BulbOutlined, BulbFilled } from '@ant-design/icons';
+import Profile from "./pages/Utilisateurs/Profile";
+import ResetPassword from "./pages/Utilisateurs/ResetPassword";
+import SaisirEmail from "./pages/Utilisateurs/SaisirEmail";
+import Signup from "./pages/Utilisateurs/Signup";
 
 function App() {
   const [themeCode, setThemeCode] = useState("light");
@@ -38,8 +42,18 @@ function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
 
+            <Route
+                    path="/resetPassword"
+                    element={<ResetPassword />}
+                  />
+                    <Route
+                    path="/sendEmail"
+                    element={<SaisirEmail />}
+                  />
             <Route path="/" element={<Main />}>
+         
               {isAuthenticated() && (
                 <>
                   <Route index element={<Dashboard />} />
@@ -82,6 +96,11 @@ function App() {
                     path="parametres/historique"
                     element={<EntrepParamHistorique />}
                   />
+                  <Route
+                    path="profile"
+                    element={<Profile />}
+                  />
+                     
                 </>
               )}
             </Route>
@@ -92,6 +111,11 @@ function App() {
             onClick={() => {
               console.log(themeCode === "light" ? "dark" : "light")
               setThemeCode(themeCode === "light" ? "dark" : "light");
+            }}
+            style={{
+              position: 'fixed',
+              bottom: '20px',      
+              left: '20px',  
             }}
           />
         </AuthProvider>

@@ -12,6 +12,8 @@ import {
 import { Layout, Menu, Dropdown, Avatar, theme } from "antd";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { removeaccess_token } from '../utils/auth';
+import neodev from "../assets/neodev.png"; 
+
 
 const { Header, Content, Sider } = Layout;
 
@@ -59,24 +61,28 @@ const Main = () => {
     token: { colorBgContainer }
   } = theme.useToken()
   const navigate = useNavigate();
-  const location = useLocation(); // Use useLocation to get the current URL path
+  const location = useLocation();
   const currentUser = localStorage.getItem('currentUser');
+  console.log(localStorage)
 
+console.log(currentUser)
   const handleLogout = () => {
     removeaccess_token();
     navigate("/login");
   };
+  const handleProfile = () => {
+    navigate("/profile");
+  };
 
   const profileMenu = (
     <Menu>
-      <Menu.Item key="1" icon={<UserOutlined />}>{currentUser}</Menu.Item>
+      <Menu.Item key="1" icon={<UserOutlined />} onClick={handleProfile}>{currentUser}</Menu.Item>
       <Menu.Item key="2" icon={<LogoutOutlined />} onClick={handleLogout}>
         Déconnexion
       </Menu.Item>
     </Menu>
   );
 
-  // Determine the selected key based on the current URL path
   const selectedKey = items.find(item => location.pathname.startsWith(item.path))?.key || "1";
 
   return (
@@ -94,10 +100,12 @@ const Main = () => {
       >
         <div className="demo-logo-vertical" />
         <Menu
-          theme="light"
+          theme="dark"
           className="h-[100vh]"
+          //style={{ backgroundColor: "#336699" }} // Changez cette couleur à votre convenance
+
           mode="inline"
-          selectedKeys={[selectedKey]} // Set the selected key based on the current URL
+          selectedKeys={[selectedKey]} 
         >
           {items.map((item) => (
             <Menu.Item key={item.key} icon={item.icon}>
@@ -111,12 +119,16 @@ const Main = () => {
           style={{
             padding: 0,
             display: "flex",
-            justifyContent: "flex-end",
+            justifyContent: "space-between",
             alignItems: "center",
             background: colorBgContainer,
             paddingRight: "16px",
           }}
         >
+  <div style={{ display: "flex", alignItems: "center", paddingLeft: "16px" }}>
+        <img src={neodev} alt="Logo" style={{ height: "35px", marginRight: "16px" }}  /> 
+        <h1 style={{ margin: 0, fontSize: "20px" }}>Neopolis Development</h1>
+      </div>
           <Dropdown overlay={profileMenu}>
             <div
               style={{
@@ -126,7 +138,7 @@ const Main = () => {
               }}
             >
               <Avatar icon={<UserOutlined />} />
-              <span style={{ marginLeft: "8px" }}>{currentUser}</span>
+              <span style={{ marginLeft: "8px" , marginRight: "10px"}}>{currentUser}</span>
             </div>
           </Dropdown>
         </Header>

@@ -63,7 +63,7 @@ const Dashboard = () => {
           tauxRecouvrement: tauxResponse.data.taux_recouvrement,
           pourcentageEchues: pourcentageResponse.data.pourcentage_echues,
           pourcentageNonEchues: pourcentageResponse.data.pourcentage_non_echues,
-          nbrContratActif:contratActif.data.totalContrat,
+          nbrContratActif:contratActif.data.totalContratActif,
           pourcentageActif:contratActif.data.pourcentageActif
         });
         setPieData([
@@ -250,167 +250,210 @@ const Dashboard = () => {
       <Spin size="large" />
     </div>
   ) : (
-    <div>
-      <div className="grid grid-cols-3 gap-6">
-        <div className="flex flex-col gap-6">
-          <div>
-            <div className="relative">
-              <Card size="small" title="Chiffre d'affaires"   style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-                <MontantAffiche montant={data.totalCA} />
-                <IconWrapper icon={<EuroOutlined />} />
-              </Card>
-              <FactureCount count={data.totalFactures} />
-            </div>
-          </div>
-          <div>
-            <div className="relative">
-              <Card size="small" title="Total encaissements" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-                <MontantAffiche montant={data.statsPayee?.total_montant} />
-                <IconWrapper icon={<CheckCircleOutlined />} />
-              </Card>
-              <FactureCount count={data.statsPayee?.count} />
-            </div>
-          </div>
-          <div>
-            <div className="relative">
-              <Card size="small" title="Créances non échues" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-                <MontantAffiche montant={data.statsNonEchue?.total_montant} />
-                <IconWrapper icon={<ClockCircleOutlined />} />
-              </Card>
-              <FactureCount count={data.statsNonEchue?.count} />
-            </div>
-          </div>
-          <div>
-              <div className="relative">
-                <Card size="small" title="Créances échues" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-                  <MontantAffiche montant={data.statsEchue?.total_montant} />
-                  <IconWrapper icon={<CloseCircleOutlined />} />
-                </Card>
-                <FactureCount count={data.statsEchue?.count} />
-              </div>
-            </div>
-          <ResponsiveContainer width="100%" height="100%">
-            <Card size="small" className="w-full" title="Echues vs Non échues" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-              <div className="flex justify-center items-center h-full">
-                <PieChart width={240} height={233}>
-                  <Pie
-                    activeIndex={activeIndex}
-                    activeShape={renderActiveShape}
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    onMouseEnter={(_, index) => setActiveIndex(index)}
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={index === 0 ? "#e00b0b" : "#c2cbed"}
-                      />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </div>
-            </Card>
-          </ResponsiveContainer>
-        </div>
-        <div className="col-span-2 flex flex-col gap-6">
-          <div className="grid grid-cols-2 gap-6">
-           
-            <div>
-              <Card size="small" title="Taux de recouvrement" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-                {data.tauxRecouvrement?.toFixed(2)}%
-                <IconWrapper icon={<PercentageOutlined />} />
-              </Card>
-            </div>
-
-            <div>
-            <div className="relative">
-              <Card size="small" title="Contrats en cours" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-              {data.pourcentageActif?.toFixed(2)}%
-                <IconWrapper icon={<ClockCircleOutlined />} />
-              </Card>
-              <ContratCount count={data.nbrContratActif} /> 
-            </div>
-          </div>
-          </div>
-
-          <Card size="small" title="Les 05 factures échues les plus anciennes" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <div style={{ overflowX: "auto" }}>
-                <Table
-                 scroll={{
-                  x: "max-content"
-                }}
-                  size="small"
-                  columns={columns}
-                  rowKey="numero"
-                  dataSource={oldestFactures}
-                  pagination={false}
-                />{" "}
-              </div>
-            </ResponsiveContainer>
+<div>
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <div className="flex flex-col gap-6">
+      <div className="w-full">
+        <div className="relative">
+          <Card
+            size="small"
+            title="Chiffre d'affaires"
+            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+          >
+            <MontantAffiche montant={data.totalCA} />
+            <IconWrapper icon={<EuroOutlined />} />
           </Card>
+          <FactureCount count={data.totalFactures} />
+        </div>
+      </div>
+      <div className="w-full">
+        <div className="relative">
+          <Card
+            size="small"
+            title="Total encaissements"
+            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+          >
+            <MontantAffiche montant={data.statsPayee?.total_montant} />
+            <IconWrapper icon={<CheckCircleOutlined />} />
+          </Card>
+          <FactureCount count={data.statsPayee?.count} />
+        </div>
+      </div>
+      <div className="w-full">
+        <div className="relative">
+          <Card
+            size="small"
+            title="Créances non échues"
+            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+          >
+            <MontantAffiche montant={data.statsNonEchue?.total_montant} />
+            <IconWrapper icon={<ClockCircleOutlined />} />
+          </Card>
+          <FactureCount count={data.statsNonEchue?.count} />
+        </div>
+      </div>
+      <div className="w-full">
+        <div className="relative">
+          <Card
+            size="small"
+            title="Créances échues"
+            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+          >
+            <MontantAffiche montant={data.statsEchue?.total_montant} />
+            <IconWrapper icon={<CloseCircleOutlined />} />
+          </Card>
+          <FactureCount count={data.statsEchue?.count} />
+        </div>
+      </div>
+      <div className="w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <Card
+            size="small"
+            className="w-full"
+            title="Echues vs Non échues"
+            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+          >
+            <div className="flex justify-center items-center h-full">
+              <PieChart width={330} height={233}>
+                <Pie
+                  activeIndex={activeIndex}
+                  activeShape={renderActiveShape}
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  onMouseEnter={(_, index) => setActiveIndex(index)}
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={index === 0 ? "#e00b0b" : "#c2cbed"}
+                    />
+                  ))}
+                </Pie>
+              </PieChart>
+            </div>
+          </Card>
+        </ResponsiveContainer>
+      </div>
+    </div>
+    <div className="col-span-2 sm:col-span-2 flex flex-col gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="w-full">
+          <Card
+            size="small"
+            title="Taux de recouvrement"
+            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+          >
+            {data.tauxRecouvrement?.toFixed(2)}%
+            <IconWrapper icon={<PercentageOutlined />} />
+          </Card>
+        </div>
 
-          <Card size="small" title="Top 05 clients par créances impayées" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
-            <ResponsiveContainer width="100%" height={233}>
-              <ComposedChart
-                layout="vertical"
-                data={barChartData}
-                margin={{
-                  top: 15,
+        <div className="w-full">
+          <div className="relative">
+            <Card
+              size="small"
+              title="Contrats en cours"
+              style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+            >
+              {data.pourcentageActif?.toFixed(2)}%
+              <IconWrapper icon={<ClockCircleOutlined />} />
+            </Card>
+            <ContratCount count={data.nbrContratActif} />
+          </div>
+        </div>
+      </div>
+
+      <div className="w-full">
+        <Card
+          size="small"
+          title="Les 05 factures échues les plus anciennes"
+          style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            <div style={{ overflowX: "auto" }}>
+              <Table
+                scroll={{
+                  x: "max-content",
                 }}
-              >
-                <CartesianGrid stroke="#f5f5f5" />
-                <XAxis
-                  type="number"
-                  tickFormatter={(value) => {
-                    return new Intl.NumberFormat("fr-FR", {
+                size="small"
+                columns={columns}
+                rowKey="numero"
+                dataSource={oldestFactures}
+                pagination={false}
+              />{" "}
+            </div>
+          </ResponsiveContainer>
+        </Card>
+      </div>
+
+      <div className="w-full">
+        <Card
+          size="small"
+          title="Top 05 clients par créances impayées"
+          style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+        >
+          <ResponsiveContainer width="100%" height={233}>
+            <ComposedChart
+              layout="vertical"
+              data={barChartData}
+              margin={{
+                top: 15,
+              }}
+            >
+              <CartesianGrid stroke="#f5f5f5" />
+              <XAxis
+                type="number"
+                tickFormatter={(value) => {
+                  return new Intl.NumberFormat("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }).format(value);
+                }}
+              />
+              <YAxis dataKey="client" type="category" />
+              <Tooltip />
+              <Bar dataKey="total" barSize={17} fill="#413ea0">
+                <LabelList
+                  dataKey="total"
+                  position="insideRight"
+                  fill="#f0f1f7"
+                  formatter={(value) => `${value}`}
+                  content={({ x, y, width, height, value }) => {
+                    const montantFormate = new Intl.NumberFormat("fr-FR", {
+                      style: "currency",
+                      currency: "EUR",
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     }).format(value);
+
+                    const offset = 10;
+                    const isInBar = width > 40;
+                    return (
+                      <text
+                        x={isInBar ? x + width - offset : x + width + offset}
+                        y={y + height / 2}
+                        fill={isInBar ? "#f0f1f7" : "#413ea0"}
+                        textAnchor={isInBar ? "end" : "start"}
+                        dominantBaseline="middle"
+                      >
+                        {montantFormate}
+                      </text>
+                    );
                   }}
                 />
-                <YAxis dataKey="client" type="category" />
-                <Tooltip />
-                <Bar dataKey="total" barSize={17} fill="#413ea0">
-                  <LabelList
-                    dataKey="total"
-                    position="insideRight"
-                    fill="#f0f1f7"
-                    formatter={(value) => `${value}`}
-                    content={({ x, y, width, height, value }) => {
-                      const montantFormate = new Intl.NumberFormat("fr-FR", {
-                        style: "currency",
-                        currency: "EUR",
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }).format(value);
-
-                      const offset = 10;
-                      const isInBar = width > 40;
-                      return (
-                        <text
-                          x={isInBar ? x + width - offset : x + width + offset}
-                          y={y + height / 2}
-                          fill={isInBar ? "#f0f1f7" : "#413ea0"}
-                          textAnchor={isInBar ? "end" : "start"}
-                          dominantBaseline="middle"
-                        >
-                          {montantFormate}
-                        </text>
-                      );
-                    }}
-                  />
-                </Bar>
-              </ComposedChart>
-            </ResponsiveContainer>
-          </Card>
-        </div>
+              </Bar>
+            </ComposedChart>
+          </ResponsiveContainer>
+        </Card>
       </div>
+    </div>
+  </div>
+
 
       <Row gutter={16}>
         <Col span={12} xs={24} sm={24} md={12} style={{ marginTop: 6 }}>
