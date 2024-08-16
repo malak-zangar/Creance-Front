@@ -228,9 +228,14 @@ const ActifContracts = () => {
       render: (_, record) => (
         <Space>
           <UpdateContratForm record={record} handleState={handleContracts} />
-          <Tooltip title="Visualiser">
-          <Button  disabled={!record.contratFile} icon={<EyeTwoTone  />} size="small"
-           onClick={() => Report(record.key,record.reference)}></Button> </Tooltip>
+          <Tooltip title={record.contratFile ? "Visualiser" : "Pas de document"}>
+  <Button
+    disabled={!record.contratFile}
+    icon={<EyeTwoTone />}
+    size="small"
+    onClick={() => Report(record.key, record.reference)}
+  />
+</Tooltip>
           <DetailsContratForm record={record} />
          
         </Space>

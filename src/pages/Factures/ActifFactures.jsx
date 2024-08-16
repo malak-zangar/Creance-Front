@@ -219,7 +219,7 @@ const ActifFactures = () => {
   const Report = (key) => {
     console.log("Generating facture with key: ", key);
     api
-      .get(`/facture/report/${key}`, { responseType: "blob" })
+      .get(`/facture/auto/${key}`, { responseType: "blob" })
       .then((response) => {
         const url = window.URL.createObjectURL(
           new Blob([response.data], { type: "application/pdf" })

@@ -7,7 +7,7 @@ import {
   EuroCircleOutlined ,
   DashboardOutlined,
   UserOutlined,
-  LogoutOutlined,
+  LogoutOutlined,UserSwitchOutlined
 } from "@ant-design/icons";
 import { Layout, Menu, Dropdown, Avatar, theme } from "antd";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
@@ -48,12 +48,18 @@ const items = [
     label: <Link to="/encaissements">Paiements</Link>,
     path: "/encaissements"
   },
+  { key: "6",
+    icon: <UserSwitchOutlined />,
+    label: <Link to="/administrateurs">Administrateurs</Link>,
+    path: "/administrateurs"
+  },
   {
-    key: "6",
+    key: "7",
     icon: <SettingOutlined />,
     label: <Link to="/parametres/actuels">Paramétrage</Link>,
     path: "/parametres"
   },
+
 ];
 
 const Main = () => {

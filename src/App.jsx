@@ -2,6 +2,7 @@ import { Route, Routes, BrowserRouter } from "react-router-dom";
 import "./App.css";
 import Main from "./layouts/Main";
 import Dashboard from "./pages/Dashboard/Dashboard";
+import Listeadmins from "./pages/Admins/ListeAdmins";
 import Login from "./pages/Utilisateurs/Login";
 import ListeClients from "./pages/Clients/ListeClients";
 import ArchivedClients from "./pages/Clients/ArchivedClients";
@@ -27,6 +28,7 @@ import Signup from "./pages/Utilisateurs/Signup";
 
 function App() {
   const [themeCode, setThemeCode] = useState("light");
+
   return (
     <ConfigProvider
       theme={{
@@ -100,6 +102,10 @@ function App() {
                     path="profile"
                     element={<Profile />}
                   />
+                  <Route
+                    path="administrateurs"
+                    element={<Listeadmins />}
+                  />
                      
                 </>
               )}
@@ -117,6 +123,7 @@ function App() {
               bottom: '20px',      
               left: '20px',  
             }}
+            
           />
         </AuthProvider>
       </BrowserRouter>

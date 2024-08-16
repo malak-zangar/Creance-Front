@@ -98,15 +98,16 @@ const DetailsContratForm = ({ record }) => {
       },
       {
         label: "Contrat numérique",
-        value: (
+        value: record.contratFile ? (
           <Tooltip title="Visualiser">
             <Button
-              disabled={!record.contratFile}
               icon={<EyeTwoTone />}
               size="small"
               onClick={() => Report(record.key, record.reference)}
-            ></Button>{" "}
+            ></Button>
           </Tooltip>
+        ) : (
+          "-"
         ),
       },
       {

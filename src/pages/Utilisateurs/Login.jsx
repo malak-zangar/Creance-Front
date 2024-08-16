@@ -144,13 +144,7 @@ const Login = () => {
               >
                 Mot de passe oublié ?
               </a>
-              <Form.Item>
-                <br />
-                Vous n'avez pas de compte ?
-                <a href="/signup" style={{ color: "#0c21a7" }}>
-                  Créer un compte
-                </a>
-              </Form.Item>
+
             </Form>
           </div>
         </Card>

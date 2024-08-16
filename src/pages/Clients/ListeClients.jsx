@@ -24,7 +24,7 @@ import { AddClientForm } from "../../components/Modals/Clients/AddClientForm";
 import DetailsClientForm from "../../components/Modals/Clients/DetailsClientForm";
 import api from "../../utils/axios";
 import moment from "moment";
-import { ColorFactory } from "antd/es/color-picker/color";
+//import { ColorFactory } from "antd/es/color-picker/color";
 
 const ListeClients = () => {
   const [data, setData] = useState([]);

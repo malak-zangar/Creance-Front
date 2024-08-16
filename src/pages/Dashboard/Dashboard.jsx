@@ -21,8 +21,11 @@ import {
   ClockCircleOutlined,
   CloseCircleOutlined,
   PercentageOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import api from "../../utils/axios";
+import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
+import moment from "moment";
 
 const Dashboard = () => {
   const [data, setData] = useState({});
@@ -51,7 +54,9 @@ const Dashboard = () => {
         const CAparMois = await api.get("/dashboard/CAevolution");
 
         const CreanceparMois = await api.get("/dashboard/CreanceEvolution");
-        const contratActif = await api.get("/dashboard/totalContratActifs");
+        const contratActiftoExpire = await api.get(
+          "/dashboard/nextContractToexpire"
+        );
 
         setData({
           statsPayee: statsResponse.data["Payée"],
@@ -63,9 +68,11 @@ const Dashboard = () => {
           tauxRecouvrement: tauxResponse.data.taux_recouvrement,
           pourcentageEchues: pourcentageResponse.data.pourcentage_echues,
           pourcentageNonEchues: pourcentageResponse.data.pourcentage_non_echues,
-          nbrContratActif:contratActif.data.totalContratActif,
-          pourcentageActif:contratActif.data.pourcentageActif
+          contractToExpire: contratActiftoExpire.data,
         });
+
+        console.log(data.contractToExpire);
+
         setPieData([
           { name: "Échue", value: pourcentageResponse.data.echues },
           { name: "Non échue", value: pourcentageResponse.data.non_echues },
@@ -78,7 +85,7 @@ const Dashboard = () => {
 
         setCAevolution(CAparMois.data);
         setCreanceEvolution(CreanceparMois.data);
- 
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data", error);
@@ -107,14 +114,63 @@ const Dashboard = () => {
 
   const FactureCount = ({ count }) => (
     <div className="absolute -top-3 -right-2 rounded-full px-3 py-1 bg-[#2f54eb] text-xs text-slate-50">
-      {count} Factures
+      {count} Facture(s)
     </div>
   );
-  const ContratCount = ({ count }) => (
-    <div className="absolute -top-3 -right-2 rounded-full px-3 py-1 bg-[#365df7] text-xs text-slate-50">
-      {count} Contrats
-    </div>
-  );
+  /* const ContratCount = ({ contrat }) => (
+    <div className="absolute -top-3 -right-2 rounded-full px-3 py-1 bg-[#2f54eb] text-xs text-slate-50">
+      {contrat.map((c, index) => (
+      <div key={index}>
+       <DetailsFactureForm record={c}/>
+        { c.reference}
+      </div>
+    ))}    </div>
+  );*/
+
+  const ContratCount = ({ contrat }) => {
+    const [showList, setShowList] = useState(false);
+
+    const handleClick = () => {
+      setShowList(!showList);
+    };
+
+    const renderContent = () => {
+      if (contrat.length === 1) {
+        return (
+          <div>
+            {contrat[0].reference}     
+                   <DetailsContratForm record={contrat[0]} />
+
+          </div>
+        );
+      } else if (contrat.length > 1) {
+        return (
+          <div>
+            <div onClick={handleClick} style={{ cursor: "pointer" }}>
+              {contrat.length} Contrat(s) <DownOutlined />
+            </div>
+            {showList && (
+              <div className="absolute text-slate-800 top-full right-0 bg-white border border-gray-200 mt-2 rounded-md shadow-lg p-2 z-20">
+                {contrat.map((c, index) => (
+                  <div key={index} className="mb-1 whitespace-nowrap">
+                    <DetailsContratForm record={c} />
+                    {c.reference}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      }
+      return null;
+    };
+
+    return (
+      <div className="absolute -top-3 -right-2 bg-[#2f54eb] text-xs text-slate-50 rounded-full px-3 py-1">
+        {renderContent()}
+      </div>
+    );
+  };
 
   const IconWrapper = ({ icon }) => (
     <div className="absolute bottom-2 right-2 text-xl text-gray-600">
@@ -245,220 +301,248 @@ const Dashboard = () => {
     return month ? month.nameLong : tick;
   };
 
+  const formatDate = (date) => {
+    return date ? moment(date).format("DD/MM/YYYY") : "-";
+  };
+
+  const isToday = (date) => {
+    return moment(date).isSame(moment(), "day");
+  };
+
   return loading ? (
     <div className="flex justify-center flex-col items-center h-full">
       <Spin size="large" />
     </div>
   ) : (
-<div>
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-    <div className="flex flex-col gap-6">
-      <div className="w-full">
-        <div className="relative">
-          <Card
-            size="small"
-            title="Chiffre d'affaires"
-            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
-          >
-            <MontantAffiche montant={data.totalCA} />
-            <IconWrapper icon={<EuroOutlined />} />
-          </Card>
-          <FactureCount count={data.totalFactures} />
-        </div>
-      </div>
-      <div className="w-full">
-        <div className="relative">
-          <Card
-            size="small"
-            title="Total encaissements"
-            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
-          >
-            <MontantAffiche montant={data.statsPayee?.total_montant} />
-            <IconWrapper icon={<CheckCircleOutlined />} />
-          </Card>
-          <FactureCount count={data.statsPayee?.count} />
-        </div>
-      </div>
-      <div className="w-full">
-        <div className="relative">
-          <Card
-            size="small"
-            title="Créances non échues"
-            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
-          >
-            <MontantAffiche montant={data.statsNonEchue?.total_montant} />
-            <IconWrapper icon={<ClockCircleOutlined />} />
-          </Card>
-          <FactureCount count={data.statsNonEchue?.count} />
-        </div>
-      </div>
-      <div className="w-full">
-        <div className="relative">
-          <Card
-            size="small"
-            title="Créances échues"
-            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
-          >
-            <MontantAffiche montant={data.statsEchue?.total_montant} />
-            <IconWrapper icon={<CloseCircleOutlined />} />
-          </Card>
-          <FactureCount count={data.statsEchue?.count} />
-        </div>
-      </div>
-      <div className="w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <Card
-            size="small"
-            className="w-full"
-            title="Echues vs Non échues"
-            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
-          >
-            <div className="flex justify-center items-center h-full">
-              <PieChart width={330} height={233}>
-                <Pie
-                  activeIndex={activeIndex}
-                  activeShape={renderActiveShape}
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  onMouseEnter={(_, index) => setActiveIndex(index)}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={index === 0 ? "#e00b0b" : "#c2cbed"}
-                    />
-                  ))}
-                </Pie>
-              </PieChart>
+    <div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="flex flex-col gap-6">
+          <div className="w-full">
+            <div className="relative">
+              <Card
+                size="small"
+                title="Chiffre d'affaires"
+                style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+              >
+                <MontantAffiche montant={data.totalCA} />
+                <IconWrapper icon={<EuroOutlined />} />
+              </Card>
+              <FactureCount count={data.totalFactures} />
             </div>
-          </Card>
-        </ResponsiveContainer>
-      </div>
-    </div>
-    <div className="col-span-2 sm:col-span-2 flex flex-col gap-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="w-full">
-          <Card
-            size="small"
-            title="Taux de recouvrement"
-            style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
-          >
-            {data.tauxRecouvrement?.toFixed(2)}%
-            <IconWrapper icon={<PercentageOutlined />} />
-          </Card>
+          </div>
+          <div className="w-full">
+            <div className="relative">
+              <Card
+                size="small"
+                title="Total encaissements"
+                style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+              >
+                <MontantAffiche montant={data.statsPayee?.total_montant} />
+                <IconWrapper icon={<CheckCircleOutlined />} />
+              </Card>
+              <FactureCount count={data.statsPayee?.count} />
+            </div>
+          </div>
+          <div className="w-full">
+            <div className="relative">
+              <Card
+                size="small"
+                title="Créances non échues"
+                style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+              >
+                <MontantAffiche montant={data.statsNonEchue?.total_montant} />
+                <IconWrapper icon={<ClockCircleOutlined />} />
+              </Card>
+              <FactureCount count={data.statsNonEchue?.count} />
+            </div>
+          </div>
+          <div className="w-full">
+            <div className="relative">
+              <Card
+                size="small"
+                title="Créances échues"
+                style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+              >
+                <MontantAffiche montant={data.statsEchue?.total_montant} />
+                <IconWrapper icon={<CloseCircleOutlined />} />
+              </Card>
+              <FactureCount count={data.statsEchue?.count} />
+            </div>
+          </div>
+          <div className="w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <Card
+                size="small"
+                className="w-full"
+                title="Echues vs Non échues"
+                style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+              >
+                <div className="flex justify-center items-center h-full">
+                  <PieChart width={400} height={233}>
+                    <Pie
+                      activeIndex={activeIndex}
+                      activeShape={renderActiveShape}
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      onMouseEnter={(_, index) => setActiveIndex(index)}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index === 0 ? "#e00b0b" : "#c2cbed"}
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </div>
+              </Card>
+            </ResponsiveContainer>
+          </div>
         </div>
+        <div className="col-span-2 sm:col-span-2 flex flex-col gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="w-full">
+              <Card
+                size="small"
+                title="Taux de recouvrement"
+                style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+              >
+                {data.tauxRecouvrement?.toFixed(2)}%
+                <IconWrapper icon={<PercentageOutlined />} />
+              </Card>
+            </div>
 
-        <div className="w-full">
-          <div className="relative">
+            <div className="w-full">
+              <div className="relative">
+                <Card
+                  size="small"
+                  title="Date de prochaine fin de contrat"
+                  style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+                >
+                  <span>{formatDate(data.contractToExpire[0]?.dateFin)}</span>
+                  <span
+                    style={{
+                      marginLeft: "10px",
+                      fontWeight: "bold",
+                      color: "#5c6574",
+                    }}
+                  >
+                    {data.contractToExpire[0]
+                      ? isToday(data.contractToExpire[0]?.dateFin)
+                        ? "aujourd'hui"
+                        : `dans ${moment(
+                            data.contractToExpire[0]?.dateFin
+                          ).diff(moment(), "days")} jour(s)`
+                      : "-"}
+                  </span>
+                  <IconWrapper icon={<ClockCircleOutlined />} />
+                </Card>
+                <ContratCount contrat={data.contractToExpire} />
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full">
             <Card
               size="small"
-              title="Contrats en cours"
+              title="Les 05 factures échues les plus anciennes"
               style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
             >
-              {data.pourcentageActif?.toFixed(2)}%
-              <IconWrapper icon={<ClockCircleOutlined />} />
+              <ResponsiveContainer width="100%" height="100%">
+                <div style={{ overflowX: "auto" }}>
+                  <Table
+                    scroll={{
+                      x: "max-content",
+                    }}
+                    size="small"
+                    columns={columns}
+                    rowKey="numero"
+                    dataSource={oldestFactures}
+                    pagination={false}
+                  />{" "}
+                </div>
+              </ResponsiveContainer>
             </Card>
-            <ContratCount count={data.nbrContratActif} />
+          </div>
+
+          <div className="w-full">
+            <Card
+              size="small"
+              title="Top 05 clients par créances impayées"
+              style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+            >
+              <ResponsiveContainer width="100%" height={233}>
+                <ComposedChart
+                  layout="vertical"
+                  data={barChartData}
+                  margin={{
+                    top: 15,
+                  }}
+                >
+                  <CartesianGrid stroke="#f5f5f5" />
+                  <XAxis
+                    type="number"
+                    tickFormatter={(value) => {
+                      return new Intl.NumberFormat("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }).format(value);
+                    }}
+                  />
+                  <YAxis dataKey="client" type="category" />
+                  <Tooltip />
+                  <Bar dataKey="total" barSize={17} fill="#413ea0">
+                    <LabelList
+                      dataKey="total"
+                      position="insideRight"
+                      fill="#f0f1f7"
+                      formatter={(value) => `${value}`}
+                      content={({ x, y, width, height, value }) => {
+                        const montantFormate = new Intl.NumberFormat("fr-FR", {
+                          style: "currency",
+                          currency: "EUR",
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }).format(value);
+
+                        const offset = 10;
+                        const isInBar = width > 40;
+                        return (
+                          <text
+                            x={
+                              isInBar ? x + width - offset : x + width + offset
+                            }
+                            y={y + height / 2}
+                            fill={isInBar ? "#f0f1f7" : "#413ea0"}
+                            textAnchor={isInBar ? "end" : "start"}
+                            dominantBaseline="middle"
+                          >
+                            {montantFormate}
+                          </text>
+                        );
+                      }}
+                    />
+                  </Bar>
+                </ComposedChart>
+              </ResponsiveContainer>
+            </Card>
           </div>
         </div>
       </div>
 
-      <div className="w-full">
-        <Card
-          size="small"
-          title="Les 05 factures échues les plus anciennes"
-          style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <div style={{ overflowX: "auto" }}>
-              <Table
-                scroll={{
-                  x: "max-content",
-                }}
-                size="small"
-                columns={columns}
-                rowKey="numero"
-                dataSource={oldestFactures}
-                pagination={false}
-              />{" "}
-            </div>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-
-      <div className="w-full">
-        <Card
-          size="small"
-          title="Top 05 clients par créances impayées"
-          style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
-        >
-          <ResponsiveContainer width="100%" height={233}>
-            <ComposedChart
-              layout="vertical"
-              data={barChartData}
-              margin={{
-                top: 15,
-              }}
-            >
-              <CartesianGrid stroke="#f5f5f5" />
-              <XAxis
-                type="number"
-                tickFormatter={(value) => {
-                  return new Intl.NumberFormat("fr-FR", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  }).format(value);
-                }}
-              />
-              <YAxis dataKey="client" type="category" />
-              <Tooltip />
-              <Bar dataKey="total" barSize={17} fill="#413ea0">
-                <LabelList
-                  dataKey="total"
-                  position="insideRight"
-                  fill="#f0f1f7"
-                  formatter={(value) => `${value}`}
-                  content={({ x, y, width, height, value }) => {
-                    const montantFormate = new Intl.NumberFormat("fr-FR", {
-                      style: "currency",
-                      currency: "EUR",
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    }).format(value);
-
-                    const offset = 10;
-                    const isInBar = width > 40;
-                    return (
-                      <text
-                        x={isInBar ? x + width - offset : x + width + offset}
-                        y={y + height / 2}
-                        fill={isInBar ? "#f0f1f7" : "#413ea0"}
-                        textAnchor={isInBar ? "end" : "start"}
-                        dominantBaseline="middle"
-                      >
-                        {montantFormate}
-                      </text>
-                    );
-                  }}
-                />
-              </Bar>
-            </ComposedChart>
-          </ResponsiveContainer>
-        </Card>
-      </div>
-    </div>
-  </div>
-
-
       <Row gutter={16}>
         <Col span={12} xs={24} sm={24} md={12} style={{ marginTop: 6 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <Card size="small" title="Evolution du CA en EUR" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
+            <Card
+              size="small"
+              title="Evolution du CA en EUR"
+              style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+            >
               <div className="flex justify-center items-center h-full">
                 <ComposedChart
                   width={500}
@@ -531,7 +615,11 @@ const Dashboard = () => {
         </Col>
         <Col span={12} xs={24} sm={24} md={12} style={{ marginTop: 6 }}>
           <ResponsiveContainer width="100%" height="100%">
-            <Card size="small" title="Evolution des créances" style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}>
+            <Card
+              size="small"
+              title="Evolution des créances"
+              style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
+            >
               <div className="flex">
                 <ComposedChart
                   width={500}
