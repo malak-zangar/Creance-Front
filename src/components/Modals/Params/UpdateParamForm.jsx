@@ -1,12 +1,16 @@
 import { Button, Form, Input, Modal, notification, Space, Tooltip } from "antd";
 import { useState } from "react";
-import { EditOutlined  ,EditTwoTone } from '@ant-design/icons';
+import {  EditTwoTone } from '@ant-design/icons';
 import api from "../../../utils/axios";
+import ExchangeRateHistoryModal from "./ExchangeRateHistoryModal";
 
 function UpdateParamForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingParam, setEditingParam] = useState(null);
   const [editForm] = Form.useForm();
+  const [isTndHistoryVisible, setIsTndHistoryVisible] = useState(false);
+  const [isUsdHistoryVisible, setIsUsdHistoryVisible] = useState(false);
+
 
   const handleUpdate = () => {
     editForm.setFieldsValue({ ...record });
@@ -41,7 +45,7 @@ function UpdateParamForm({ record, handleState }) {
 
   return (
     <>  <Tooltip title="Modifier">
-      <Button icon={<EditTwoTone />}  size="small" onClick={handleUpdate}></Button>
+      <Button icon={<EditTwoTone />}  size="small" onClick={handleUpdate}>Modifier les paramètres</Button>
 </Tooltip>
       <Modal
         title={"Modifier les paramètres d'ID : "+ record?.key}
@@ -67,6 +71,10 @@ function UpdateParamForm({ record, handleState }) {
             label="Raison sociale"
             rules={[
               { required: true, message: "Veuillez saisir la raison sociale de l'entreprise!" },
+              {
+                pattern: /^[a-zA-Z0-9 ]+$/,
+                message: "La raison sociale doit être alphanumérique!",
+              },
             ]}            style={{ marginBottom: '8px' }} 
           >
             <Input />
@@ -113,6 +121,10 @@ function UpdateParamForm({ record, handleState }) {
                 required: true,
                 message: "Veuillez saisir l'adresse complète de l'entreprise!",
               },
+              {
+                pattern: /^[a-zA-Z0-9 ]+$/,
+                message: "L'adresse doit être alphanumérique!",
+              },
             ]}style={{ marginBottom: '8px' }} 
           >
             <Input />
@@ -126,7 +138,12 @@ function UpdateParamForm({ record, handleState }) {
                 ]}
                 style={{ width: '48%', marginRight: '4px',border: 'none' }}
               >
-                <Input type="number" min={0} step={0.01} addonBefore="TND" />
+                <Input type="number" min={0} step={0.01} addonBefore={
+                    <Button size="small"
+                      type="link"
+                      onClick={() => setIsTndHistoryVisible(true)}
+                      style={{ padding: 0 }} 
+                    >TND</Button>} />
               </Form.Item>
               <Form.Item
                 name="tauxUsdEur"
@@ -135,7 +152,14 @@ function UpdateParamForm({ record, handleState }) {
                 ]}
                 style={{ width: '48%',border: 'none' }}
               >
-                <Input type="number" step={0.01} min={0} addonBefore="USD" />
+                <Input type="number" step={0.01} min={0} addonBefore={
+                    <Button size="small"
+                      type="link"
+                      onClick={() => setIsUsdHistoryVisible(true)}
+                      style={{ padding: 0 }} 
+                    >USD</Button>
+                  }
+                  />
               </Form.Item>
             </Input.Group>
           </Form.Item>
@@ -151,6 +175,17 @@ function UpdateParamForm({ record, handleState }) {
           </Form.Item>
         </Form>
       </Modal>
+      <ExchangeRateHistoryModal
+        currency="TND"
+        visible={isTndHistoryVisible}
+        onClose={() => setIsTndHistoryVisible(false)}
+      />
+
+      <ExchangeRateHistoryModal
+        currency="USD"
+        visible={isUsdHistoryVisible}
+        onClose={() => setIsUsdHistoryVisible(false)}
+      />
     </>
   );
 }

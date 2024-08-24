@@ -226,7 +226,11 @@ const HistoriqueClientContrat = () => {
         size="small"
         dataSource={historicData} 
         columns={columns} 
-        pagination={{ pageSize: 10 }} 
+        pagination={{
+              total: historicData?.length, 
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+              pageSize: 10,
+            }} 
         footer={() => <div style={{ textAlign: 'right' }}>Durée totale d'activité: {totalDuration} jours</div>}
       />
     </div>

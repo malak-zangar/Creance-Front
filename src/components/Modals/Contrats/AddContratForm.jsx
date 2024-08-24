@@ -22,8 +22,10 @@ export const AddContratForm = ({ handleState }) => {
   const [clients, setClients] = useState([]);
   const [contratFile1, setContratFile1] = useState(null);
   const [type, setType] = useState(null);
-  const [typeFrequenceFacturation, setTypeFrequenceFacturation] = useState(null);
+  const [typeFrequenceFacturation, setTypeFrequenceFacturation] =
+    useState(null);
   const { TextArea } = Input;
+  const [currency, setCurrency] = useState('EUR'); // Dévise initiale
 
   const fetchClients = () => {
     api
@@ -37,7 +39,10 @@ export const AddContratForm = ({ handleState }) => {
         );
       })
       .catch((error) => {
-        notification.error({ message: "Erreur lors de la récupération des clients", description: error.message });
+        notification.error({
+          message: "Erreur lors de la récupération des clients",
+          description: error.message,
+        });
       });
   };
 
@@ -47,20 +52,23 @@ export const AddContratForm = ({ handleState }) => {
 
   const generateContractRef = (clientUsername, contratType) => {
     const randomNumber = Math.floor(Math.random() * 10000); // Generates a random number between 0 and 9999
-    const clientPart = clientUsername ? clientUsername.slice(0, 3).toUpperCase() : 'CLT';
+    const clientPart = clientUsername
+      ? clientUsername.slice(0, 3).toUpperCase()
+      : "CLT";
     let contratPart;
-    if (contratType === 'Jour Homme') {
-      contratPart = 'JH';
+    if (contratType === "Jour Homme") {
+      contratPart = "JH";
     } else {
-      contratPart = contratType ? contratType.slice(0, 3).toUpperCase() : 'CNT';
+      contratPart = contratType ? contratType.slice(0, 3).toUpperCase() : "CNT";
     }
     const contractRef = `${clientPart}-${contratPart}-${randomNumber}`;
     addForm.setFieldsValue({ reference: contractRef });
   };
 
   const handleAddContrat = () => {
-    addForm.validateFields()
-      .then(values => {
+    addForm
+      .validateFields()
+      .then((values) => {
         const clientId = values.client;
         const dataToSend = {
           ...values,
@@ -70,44 +78,81 @@ export const AddContratForm = ({ handleState }) => {
           contratFile: contratFile1,
         };
         Modal.confirm({
-          title: 'Confirmer l\'ajout du contrat',
+          title: "Confirmer l'ajout du contrat",
           content: (
             <div>
               <p>Êtes-vous sûr de vouloir ajouter ce contrat ?</p>
-              <p><strong>Référence:</strong> {values.reference}</p>
-              <p><strong>Date Début:</strong> {values.dateDebut.format("YYYY-MM-DD")}</p>
-              <p><strong>Date Fin:</strong> {values.dateFin.format("YYYY-MM-DD")}</p>
-              <p><strong>Client:</strong> {clients.find(client => client.id === values.client)?.username}</p>
-              <p><strong>Délai de paiement:</strong> {values.delai} jours</p>
-              <p><strong>Type:</strong> {values.type}</p>
-              {values.type === 'Forfait' && (
+              <p>
+                <strong>Référence:</strong> {values.reference}
+              </p>
+              <p>
+                <strong>Date Début:</strong>{" "}
+                {values.dateDebut.format("YYYY-MM-DD")}
+              </p>
+              <p>
+                <strong>Date Fin:</strong> {values.dateFin.format("YYYY-MM-DD")}
+              </p>
+              <p>
+                <strong>Client:</strong>{" "}
+                {
+                  clients.find((client) => client.id === values.client)
+                    ?.username
+                }
+              </p>
+              <p>
+                <strong>Délai de paiement:</strong> {values.delai} jours
+              </p>
+              <p>
+                <strong>Type:</strong> {values.type}
+              </p>
+              {values.type === "Forfait" && (
                 <>
-                  <p><strong>Montant total du contrat (TTC):</strong> {values.total}</p>
-                  {typeFrequenceFacturation === 'Mensuelle' && (
-                    <p><strong>Montant à facturer par Mois:</strong> {values.montantParMois}</p>
+                  <p>
+                    <strong>Montant TTC du contrat:</strong> {values.total}
+                  </p>
+                  {typeFrequenceFacturation === "Mensuelle" && (
+                    <p>
+                      <strong>Montant à facturer par Mois:</strong>{" "}
+                      {values.montantParMois}
+                    </p>
                   )}
                 </>
               )}
-              {values.type === 'Jour Homme' && (
-                <p><strong>Prix du jour/homme:</strong> {values.prixJourHomme}</p>
+              {values.type === "Jour Homme" && (
+                <p>
+                  <strong>Prix du jour/homme:</strong> {values.prixJourHomme}
+                </p>
               )}
-              {values.type === 'Mix' && (
+              {values.type === "Mix" && (
                 <>
-                  <p><strong>Montant total du contrat (TTC):</strong> {values.total}</p>
-                  <p><strong>Prix du jour/homme:</strong> {values.prixJourHomme}</p>
+                  <p>
+                    <strong>Montant TTC du contrat:</strong> {values.total}
+                  </p>
+                  <p>
+                    <strong>Prix du jour/homme:</strong> {values.prixJourHomme}
+                  </p>
                 </>
               )}
-              <p><strong>Fréquence de facturation:</strong> {values.typeFrequenceFacturation}</p>
-              {values.typeFrequenceFacturation === 'Spécifique' && (
-                <p><strong>Détails spécifiques:</strong> {values.detailsFrequence}</p>
+              <p>
+                <strong>Fréquence de facturation:</strong>{" "}
+                {values.typeFrequenceFacturation}
+              </p>
+              {values.typeFrequenceFacturation === "Spécifique" && (
+                <p>
+                  <strong>Détails spécifiques:</strong>{" "}
+                  {values.detailsFrequence}
+                </p>
               )}
-              <p><strong>Devise:</strong> {values.devise}</p>
+              <p>
+                <strong>Devise:</strong> {values.devise}
+              </p>
             </div>
           ),
-          okText: 'Confirmer',
-          cancelText: 'Annuler',
+          okText: "Confirmer",
+          cancelText: "Annuler",
           onOk: () => {
-            api.post("/contrat/create", dataToSend)
+            api
+              .post("/contrat/create", dataToSend)
               .then((response) => {
                 notification.success({ message: "Contrat ajouté avec succès" });
                 setShowAddForm(false);
@@ -126,12 +171,12 @@ export const AddContratForm = ({ handleState }) => {
               });
           },
           onCancel() {
-            console.log('Ajout du contrat annulé');
+            console.log("Ajout du contrat annulé");
           },
         });
       })
-      .catch(error => {
-        notification.error('Validation échouée:', error);
+      .catch((error) => {
+        notification.error("Validation échouée:", error);
       });
   };
 
@@ -160,57 +205,71 @@ export const AddContratForm = ({ handleState }) => {
   };
 
   const handleTypeChange = (value) => {
-    const clientId = addForm.getFieldValue('client');
-    const clientUsername = clients.find(client => client.id === clientId)?.username;
+    const clientId = addForm.getFieldValue("client");
+    const clientUsername = clients.find(
+      (client) => client.id === clientId
+    )?.username;
     generateContractRef(clientUsername, value);
     setType(value);
-    if (value === 'Forfait') {
+    if (value === "Forfait") {
       addForm.setFieldsValue({ prixJourHomme: null });
-    } else if (value === 'Jour Homme') {
+    } else if (value === "Jour Homme") {
       addForm.setFieldsValue({ total: null });
     }
   };
 
   const handleFrequenceChange = (value) => {
     setTypeFrequenceFacturation(value);
-    if (value === 'Spécifique') {
+    if (value === "Spécifique") {
       addForm.setFieldsValue({ montantParMois: null });
     } else {
-      if (value === "Mensuelle" && type === 'Forfait') {
-        addForm.setFieldsValue({ montantParMois: addForm.getFieldValue('montantParMois') });
+      if (value === "Mensuelle" && type === "Forfait") {
+        addForm.setFieldsValue({
+          montantParMois: addForm.getFieldValue("montantParMois"),
+        });
       }
     }
   };
 
   const validateDelai = (e) => {
     let value = e.target.value;
-    value = value.replace(/,/g, ""); 
+    value = value.replace(/,/g, "");
     if (parseInt(value, 10) < 1) {
       value = 1;
     }
     addForm.setFieldsValue({ delai: value });
   };
 
-    // Function to update the minDate for the end date based on the start date
-    const handleDateDebutChange = (date, dateString) => {
-      addForm.setFieldsValue({ dateDebut: date });
-      if (date) {
-        addForm.setFieldsValue({ dateFin: null });
-      }
-    };
-  
-    const handleDateFinDisabledDate = (current) => {
-      const dateDebut = addForm.getFieldValue('dateDebut');
-      return dateDebut ? current <= dateDebut.startOf('day') : false;
-    };
+  // Function to update the minDate for the end date based on the start date
+  const handleDateDebutChange = (date, dateString) => {
+    addForm.setFieldsValue({ dateDebut: date });
+    if (date) {
+      addForm.setFieldsValue({ dateFin: null });
+    }
+  };
 
-    const beforeUpload = (file) => {
-      const isPDF = file.type === 'application/pdf';
-      if (!isPDF) {
-        message.error('Vous ne pouvez télécharger que des fichiers PDF!');
-      }
-      return isPDF || Upload.LIST_IGNORE;
-    };
+  const handleDateFinDisabledDate = (current) => {
+    const dateDebut = addForm.getFieldValue("dateDebut");
+    return dateDebut ? current <= dateDebut.startOf("day") : false;
+  };
+
+  const beforeUpload = (file) => {
+    const isPDF = file.type === "application/pdf";
+    if (!isPDF) {
+      message.error("Vous ne pouvez télécharger que des fichiers PDF!");
+    }
+    return isPDF || Upload.LIST_IGNORE;
+  };
+
+  const validateDecimals = (value, currency) => {
+    if (!value) {
+      return '';
+    }
+  
+    const decimalPlaces = currency === 'TND' ? 3 : 2;
+    const regex = new RegExp(`^\\d+\\.\\d{0,${decimalPlaces}}$`);    
+    return regex.test(value) ? '' : `Le montant doit avoir ${decimalPlaces} chiffres après la virgule pour ${currency}.`;
+  };
 
   return (
     <>
@@ -244,7 +303,12 @@ export const AddContratForm = ({ handleState }) => {
           <Form.Item
             name="dateDebut"
             label="Date de début"
-            rules={[{ required: true, message: "Veuillez sélectionner la date de début!" }]}
+            rules={[
+              {
+                required: true,
+                message: "Veuillez sélectionner la date de début!",
+              },
+            ]}
             style={{ marginBottom: "8px" }}
           >
             <DatePicker
@@ -255,7 +319,12 @@ export const AddContratForm = ({ handleState }) => {
           <Form.Item
             name="dateFin"
             label="Date de fin"
-            rules={[{ required: true, message: "Veuillez sélectionner la date de fin!" }]}
+            rules={[
+              {
+                required: true,
+                message: "Veuillez sélectionner la date de fin!",
+              },
+            ]}
             style={{ marginBottom: "8px" }}
           >
             <DatePicker
@@ -266,7 +335,9 @@ export const AddContratForm = ({ handleState }) => {
           <Form.Item
             name="client"
             label="Client"
-            rules={[{ required: true, message: "Veuillez sélectionner un client!" }]}
+            rules={[
+              { required: true, message: "Veuillez sélectionner un client!" },
+            ]}
             style={{ marginBottom: "8px" }}
           >
             <Select
@@ -314,10 +385,18 @@ export const AddContratForm = ({ handleState }) => {
           <Form.Item
             name="type"
             label="Type de contrat"
-            rules={[{ required: true, message: "Veuillez sélectionner le type de contrat!" }]}
+            rules={[
+              {
+                required: true,
+                message: "Veuillez sélectionner le type de contrat!",
+              },
+            ]}
             style={{ marginBottom: "8px" }}
           >
-            <Select placeholder="Sélectionner un type de contrat" onChange={handleTypeChange}>
+            <Select
+              placeholder="Sélectionner un type de contrat"
+              onChange={handleTypeChange}
+            >
               <Option value="Forfait">Forfait</Option>
               <Option value="Jour Homme">Jour Homme</Option>
               <Option value="Mix">Mix</Option>
@@ -331,23 +410,34 @@ export const AddContratForm = ({ handleState }) => {
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Select placeholder="Sélectionner la devise">
+            <Select placeholder="Sélectionner la devise" value={currency} onChange={(value) => setCurrency(value)}>
               <Option value="USD">USD</Option>
               <Option value="EUR">EUR</Option>
               <Option value="TND">TND</Option>
-             
             </Select>
           </Form.Item>
           {type === "Forfait" && (
             <Form.Item
               name="total"
-              label="Montant total du contrat (TTC)"
+              label="Montant TTC du contrat"
               rules={[
                 { required: true, message: "Veuillez saisir le montant total du contrat!" },
+                { validator: (_, value) => {
+                  const error = validateDecimals(value, currency);
+                  return error ? Promise.reject(new Error(error)) : Promise.resolve();
+                }},
               ]}
               style={{ marginBottom: "8px" }}
             >
-              <Input type="number" min={1} step="0.001" placeholder="Montant total (TTC)" />
+              <Input type="number" min={1}     
+                    step={currency === 'TND' ? '0.001' : '0.01'} placeholder="Montant (TTC)" 
+                    onBlur={(e) => {
+                      // Formate la valeur pour avoir 2 décimales pour USD/EUR et 3 pour TND
+                      const formattedValue = currency === 'TND' 
+                        ? parseFloat(e.target.value).toFixed(3) 
+                        : parseFloat(e.target.value).toFixed(2);
+                      e.target.value = formattedValue;
+                    }}/> 
             </Form.Item>
           )}
           {type === "Jour Homme" && (
@@ -366,13 +456,13 @@ export const AddContratForm = ({ handleState }) => {
             <>
               <Form.Item
                 name="total"
-                label="Montant total du contrat (TTC)"
+                label="Montant TTC du contrat"
                 rules={[
                   { required: true, message: "Veuillez saisir le montant total du contrat!" },
                 ]}
                 style={{ marginBottom: "8px" }}
               >
-                <Input type="number" min={1} step="0.001" placeholder="Montant total (TTC)" />
+                <Input type="number" min={1} step="0.001" placeholder="Montant TTC" />
               </Form.Item>
               <Form.Item
                 name="prixJourHomme"
@@ -386,13 +476,22 @@ export const AddContratForm = ({ handleState }) => {
               </Form.Item>
             </>
           )}
+            
           <Form.Item
             name="typeFrequenceFacturation"
             label="Fréquence de facturation"
-            rules={[{ required: true, message: "Veuillez sélectionner la fréquence de facturation!" }]}
+            rules={[
+              {
+                required: true,
+                message: "Veuillez sélectionner la fréquence de facturation!",
+              },
+            ]}
             style={{ marginBottom: "8px" }}
           >
-            <Select placeholder="Sélectionner la fréquence de facturation" onChange={handleFrequenceChange}>
+            <Select
+              placeholder="Sélectionner la fréquence de facturation"
+              onChange={handleFrequenceChange}
+            >
               <Option value="Mensuelle">Mensuelle</Option>
               <Option value="Spécifique">Spécifique</Option>
             </Select>
@@ -402,11 +501,19 @@ export const AddContratForm = ({ handleState }) => {
               name="montantParMois"
               label="Montant à facturer par Mois"
               rules={[
-                { required: true, message: "Veuillez saisir le montant à facturer par mois!" },
+                {
+                  required: true,
+                  message: "Veuillez saisir le montant à facturer par mois!",
+                },
               ]}
               style={{ marginBottom: "8px" }}
             >
-              <Input type="number" min={1} step="0.001" placeholder="Montant par mois" />
+              <Input
+                type="number"
+                min={1}
+                step="0.001"
+                placeholder="Montant par mois"
+              />
             </Form.Item>
           )}
           {typeFrequenceFacturation === "Spécifique" && (
@@ -414,14 +521,24 @@ export const AddContratForm = ({ handleState }) => {
               name="detailsFrequence"
               label="Détails spécifiques de la fréquence"
               rules={[
-                { required: true, message: "Veuillez saisir les détails spécifiques!" },
+                {
+                  required: true,
+                  message: "Veuillez saisir les détails spécifiques!",
+                },
+                {
+                  pattern: /^[a-zA-Z0-9 ]+$/,
+                  message: "Les détails doivent être alphanumériques!",
+                },
               ]}
               style={{ marginBottom: "8px" }}
             >
-              <TextArea rows={4} placeholder="Détails spécifiques de la fréquence" />
+              <TextArea
+                rows={4}
+                placeholder="Détails spécifiques de la fréquence"
+              />
             </Form.Item>
           )}
-  
+
           <Form.Item
             name="contratFile"
             label="Fichier de contrat"
@@ -441,7 +558,9 @@ export const AddContratForm = ({ handleState }) => {
               beforeUpload={beforeUpload}
               onChange={handleFileChange}
             >
-              <Button icon={<UploadOutlined />}>Cliquez pour télécharger</Button>
+              <Button icon={<UploadOutlined />}>
+                Cliquez pour télécharger
+              </Button>
             </Upload>
           </Form.Item>
           <Form.Item>

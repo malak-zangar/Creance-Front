@@ -151,7 +151,6 @@ const HistoriqueClientFacture = () => {
             delai: facture.delai,
             montant: facture.montant,
             montantEncaisse: facture.montantEncaisse,
-            actionRecouvrement: facture.actionRecouvrement,
             actif: facture.actif,
             client_id: facture.client_id,
             client: facture.client,
@@ -202,9 +201,9 @@ const HistoriqueClientFacture = () => {
   };
 
   const columns = [
-
+   
     {
-      title: "Numéro",
+      title: "Référence",
       dataIndex: "numero",
       ...getColumnSearchProps("numero"),
     },
@@ -349,8 +348,11 @@ const HistoriqueClientFacture = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 10,
-        }}
+              total: data.length, 
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+              pageSize: 10,
+            }}
+       
         footer={() => (
           null
         )   }

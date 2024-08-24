@@ -15,7 +15,7 @@ const DetailsClientForm = ({ record }) => {
 
   const handleClose = () => {
     setIsDetailsModalVisible(false);
-    setSelectedContract(null); // Clear the selected contract when closing the modal
+    setSelectedContract(null); 
   };
 
   const handleContractClick = (contract) => {
@@ -26,6 +26,7 @@ const DetailsClientForm = ({ record }) => {
   };
 
   const formatDate = (date) => {
+    console.log(date)
     return date ? moment(date).format('DD/MM/YYYY') : '-';
   };
 
@@ -44,11 +45,19 @@ const DetailsClientForm = ({ record }) => {
     if (isDetailsModalVisible) {
       const defaultContract = ongoingContracts[0] || notOngoingContracts[0] || null;
       if (defaultContract) {
-        handleContractClick(defaultContract); // Show the details of the first contract
+        handleContractClick(defaultContract); 
       }
     }
   }, [isDetailsModalVisible]);
 
+  const displayDelaiRelance = (delaiRelance) => {
+    if (delaiRelance % 7 === 0) {
+      return `${delaiRelance / 7} semaines`;
+    }
+    return `${delaiRelance} jours`;
+  };
+  const isRelanceDisabled = record.delaiRelance === 0 && record.maxRelance === 0;
+ 
   return (
     <>
       <Tooltip title="Details">
@@ -60,7 +69,7 @@ const DetailsClientForm = ({ record }) => {
         />
       </Tooltip>
       <Modal
-        title={`Informations du client : ${record.username}`}
+        title={`Informations du client `}
         visible={isDetailsModalVisible}
         onCancel={handleClose}
         width={900}
@@ -107,6 +116,14 @@ const DetailsClientForm = ({ record }) => {
             <Descriptions.Item label="ID Fiscal">{record.identifiantFiscal}</Descriptions.Item>
             <Descriptions.Item label="Adresse">{record.adresse}</Descriptions.Item>
             <Descriptions.Item label="Date de création">{formatDate(record.dateCreation)}</Descriptions.Item>
+
+            <Descriptions.Item label="Délai de relance"> 
+
+            {isRelanceDisabled ? "Relance désactivée" : displayDelaiRelance(record.delaiRelance)}
+            </Descriptions.Item>
+            <Descriptions.Item label="Maximum de relance">
+            {isRelanceDisabled ? "Relance désactivée" : record.maxRelance+' fois'} </Descriptions.Item>
+
             <Descriptions.Item label="Contrats en cours">
               {ongoingContracts?.length > 0 ? (
                 <List

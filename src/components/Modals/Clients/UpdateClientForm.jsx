@@ -1,5 +1,5 @@
-import { Button, Form, Input, Modal, notification, Space, Tooltip } from "antd";
-import { useState } from "react";
+import { Button, Form, Input, Modal, notification, Space, Tooltip , Switch, Select} from "antd";
+import { useState,useEffect } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import api from "../../../utils/axios";
 
@@ -7,9 +7,39 @@ function UpdateClientForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [editForm] = Form.useForm();
+  const [relanceDisabled, setRelanceDisabled] = useState(false);
+  const [unit, setUnit] = useState(() => record.delaiRelance % 7 === 0 ? "weeks" : "days");
+
+  useEffect(() => {
+    const initialDelai = record.delaiRelance;
+    const isWeeks = initialDelai % 7 === 0 && initialDelai !== 0;
+    setUnit(isWeeks ? "weeks" : "days");
+
+    editForm.setFieldsValue({
+      ...record,
+      delaiRelance: isWeeks ? initialDelai / 7 : initialDelai,
+    });
+
+    if (record.delaiRelance === 0 && record.maxRelance === 0) {
+      setRelanceDisabled(true);
+    }
+  }, [record, editForm]);
+
+  const handleDisableChange = (checked) => {
+    setRelanceDisabled(checked);
+    if (checked) {
+      editForm.setFieldsValue({ delaiRelance: 0, maxRelance: 0 });
+    } else {
+      const initialDelai = record.delaiRelance;
+      const isWeeks = initialDelai % 7 === 0 && initialDelai !== 0;
+      editForm.setFieldsValue({
+        delaiRelance: isWeeks ? initialDelai / 7 : initialDelai,
+        maxRelance: record.maxRelance,
+      });
+    }
+  };
 
   const handleUpdate = () => {
-    editForm.setFieldsValue({ ...record });
     setIsEditModalVisible(true);
   };
 
@@ -18,35 +48,87 @@ function UpdateClientForm({ record, handleState }) {
     editForm.setFieldsValue({ ...record });
   };
 
-  const handleConfirmEdit = (values) => {
-    Modal.confirm({
-      title: "Confirmer la modification",
-      content: "Êtes-vous sûr de vouloir modifier ce client?",
-      okText: "Oui",
-      cancelText: "Non",
-      onOk: () => handleEditClient(values),
+  const handleUpdateClient = () => {
+    editForm
+    .validateFields()
+    .then((values) => {
+      const delaiRelanceInDays =
+        unit === "weeks" && !relanceDisabled
+          ? values.delaiRelance * 7
+          : values.delaiRelance;
+
+      const dataToSend = {
+        ...values,
+        delaiRelance: delaiRelanceInDays,
+      };
+      
+          Modal.confirm({
+            title: "Confirmer la mise à jour du client",
+            content: (
+              <div>
+Voulez vous vraiment valider les modifications?              </div>
+            ),
+            okText: "Confirmer",
+            cancelText: "Annuler",
+            onOk: () => {
+              api
+                .put(`/user/updateClient/${record.key}`, dataToSend)
+                .then((response) => {
+                  console.log(response)
+                  handleState({
+                    ...dataToSend,
+                    key: record.key,
+                  });
+                  setIsEditModalVisible(false);
+                  notification.success({
+                    message: "Client mis à jour avec succès",
+                  });
+                })
+                .catch((error) => {
+                  notification.error({
+                    description:
+                      error?.response?.data?.erreur ||
+                      `Une erreur est survenue lors de la mise à jour du client "${record.username}"`,
+                  });
+                });
+            },
+          });
+           
+        })
+        .catch((error) => {
+          console.error("Validation échouée:", error);
+        });
+    };
+
+    const validateDelai = (rule, value) => {
+      if (relanceDisabled && value === 0) {
+        return Promise.resolve();
+      }
+      if (value < 1 || isNaN(value)) {
+        return Promise.reject(new Error("Le délai de relance doit être supérieur à 1!"));
+      }
+      return Promise.resolve();
+    };
+  
+    const validateMaxRelance = (rule, value) => {
+      if (relanceDisabled && value === 0) {
+        return Promise.resolve();
+      }
+      if (value < 1 || isNaN(value)) {
+        return Promise.reject(new Error("Le max de relance doit être supérieur à 1!"));
+      }
+      return Promise.resolve();
+    };
+
+  const handleUnitChange = (value) => {
+    const currentDelai = editForm.getFieldValue("delaiRelance");
+    const updatedDelai =
+      value === "weeks" ? currentDelai / 7 : currentDelai * 7;
+
+    setUnit(value);
+    editForm.setFieldsValue({
+      delaiRelance: Math.round(updatedDelai),
     });
-  };
-
-
-  const handleEditClient = (values) => {
-    api
-      .put(`/user/updateClient/${record.key}`, values)
-      .then((response) => {
-        handleState({
-          ...values,
-          key: record.key,
-        });
-        setIsEditModalVisible(false);
-        notification.success({ message: "Client modifié avec succès" });
-      })
-      .catch((error) => {
-        notification.error({
-          description:
-            error?.response?.data?.error ||
-            `Une erreur lors de la modification du client "${values?.username}"`,
-        });
-      });
   };
 
   return (
@@ -73,7 +155,8 @@ function UpdateClientForm({ record, handleState }) {
           name="editClientForm"
           initialValues={editingUser}
           layout="vertical"
-          onFinish={handleConfirmEdit}
+          //onFinish={handleConfirmEdit}
+          onFinish={handleUpdateClient}
         >
           <Form.Item
             name="username"
@@ -175,14 +258,110 @@ function UpdateClientForm({ record, handleState }) {
           >
             <Input />
           </Form.Item>
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Switch
+              size="small"
+              checked={relanceDisabled}
+              onChange={handleDisableChange}
+            />
+            <span style={{ margin: "8px" }}>Désactiver les relances</span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "16px",
+              gap: "10px",
+            }}
+          >
+            <Form.Item
+              name="delaiRelance"
+              label="Délai de relance"
+              style={{ margin: 0, flex: 1 }}
+              rules={[
+                {
+                  required: true,
+                  message: "Veuillez saisir le délai de relance!",
+                },
+                {
+                  validator: validateDelai,
+                },
+              ]}
+            >
+              <Input
+                type="number"
+                placeholder="Délai de relance"
+                min={1}
+                disabled={relanceDisabled}
+                style={{ width: "170px" }}
+                onKeyPress={(e) => {
+                  if (e.key === "," || e.key === ".") {
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </Form.Item>
+            <Form.Item
+              label=" "
+              name="delaiUnit"
+              style={{ margin: 0 }}
+              initialValue={unit}
+            >
+              <Select
+                value={unit}
+                placeholder="Jours"
+                disabled={relanceDisabled}
+                onChange={handleUnitChange}
+                style={{ width: "110px" }}
+              >
+                <Select.Option value="days">Jours</Select.Option>
+                <Select.Option value="weeks">Semaines</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="maxRelance"
+              label="Maximum de relance"
+              style={{ margin: 0, flex: 1 }}
+              rules={[
+                {
+                  required: true,
+                  message: "Veuillez saisir le nombre maximum de relance!",
+                },
+                {
+                  validator: validateMaxRelance,
+                },
+              ]}
+            >
+              <Input
+                type="number"
+                placeholder="Max de relance"
+                min={1}
+                disabled={relanceDisabled}
+                style={{ width: "170px" }}
+                onKeyPress={(e) => {
+                  if (e.key === "," || e.key === ".") {
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </Form.Item>
+          </div>
+
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">
                 Modifier
               </Button>
-              <Button type="default" onClick={handleCancel}>
-                Annuler
-              </Button>
+              <Button onClick={handleCancel}>Annuler</Button>
             </Space>
           </Form.Item>
         </Form>

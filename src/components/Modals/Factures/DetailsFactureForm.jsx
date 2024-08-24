@@ -45,10 +45,10 @@ const DetailsFactureForm = ({ record }) => {
           icon={<InfoCircleOutlined />}
           size="small"
           onClick={handleDetails}
-        ></Button>
+        ></Button>{" "}
       </Tooltip>
       <Modal
-        title={`Informations de la facture : ${record?.numero}`}
+        title={`Informations de la facture `}
         visible={isDetailsModalVisible}
         onCancel={handleClose}
         width={900}
@@ -71,7 +71,7 @@ const DetailsFactureForm = ({ record }) => {
             <div style={{ position: "relative", display: "inline-block", marginRight: 10 , marginTop:5}}>
               <Avatar icon={<FileTextOutlined />} />
             </div>
-            {`Numéro : ${record?.numero}`}
+            {`Référence : ${record?.numero}`}
           </span>
           {renderStatut(record?.statut)}
         </div>
@@ -83,14 +83,15 @@ const DetailsFactureForm = ({ record }) => {
           <Descriptions.Item label="Date d'émission">
             {formatDate(record?.date)}
           </Descriptions.Item>
-          <Descriptions.Item label="Délai de paiement (en jours)">
-            {record?.delai}
-          </Descriptions.Item>
           <Descriptions.Item label="Date d'échéance">
             {formatDate(record?.echeance)}
           </Descriptions.Item>
+          <Descriptions.Item label="Délai de paiement (en jours)">
+            {record?.delai}
+          </Descriptions.Item>
+    
           <Descriptions.Item label="Retard">{record?.retard}</Descriptions.Item>
-          <Descriptions.Item label="Montant de la facture">
+          <Descriptions.Item label="Montant TTC de la facture">
             {record?.montant} {record?.devise}
           </Descriptions.Item>
           <Descriptions.Item label="Montant encaissé">
@@ -98,9 +99,6 @@ const DetailsFactureForm = ({ record }) => {
           </Descriptions.Item>
           <Descriptions.Item label="Solde restant">
             {record?.solde} {record?.devise}
-          </Descriptions.Item>
-          <Descriptions.Item label="Action de recouvrement">
-            {record?.actionRecouvrement}
           </Descriptions.Item>
           <Descriptions.Item label="Date de finalisation">
             {formatDate(record?.dateFinalisation)}

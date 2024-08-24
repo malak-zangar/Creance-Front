@@ -138,7 +138,8 @@ const ArchivedClients = () => {
             identifiantFiscal : client.identifiantFiscal,
             actif : client.actif,
             dateCreation: moment(client.dateCreation).format('YYYY-MM-DD'),
-
+            delaiRelance : client.delaiRelance,
+            maxRelance : client.maxRelance
           }))
         );
 
@@ -176,7 +177,8 @@ const ArchivedClients = () => {
     { label: 'Date de creation', value: 'dateCreation' },
     { label: 'Actif', value: 'actif' },
     { label: 'Contrats', value: 'contrats' },
-
+    { label: 'Délai de relance', value: 'delaiRelance' },
+    { label: 'Max de relance', value: 'maxRelance' },
   ];
                
     const showModal = () => {
@@ -239,6 +241,7 @@ const ArchivedClients = () => {
     });
 
     setData(tempClient);
+    fetchData();
   };
 
 
@@ -291,8 +294,11 @@ const ArchivedClients = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 10,
-        }}
+              total: data.length, 
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+              pageSize: 10,
+            }}
+        
         showSorterTooltip={{ target: "sorter-icon" }}
         scroll={{
           x: "max-content"

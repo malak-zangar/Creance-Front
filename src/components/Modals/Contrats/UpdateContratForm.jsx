@@ -69,10 +69,12 @@ function UpdateContratForm({ record, handleState }) {
 
       contratFile: file,
     };
+    console.log(formattedValues);
 
     api
       .put(`/contrat/updateContrat/${record.key}`, formattedValues)
       .then((response) => {
+        console.log(formattedValues)
         handleState({
           ...formattedValues,
           key: record.key,
@@ -83,8 +85,7 @@ function UpdateContratForm({ record, handleState }) {
       .catch((error) => {
         notification.error({
           description:
-            error?.response?.data?.error ||
-            `Une erreur lors de la modification du contrat "${values?.reference}"`,
+            error?.response?.data?.message 
         });
       });
   };
@@ -311,12 +312,12 @@ function UpdateContratForm({ record, handleState }) {
             <>
               <Form.Item
                 name="total"
-                label="Montant total du contrat (TTC)"
+                label="Montant TTC du contrat "
                 rules={[
                   {
                     required: true,
                     message:
-                      "Veuillez saisir le montant total du contrat (TTC)!",
+                      "Veuillez saisir le montant TTC total du contrat!",
                   },
                 ]}
                 style={{ marginBottom: "8px" }}
@@ -360,12 +361,12 @@ function UpdateContratForm({ record, handleState }) {
             <>
               <Form.Item
                 name="total"
-                label="Montant total du contrat (TTC)"
+                label="Montant TTC du contrat"
                 rules={[
                   {
                     required: true,
                     message:
-                      "Veuillez saisir le montant total du contrat (TTC)!",
+                      "Veuillez saisir le montant TTC du contrat !",
                   },
                 ]}
                 style={{ marginBottom: "8px" }}
@@ -411,6 +412,16 @@ function UpdateContratForm({ record, handleState }) {
               name="detailsFrequence"
               label="Détails spécifiques"
               style={{ marginBottom: "8px" }}
+              rules={[
+                {
+                  required: true,
+                  message: "Veuillez saisir les détails spécifiques!",
+                },
+                {
+                  pattern: /^[a-zA-Z0-9 ]+$/,
+                  message: "Les détails doivent être alphanumériques!",
+                },
+              ]}
             >
               <TextArea rows={4} />
             </Form.Item>

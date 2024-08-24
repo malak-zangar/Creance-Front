@@ -164,7 +164,6 @@ const ActifFactures = () => {
           delai: facture.delai,
           montant: facture.montant,
           montantEncaisse: facture.montantEncaisse,
-          actionRecouvrement: facture.actionRecouvrement,
           actif: facture.actif,
           client_id: facture.client_id,
           client: facture.client,
@@ -237,7 +236,7 @@ const ActifFactures = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState([]);
   const columns1 = [
-    { label: "Numéro de facture", value: "numero" },
+    { label: "Référence de facture", value: "numero" },
     { label: "Date d'émission", value: "date" },
     { label: "Délai de paiement", value: "delai" },
     { label: "Date d'échéance", value: "echeance" },
@@ -247,7 +246,6 @@ const ActifFactures = () => {
     { label: "Solde restant", value: "solde" },
     { label: "Devise", value: "devise" },
     { label: "Statut", value: "statut" },
-    { label: "Action de recouvrement", value: "actionRecouvrement" },
     { label: "Actif", value: "actif" },
     { label: "Client", value: "client" },
     { label: "Contrat", value: "contrat" },
@@ -303,9 +301,12 @@ const ActifFactures = () => {
 
   const columns = [
     {
-      title: "Numéro",
-      dataIndex: "numero",
-      ...getColumnSearchProps("numero"),
+      title: "Date d'échéance",
+      dataIndex: "echeance",
+      //...getColumnSearchProps('date'),
+      render: (text) => moment(text).format("DD/MM/YYYY"),
+
+      sorter: (a, b) => moment(a.echeance).unix() - moment(b.echeance).unix(),
     },
     {
       title: "Date d'émission",
@@ -313,6 +314,12 @@ const ActifFactures = () => {
       render: (text) => moment(text).format("DD/MM/YYYY"),
       sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
     },
+    {
+      title: "Référence",
+      dataIndex: "numero",
+      ...getColumnSearchProps("numero"),
+    },
+    
     {
       title: "Client",
       dataIndex: "client",
@@ -338,7 +345,7 @@ const ActifFactures = () => {
       ...getColumnSearchProps("contrat"),
     },
     {
-      title: "Montant total (TTC)",
+      title: "Montant TTC",
       dataIndex: "montant",
       ...getColumnSearchProps("montant"),
       sorter: (a, b) => a.montant - b.montant,
@@ -409,8 +416,11 @@ const ActifFactures = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 10,
-        }}
+              total: data.length, 
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+              pageSize: 10,
+            }}
+        
         size="small"
         showSorterTooltip={{ target: "sorter-icon" }}
         footer={null}

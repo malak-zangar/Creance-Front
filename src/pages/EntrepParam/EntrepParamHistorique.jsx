@@ -240,8 +240,11 @@ const EntrepParamHistorique = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 10,
-        }}
+              total: data.length, 
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+              pageSize: 10,
+            }}
+
       />
 
       

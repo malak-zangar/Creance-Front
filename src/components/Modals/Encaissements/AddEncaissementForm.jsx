@@ -93,18 +93,11 @@ export const AddEncaissementForm = ({ handleState }) => {
       return;
     }
 
-    let referenceWithPrefix = values.reference;
-    if (modeReglement === "Chèque") {
-      referenceWithPrefix = " CH" + referenceWithPrefix;
-    } else if (modeReglement === "Virement") {
-      referenceWithPrefix = " VIR" + referenceWithPrefix;
-    }
-
     const dataToSend = {
       ...values,
       facture_numero: factureId,
       date: values.date.format("YYYY-MM-DD"),
-      reference: referenceWithPrefix, // Include the suffix in the reference
+
     };
 
     Modal.confirm({
@@ -112,7 +105,7 @@ export const AddEncaissementForm = ({ handleState }) => {
       content: (
         <div>
           <p>
-            <strong>Référence:</strong> {referenceWithPrefix}
+            <strong>Référence:</strong> {reference}
           </p>
           <p>
             <strong>Client:</strong>{" "}
@@ -262,6 +255,10 @@ export const AddEncaissementForm = ({ handleState }) => {
                 message:
                   "La référence ne doit pas contenir d'espaces et doit avoir entre 3 et 20 caractères!",
               },
+              {
+                pattern: /^[a-zA-Z0-9 ]+$/,
+                message: "La référence doit être alphanumérique!",
+              },
             ]}
             style={{ marginBottom: "8px" }}
           >
@@ -319,7 +316,7 @@ export const AddEncaissementForm = ({ handleState }) => {
           {selectedFacture && (
             <>
               <Form.Item
-                label={`Montant Total TTC de la Facture (${selectedFacture.devise})`}
+                label={`Montant TTC de la Facture (${selectedFacture.devise})`}
                 style={{ marginBottom: "8px" }}
               >
                 <Input value={selectedFacture.montant} disabled />

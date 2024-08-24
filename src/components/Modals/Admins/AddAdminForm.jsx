@@ -112,6 +112,10 @@ export const AddAdminForm = ({ handleState }) => {
                 pattern: /^\S.*\S$|^\S{1,2}$/,
                 message: "Le nom ne doit pas commencer ou finir par un espace!",
               },
+              {
+                pattern: /^[a-zA-Z0-9 ]+$/,
+                message: "Le nom doit être alphanumérique!",
+              },
             ]}
             style={{ marginBottom: "8px" }}
           >

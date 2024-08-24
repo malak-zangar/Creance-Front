@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Row, Col, Table, Spin, notification } from "antd";
+import { Card, Row, Col, Table, Spin, notification, DatePicker, Modal, Button } from "antd";
 import {
   PieChart,
   Pie,
@@ -16,7 +16,7 @@ import {
   Line,
 } from "recharts";
 import {
-  EuroOutlined,
+  EuroOutlined,FilterTwoTone,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
@@ -27,6 +27,7 @@ import api from "../../utils/axios";
 import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
 import moment from "moment";
 
+const { RangePicker } = DatePicker;
 const Dashboard = () => {
   const [data, setData] = useState({});
   const [pieData, setPieData] = useState([]);
@@ -35,11 +36,42 @@ const Dashboard = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [caEvolution, setCAevolution] = useState([]);
   const [creanceEvolution, setCreanceEvolution] = useState([]);
-
+  const [ca,setCa]=useState([])
   const [loading, setLoading] = useState(true);
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [dateRange, setDateRange] = useState([]);
+
+  const fetchCa = async (startDate, endDate) => {
+    try {
+
+      let url = "/dashboard/getCA";
+      if (startDate && endDate) {
+        console.log(startDate)
+        console.log(endDate)
+
+        url += `?start=${startDate}&end=${endDate}`;
+      }
+
+      const caResponse = await api.get(url);
+      console.log(caResponse)
+      setCa(caResponse.data)
+
+    }
+    catch (error) {
+      console.error("Error fetching data", error);
+      notification.error({
+        description: "Erreur lors de la récupération des données",
+      });
+    }
+  }
+
   useEffect(() => {
+   
     const fetchData = async () => {
       try {
+
+
         const statsResponse = await api.get("/dashboard/factureStats");
         const tauxResponse = await api.get("/dashboard/getTauxRecouvrement");
         const pourcentageResponse = await api.get(
@@ -90,12 +122,13 @@ const Dashboard = () => {
       } catch (error) {
         console.error("Error fetching data", error);
         notification.error({
-          description: "Error fetching data",
+          description: "Erreur lors de la récupération des données",
         });
       }
     };
 
     fetchData();
+    fetchCa();
   }, []);
 
   const MontantAffiche = ({ montant }) => {
@@ -117,15 +150,6 @@ const Dashboard = () => {
       {count} Facture(s)
     </div>
   );
-  /* const ContratCount = ({ contrat }) => (
-    <div className="absolute -top-3 -right-2 rounded-full px-3 py-1 bg-[#2f54eb] text-xs text-slate-50">
-      {contrat.map((c, index) => (
-      <div key={index}>
-       <DetailsFactureForm record={c}/>
-        { c.reference}
-      </div>
-    ))}    </div>
-  );*/
 
   const ContratCount = ({ contrat }) => {
     const [showList, setShowList] = useState(false);
@@ -180,7 +204,7 @@ const Dashboard = () => {
 
   const columns = [
     {
-      title: "Numéro Facture",
+      title: "Référence Facture",
       dataIndex: "numero",
     },
     {
@@ -309,6 +333,43 @@ const Dashboard = () => {
     return moment(date).isSame(moment(), "day");
   };
 
+  const handleReset = () => {
+    setDateRange([]);
+    fetchCa();
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleFilter = () => {
+    if (dateRange.length === 2) {
+      const [startDate, endDate] = dateRange;
+      fetchCa(startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'));
+      setIsModalVisible(false);
+    } else {
+      notification.warning({
+        description: "SVP séléctionner une durée.",
+      });
+    }
+  };
+
+  const renderTitle = () => {
+    if (dateRange && dateRange.length === 2) {
+      const [startDate, endDate] = dateRange;
+      return (
+        <span>
+          Chiffre d'affaires{' '}
+          <span style={{ color: 'gray', fontSize: '11px' }}>
+            ({startDate.format('DD/MM/YYYY')} - {endDate.format('DD/MM/YYYY')})
+          </span>
+        </span>
+      );
+    }
+    return 'Chiffre d\'affaires total';
+  };
+
   return loading ? (
     <div className="flex justify-center flex-col items-center h-full">
       <Spin size="large" />
@@ -321,13 +382,43 @@ const Dashboard = () => {
             <div className="relative">
               <Card
                 size="small"
-                title="Chiffre d'affaires"
+                title={
+                  <div>
+                    <span>{renderTitle()}</span>
+                    <FilterTwoTone 
+                            style={{ marginLeft: '5px', fontSize: '15px', cursor: 'pointer' }}
+                            onClick={() => setIsModalVisible(true)} />
+                  </div>
+                }
                 style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
               >
-                <MontantAffiche montant={data.totalCA} />
+                <MontantAffiche montant={ca.total} />
                 <IconWrapper icon={<EuroOutlined />} />
               </Card>
-              <FactureCount count={data.totalFactures} />
+              <FactureCount count={ca.nombre} />
+              <Modal
+        title="Filtrer le chiffre d'affaires par une durée"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={handleCancel}>
+          Annuler
+        </Button>,
+          <Button key="reset" onClick={handleReset} style={{ marginRight: '18px' }}>
+            Réinitialiser
+          </Button>,
+          <Button key="filter" type="primary" onClick={handleFilter}>
+            Filtrer
+          </Button>,
+        ]}
+      >
+        <RangePicker
+          value={dateRange}
+          onChange={(dates) => setDateRange(dates)}
+          style={{ width: '100%' }}
+          placeholder={['Date de début', 'Date de fin']}
+        />
+      </Modal>
             </div>
           </div>
           <div className="w-full">

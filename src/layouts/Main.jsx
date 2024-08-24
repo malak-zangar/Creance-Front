@@ -12,7 +12,7 @@ import {
 import { Layout, Menu, Dropdown, Avatar, theme } from "antd";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { removeaccess_token } from '../utils/auth';
-import neodev from "../assets/neodev.png"; 
+import neodev from "../assets/logo-neopolis.png"; 
 
 
 const { Header, Content, Sider } = Layout;
@@ -23,6 +23,18 @@ const items = [
     icon: <DashboardOutlined />,
     label: <Link to="/dashboard">Tableau de bord</Link>,
     path: "/dashboard"
+  },
+  {
+    key: "5",
+    icon: <EuroCircleOutlined />,
+    label: <Link to="/encaissements">Paiements</Link>,
+    path: "/encaissements"
+  },
+  {
+    key: "4",
+    icon: <FileTextOutlined />,
+    label: <Link to="/factures/actif">Factures</Link>,
+    path: "/factures"
   },
   {
     key: "2",
@@ -36,18 +48,8 @@ const items = [
     label: <Link to="/clients">Clients</Link>,
     path: "/clients"
   },
-  {
-    key: "4",
-    icon: <FileTextOutlined />,
-    label: <Link to="/factures/actif">Factures</Link>,
-    path: "/factures"
-  },
-  {
-    key: "5",
-    icon: <EuroCircleOutlined />,
-    label: <Link to="/encaissements">Paiements</Link>,
-    path: "/encaissements"
-  },
+
+
   { key: "6",
     icon: <UserSwitchOutlined />,
     label: <Link to="/administrateurs">Administrateurs</Link>,
@@ -132,8 +134,7 @@ console.log(currentUser)
           }}
         >
   <div style={{ display: "flex", alignItems: "center", paddingLeft: "16px" }}>
-        <img src={neodev} alt="Logo" style={{ height: "35px", marginRight: "16px" }}  /> 
-        <h1 style={{ margin: 0, fontSize: "20px" }}>Neopolis Development</h1>
+        <img src={neodev} alt="Logo" style={{ height: "40px" }}  /> 
       </div>
           <Dropdown overlay={profileMenu}>
             <div

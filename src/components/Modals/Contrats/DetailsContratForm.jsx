@@ -66,7 +66,7 @@ const DetailsContratForm = ({ record }) => {
       { label: "Client", value: record?.client },
       { label: "Type de contrat", value: record?.type },
       {
-        label: "Montant total du contrat (TTC)",
+        label: "Montant TTC du contrat ",
         value:
           record?.total !== undefined &&
           record?.total !== null &&
@@ -98,7 +98,7 @@ const DetailsContratForm = ({ record }) => {
       },
       {
         label: "Contrat numérique",
-        value: record.contratFile ? (
+        value: record?.contratFile ? (
           <Tooltip title="Visualiser">
             <Button
               icon={<EyeTwoTone />}
@@ -141,7 +141,7 @@ const DetailsContratForm = ({ record }) => {
         ></Button>{" "}
       </Tooltip>
       <Modal
-        title={`Détails du contrat : ${record?.reference}`}
+        title={`Détails du contrat `}
         visible={isDetailsModalVisible}
         onCancel={handleClose}
         width={900}

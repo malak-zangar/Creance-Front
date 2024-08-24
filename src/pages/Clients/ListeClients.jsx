@@ -237,6 +237,8 @@ const ListeClients = () => {
             dateCreation: moment(client.dateCreation).format("YYYY-MM-DD"),
             activeContracts: activeContracts,
             contrats: client.contrats,
+            delaiRelance : client.delaiRelance,
+            maxRelance : client.maxRelance
           };
         })
       );
@@ -278,6 +280,7 @@ const ListeClients = () => {
       }
     });
     setData(tempClient);
+    fetchData();
 
   };
 
@@ -293,6 +296,8 @@ const ListeClients = () => {
     { label: 'Date de creation', value: 'dateCreation' },
     { label: 'Actif', value: 'actif' },
     { label: 'Contrats', value: 'contrats' },
+    { label: 'Délai de relance', value: 'delaiRelance' },
+    { label: 'Max de relance', value: 'maxRelance' },
 
   ];
                
@@ -406,7 +411,11 @@ const ListeClients = () => {
         size="small"
         columns={columns}
         dataSource={data}
-        pagination={{ pageSize: 10 }}
+        pagination={{
+              total: data.length, 
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+              pageSize: 10,
+            }} 
         showSorterTooltip={{ target: "sorter-icon" }}
 
       />

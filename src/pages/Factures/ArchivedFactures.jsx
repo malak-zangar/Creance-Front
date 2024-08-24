@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
-  FileDoneOutlined,FileTextOutlined,
+  FileDoneOutlined,FileTextOutlined,FilterTwoTone,
   EyeTwoTone,
 } from "@ant-design/icons";
 import {
@@ -11,7 +11,7 @@ import {
   Space,
   Table,
   Tooltip,
-  Typography,
+  Typography,DatePicker,
 } from "antd";
 import Highlighter from "react-highlight-words";
 import { useNavigate } from "react-router-dom";
@@ -19,9 +19,12 @@ import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureF
 import moment from "moment";
 import api from "../../utils/axios";
 
+const { RangePicker } = DatePicker;
+
 const ArchivedFactures = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState([]);
 
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
@@ -139,45 +142,58 @@ const ArchivedFactures = () => {
       ),
   });
 
-  const fetchData = () => {
+  const fetchData = (startDate, endDate) => {
+    setLoading(true);
     api
-      .get("/facture/getAllPaid")
+      .get(`/facture/getAllPaid?start=${startDate}&end=${endDate}`)
       .then(async (response) => {
-        setData(
-          response.data.map((facture) => ({
-            key: facture.id,
-            numero: facture.numero,
-            date: moment(facture.date).format("YYYY-MM-DD"),
-            delai: facture.delai,
-            montant: facture.montant,
-            montantEncaisse: facture.montantEncaisse,
-            actionRecouvrement: facture.actionRecouvrement,
-            actif: facture.actif,
-            client_id: facture.client_id,
-            client: facture.client,
-            contrat: facture.contrat,
-            contrat_id: facture.contrat_id,
-            solde: facture.solde,
-            devise: facture.devise,
-            echeance: moment(facture.echeance).format("YYYY-MM-DD"),
-            retard: facture.retard,
-            statut: facture.statut,
-            dateFinalisation: facture.dateFinalisation
-              ? moment(facture.dateFinalisation).format("YYYY-MM-DD")
-              : null, // Format date
-          }))
-        );
-        setLoading(false);
+        const fetchedData = response.data.map((facture) => ({
+          key: facture.id,
+          numero: facture.numero,
+          date: moment(facture.date).format("YYYY-MM-DD"),
+          delai: facture.delai,
+          montant: facture.montant,
+          montantEncaisse: facture.montantEncaisse,
+          actif: facture.actif,
+          client_id: facture.client_id,
+          client: facture.client,
+          contrat: facture.contrat,
+          contrat_id: facture.contrat_id,
+          solde: facture.solde,
+          devise: facture.devise,
+          echeance: moment(facture.echeance).format("YYYY-MM-DD"),
+          retard: facture.retard,
+          statut: facture.statut,
+          dateFinalisation: facture.dateFinalisation
+            ? moment(facture.dateFinalisation).format("YYYY-MM-DD")
+            : null, // Format date
+        }));
 
+        if (fetchedData.length === 0) {
+          notification.info({
+            message: "Aucune facture trouvée",
+            description: "Il n'y a aucune facture pour la période sélectionnée.",
+          });
+        }
+
+        setData(fetchedData);
+        setLoading(false);
       })
       .catch((error) => {
-        notification.error("There was an error fetching the factures!", error);
+        notification.error({
+          message: "Erreur de récupération des factures",
+          description: "Il y a eu une erreur lors de la récupération des factures.",
+        });
+        setLoading(false);
       });
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (dateRange.length === 2) {
+      const [startDate, endDate] = dateRange;
+      fetchData(startDate.format("YYYY-MM-DD"), endDate.format("YYYY-MM-DD"));
+    }
+  }, [dateRange]);
 
   const ToListActif = () => {
     console.log("Button toListActif clicked");
@@ -210,18 +226,58 @@ const ArchivedFactures = () => {
       });
   };
 
+  const handleResetModel = () => {
+    setDateRange([]);
+  };
+
+  const handleFilter = () => {
+    if (dateRange.length === 2) {
+      const [startDate, endDate] = dateRange;
+      fetchData(startDate.format("YYYY-MM-DD"), endDate.format("YYYY-MM-DD"));
+    } else {
+      notification.warning({
+        description: "SVP séléctionner une durée.",
+      });
+    }
+  };
+
+  const renderTitle = () => {
+    if (dateRange && dateRange.length === 2) {
+      const [startDate, endDate] = dateRange;
+      return (
+        <span>
+          {} Liste des factures payées{" "}
+          <span style={{ color: "gray", fontSize: "17px" }}>
+            {" "}
+            pour la période : {}
+            {startDate.format("DD/MM/YYYY")} - {endDate.format("DD/MM/YYYY")}
+          </span>
+        </span>
+      );
+    }
+    return "Liste des factures payées";
+  };
+
   const columns = [
     {
-      title: "Numéro",
-      dataIndex: "numero",
-      ...getColumnSearchProps("numero"),
+      title: "Date de finalisation",
+      dataIndex: "dateFinalisation",
+      render: (text) => moment(text).format("DD/MM/YYYY"),
+
+      sorter: (a, b) => moment(a.echeance).unix() - moment(b.echeance).unix(),
     },
+
     {
       title: "Date d'émission",
       dataIndex: "date",
       render: (text) => moment(text).format("DD/MM/YYYY"),
 
       sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
+    },
+    {
+      title: "Référence",
+      dataIndex: "numero",
+      ...getColumnSearchProps("numero"),
     },
     {
       title: "Client",
@@ -234,7 +290,7 @@ const ArchivedFactures = () => {
       ...getColumnSearchProps("contrat"),
     },
     {
-      title: "Montant total (TTC)",
+      title: "Montant TTC",
       dataIndex: "montant",
       ...getColumnSearchProps("montant"),
       sorter: (a, b) => a.montant - b.montant,
@@ -264,13 +320,48 @@ const ArchivedFactures = () => {
       <Typography.Title level={4}>
       <span> <FileTextOutlined/> </span>
 
-        Liste des factures payées</Typography.Title>
+      {renderTitle()}{" "}</Typography.Title>
 
       <Space className="mb-4">
         <Button onClick={ToListActif} icon={<FileTextOutlined />}>
           Factures en cours
         </Button>
       </Space>
+
+      {(!data.length || dateRange.length === 0) ? ( // Check if data array is empty or date range is cleared
+              <div>
+          <Typography.Title level={5}>
+            Veuillez sélectionner une période pour afficher les factures payées.
+          </Typography.Title>
+          <RangePicker
+            value={dateRange}
+            onChange={(dates) => setDateRange(dates)}
+            style={{ width: "100%", marginBottom: "16px" }}
+            placeholder={["Date de début", "Date de fin"]}
+          />
+          <Button
+            key="reset"
+            onClick={handleResetModel}
+            style={{ marginRight: "18px" }}
+          >
+            Réinitialiser
+          </Button>
+          <Button key="filter" type="primary" onClick={handleFilter}>
+            Filtrer
+          </Button>
+        </div>
+      ) : (
+        <>
+          <Button
+            icon={<FilterTwoTone />}
+            type="default"
+            onClick={() => setDateRange([])} // Clear the date range to show the RangePicker again
+            style={{ marginLeft: "16px", marginBottom: "16px" }}
+          >
+            Changer la période
+          </Button>
+
+
       <Table
            scroll={{
             x: "max-content"
@@ -281,10 +372,15 @@ const ArchivedFactures = () => {
         columns={columns}
         dataSource={data}
         pagination={{
-          pageSize: 10,
-        }}
+              total: data.length, 
+              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+              pageSize: 10,
+            }}
+
        
       />
+       </>
+      )}
     </div>
   );
 };

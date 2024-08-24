@@ -1,11 +1,14 @@
 import {
   Button,
+  Checkbox,
   DatePicker,
   Form,
   Input,
   Modal,
   notification,
+  Select,
   Space,
+  Switch,
 } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
@@ -16,6 +19,20 @@ export const AddClientForm = ({ handleState }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm] = Form.useForm();
   const [formValues, setFormValues] = useState(null);
+  const [unit, setUnit] = useState("days");
+  const [relanceDisabled, setRelanceDisabled] = useState(false);
+
+  const handleDisableChange = (checked) => {
+    setRelanceDisabled(checked);
+    if (checked) {
+      addForm.setFieldsValue({ delaiRelance: 0, maxRelance: 0 });
+    }else {
+      addForm.setFieldsValue({
+        delaiRelance: '',
+        maxRelance: '',
+      });
+    }
+  };
 
   const handleCancel = () => {
     setShowAddForm(false);
@@ -28,14 +45,17 @@ export const AddClientForm = ({ handleState }) => {
   };
 
   const handleAddClient = () => {
+  
     addForm
       .validateFields()
       .then((values) => {
+        const delaiRelanceInDays = unit === "weeks" && !relanceDisabled ? values.delaiRelance * 7 : values.delaiRelance;
         const dataToSend = {
           ...values,
           dateCreation: values.dateCreation.format("YYYY-MM-DD"),
+          delaiRelance: delaiRelanceInDays,
         };
-        setFormValues(values);
+
         Modal.confirm({
           title: "Confirmer l'ajout du client",
           content: (
@@ -60,6 +80,11 @@ export const AddClientForm = ({ handleState }) => {
                 <strong>Adresse:</strong> {values.adresse}
               </p>
               <p>
+              <strong>Délai de relance:</strong> {unit === "weeks" ? values.delaiRelance + " semaines" : values.delaiRelance + " jours"}              </p>
+              <p>
+                <strong>Max de relance:</strong> {values.maxRelance} fois
+              </p>
+              <p>
                 <strong>Date de création:</strong>
                 {values.dateCreation.format("DD/MM/YYYY")}
               </p>
@@ -68,6 +93,9 @@ export const AddClientForm = ({ handleState }) => {
           okText: "Confirmer",
           cancelText: "Annuler",
           onOk: () => {
+            console.log("Submitted values:", dataToSend); // Utiliser dataToSend pour envoyer au backend
+            setFormValues(values);
+    
             api
               .post("/user/create", dataToSend)
               .then((response) => {
@@ -99,6 +127,28 @@ export const AddClientForm = ({ handleState }) => {
       });
   };
 
+  const validateDelai = () => {
+    if (addForm.getFieldValue("delaiRelance") < 1 ||isNaN(addForm.getFieldValue("delaiRelance"))) {
+      return Promise.reject(
+        new Error(
+          "Le délai de relance doit etre supérieur à 1!"
+        )
+      );
+    }
+    return Promise.resolve();
+  };
+
+  const validateMaxRelance = () => {
+    if (addForm.getFieldValue("maxRelance") < 1 ||isNaN(addForm.getFieldValue("maxRelance"))) {
+      return Promise.reject(
+        new Error(
+          "Le max de relance doit etre supérieur à 1!"
+        )
+      );
+    }
+    return Promise.resolve();
+  };
+
   return (
     <>
       <Button
@@ -118,7 +168,7 @@ export const AddClientForm = ({ handleState }) => {
         <Form
           layout="vertical"
           name="addClientForm"
-          onFinish={handleAddClient} // Le traitement de la confirmation se fait via handleAddClient
+          onFinish={handleAddClient} 
           form={addForm}
         >
           <Form.Item
@@ -131,6 +181,10 @@ export const AddClientForm = ({ handleState }) => {
               {
                 pattern: /^\S.*\S$|^\S{1,2}$/,
                 message: "Le nom ne doit pas commencer ou finir par un espace!",
+              },
+              {
+                pattern: /^[a-zA-Z0-9 ]+$/,
+                message: "Le nom doit être alphanumérique!",
               },
             ]}
             style={{ marginBottom: "8px" }}
@@ -216,12 +270,15 @@ export const AddClientForm = ({ handleState }) => {
                 message:
                   "L'adresse ne doit pas commencer ou finir par un espace!",
               },
+              {
+                pattern: /^[a-zA-Z0-9 ]+$/,
+                message: "L'adresse doit être alphanumérique!",
+              },
             ]}
             style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
-
           <Form.Item
             name="dateCreation"
             label="Date de création"
@@ -238,6 +295,98 @@ export const AddClientForm = ({ handleState }) => {
               style={{ width: "100%" }}
             />
           </Form.Item>
+
+          <div style={{ 
+             marginTop: "10px",
+             display: "flex",
+             alignItems: "center",
+             justifyContent: "center", 
+           }}>
+          <Switch size="small"  onChange={handleDisableChange} />
+
+      <span style={{ margin: "8px" }}>Désactiver les relances</span>
+    </div>
+
+    <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          marginBottom: "16px",
+          gap: "10px" 
+        }}
+      >
+        <Form.Item
+          name="delaiRelance"
+          label="Délai de relance"
+          style={{ margin: 0, flex: 1 }}
+          rules={[
+            {
+              required: true,
+              message: "Veuillez saisir le délai de relance!",
+            },
+            {
+              validator: validateDelai,
+            },
+          ]}
+        >
+          <Input
+            type="number"
+            placeholder="Délai de relance"
+            min={1}
+            disabled={relanceDisabled}
+            style={{ width: "170px" }}
+            onKeyPress={(e) => {
+              if (e.key === "," || e.key ===".") {
+                e.preventDefault();
+              }
+            }}
+          />
+        </Form.Item> 
+        <Form.Item
+          label=" "
+          name="delaiUnit"
+          style={{ margin: 0 }}
+        >
+          <Select
+            value={unit}
+            placeholder="Jours"
+            disabled={relanceDisabled}
+            onChange={(value) => setUnit(value)} 
+            style={{ width: "110px" }}
+          >
+            <Select.Option selected value="days">Jours</Select.Option>
+            <Select.Option value="weeks">Semaines</Select.Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          name="maxRelance"
+          label="Maximum de relance"
+          style={{ margin: 0, flex: 1 }}
+          rules={[
+            {
+              required: true,
+              message: "Veuillez saisir le nombre maximum de relance!",
+            },
+            {
+              validator: validateMaxRelance,
+            },
+          ]}
+        >
+          <Input
+            type="number"
+            placeholder="Max de relance"
+            min={1}
+            disabled={relanceDisabled}
+            style={{ width: "170px" }}
+            onKeyPress={(e) => {
+              if (e.key === "," || e.key ===".") {
+                e.preventDefault();
+              }
+            }}
+          />
+        </Form.Item>
+      </div>
 
           <Form.Item>
             <Space>

@@ -1,5 +1,14 @@
-import { Button, DatePicker, Form, Input, Modal, notification, Space, Tooltip } from "antd";
-import { useState,useEffect } from "react";
+import {
+  Button,
+  DatePicker,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Space,
+  Tooltip,
+} from "antd";
+import { useState, useEffect } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import moment from "moment";
 import api from "../../../utils/axios";
@@ -13,7 +22,7 @@ function UpdateFactureForm({ record, handleState }) {
   const [contratDateFin, setContratDateFin] = useState(moment());
 
   const handleUpdate = () => {
-    console.log(record.delai)
+    console.log(record.delai);
     setContratDevise(record.devise);
 
     editForm.setFieldsValue({ ...record, date: moment(record.date) });
@@ -22,27 +31,33 @@ function UpdateFactureForm({ record, handleState }) {
 
   useEffect(() => {
     if (isEditModalVisible) {
-      editForm.setFieldsValue({ ...record, date: moment(record.date), delai: record.delai });
+      editForm.setFieldsValue({
+        ...record,
+        date: moment(record.date),
+        delai: record.delai,
+      });
     }
   }, [isEditModalVisible, record, editForm]);
 
   const handleDateCreationDisabledDate = (current) => {
-    const contrat = editForm.getFieldValue('contrat');
-    console.log(contrat)
-    
-    const delai = editForm.getFieldValue('delai');
-    console.log(delai) // Récupérer le délai du formulaire
+    const contrat = editForm.getFieldValue("contrat");
+    console.log(contrat);
+
+    const delai = editForm.getFieldValue("delai");
+    console.log(delai); // Récupérer le délai du formulaire
     if (!contratDateDebut || !contratDateFin) {
       return false;
     }
-    const currentDateWithDelai = current.clone().add(delai, 'days');
-    return current < contratDateDebut.startOf("day") || currentDateWithDelai > contratDateFin.endOf("day");
+    const currentDateWithDelai = current.clone().add(delai, "days");
+    return (
+      current < contratDateDebut.startOf("day") ||
+      currentDateWithDelai > contratDateFin.endOf("day")
+    );
   };
-
 
   const validateDelai = (e) => {
     let value = e.target.value;
-    value = value.replace(/,/g, ""); 
+    value = value.replace(/,/g, "");
     if (parseInt(value, 10) < 1) {
       value = 1;
     }
@@ -51,16 +66,16 @@ function UpdateFactureForm({ record, handleState }) {
 
   const handleCancel = () => {
     setIsEditModalVisible(false);
-    
-    editForm.setFieldsValue({ ...record ,date: moment(record.date)});
+
+    editForm.setFieldsValue({ ...record, date: moment(record.date) });
   };
 
   const handleConfirmEdit = (values) => {
     Modal.confirm({
-      title: 'Confirmer la modification',
-      content: 'Êtes-vous sûr de vouloir modifier cette facture?',
-      okText: 'Oui',
-      cancelText: 'Non',
+      title: "Confirmer la modification",
+      content: "Êtes-vous sûr de vouloir modifier cette facture?",
+      okText: "Oui",
+      cancelText: "Non",
       onOk: () => handleEditFacture(values),
     });
   };
@@ -95,19 +110,22 @@ function UpdateFactureForm({ record, handleState }) {
     const montantEncaisse = editForm.getFieldValue("montantEncaisse");
 
     if (montantEncaisse > montant) {
-      return Promise.reject(new Error("Le montant encaissé ne doit pas dépasser le montant total!"));
+      return Promise.reject(
+        new Error("Le montant encaissé ne doit pas dépasser le montant total!")
+      );
     }
     return Promise.resolve();
   };
 
   return (
-    <>  <Tooltip title="Modifier">
-      <Button
-        icon={<EditOutlined />}
-        size="small"
-        onClick={handleUpdate}
-      >
-      </Button>
+    <>
+      {" "}
+      <Tooltip title="Modifier">
+        <Button
+          icon={<EditOutlined />}
+          size="small"
+          onClick={handleUpdate}
+        ></Button>
       </Tooltip>
       <Modal
         title={"Modifier la facture " + record?.numero}
@@ -125,22 +143,25 @@ function UpdateFactureForm({ record, handleState }) {
           initialValues={editingFacture}
           layout="vertical"
           onFinish={handleConfirmEdit}
-        >    
-
+        >
           <Form.Item
             name="numero"
-            label="Numéro de facture"
+            label="Référence de facture"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le numéro de la facture!",
+                message: "Veuillez saisir la référence de la facture!",
+              },
+              {
+                pattern: /^[a-zA-Z0-9 ]+$/,
+                message: "La référence doit être alphanumérique!",
               },
             ]}
             style={{ marginBottom: "8px" }}
           >
             <Input disabled />
           </Form.Item>
-         
+
           <Form.Item
             name="client"
             label="Client"
@@ -167,53 +188,10 @@ function UpdateFactureForm({ record, handleState }) {
             <Input disabled />
           </Form.Item>
 
-        
-                      <Form.Item
-            name="delai"
-            label={`Délai de paiement (en jours)`}
-            rules={[
-              {
-                required: true,
-                message:
-                  "Veuillez saisir le délai de paiement (en jours) de la facture!",
-              },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <Input
-              type="number"
-              placeholder="Délai de paiement (en jours)"
-              min={1}
-              onChange={validateDelai}
-              onKeyPress={(e) => {
-                if (e.key === ",") {
-                  e.preventDefault();
-                }
-              }}
-            />
-          </Form.Item>
-             <Form.Item
-            name="date"
-            label="Date d'émission"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir la date d'émission de la facture!",
-              },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <DatePicker 
-            style={{ width: "100%" }} 
-            disabledDate={handleDateCreationDisabledDate}
-/>
-          </Form.Item>
-
-<Form.Item
+          <Form.Item
             name="montant"
             //label="Montant"
-            label={`Montant total (TTC) de la facture en : ${contratDevise}`}
-
+            label={`Montant TTC de la facture en : ${contratDevise}`}
             rules={[
               {
                 required: true,
@@ -222,8 +200,13 @@ function UpdateFactureForm({ record, handleState }) {
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Input type="number" onChange={() => editForm.validateFields(['montantEncaisse'])}
-             min={1} step="0.001" placeholder="Montant total (TTC)" />
+            <Input
+              type="number"
+              onChange={() => editForm.validateFields(["montantEncaisse"])}
+              min={1}
+              step="0.001"
+              placeholder="Montant TTC"
+            />
           </Form.Item>
           <Form.Item
             name="montantEncaisse"
@@ -241,22 +224,23 @@ function UpdateFactureForm({ record, handleState }) {
           >
             <Input type="number" min={1} step="0.001" />
           </Form.Item>
-
-
           <Form.Item
-            name="actionRecouvrement"
-            label="Action de recouvrement"
+            name="date"
+            label="Date d'émission"
             rules={[
               {
                 required: true,
-                message:
-                  "Veuillez saisir l'action de recouvrement de la facture!",
+                message: "Veuillez saisir la date d'émission de la facture!",
               },
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Input />
+            <DatePicker
+              style={{ width: "100%" }}
+              disabledDate={handleDateCreationDisabledDate}
+            />
           </Form.Item>
+         
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">
