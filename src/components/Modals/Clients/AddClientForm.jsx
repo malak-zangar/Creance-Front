@@ -1,6 +1,5 @@
 import {
   Button,
-  Checkbox,
   DatePicker,
   Form,
   Input,
@@ -26,10 +25,10 @@ export const AddClientForm = ({ handleState }) => {
     setRelanceDisabled(checked);
     if (checked) {
       addForm.setFieldsValue({ delaiRelance: 0, maxRelance: 0 });
-    }else {
+    } else {
       addForm.setFieldsValue({
-        delaiRelance: '',
-        maxRelance: '',
+        delaiRelance: "",
+        maxRelance: "",
       });
     }
   };
@@ -45,11 +44,13 @@ export const AddClientForm = ({ handleState }) => {
   };
 
   const handleAddClient = () => {
-  
     addForm
       .validateFields()
       .then((values) => {
-        const delaiRelanceInDays = unit === "weeks" && !relanceDisabled ? values.delaiRelance * 7 : values.delaiRelance;
+        const delaiRelanceInDays =
+          unit === "weeks" && !relanceDisabled
+            ? values.delaiRelance * 7
+            : values.delaiRelance;
         const dataToSend = {
           ...values,
           dateCreation: values.dateCreation.format("YYYY-MM-DD"),
@@ -80,7 +81,11 @@ export const AddClientForm = ({ handleState }) => {
                 <strong>Adresse:</strong> {values.adresse}
               </p>
               <p>
-              <strong>Délai de relance:</strong> {unit === "weeks" ? values.delaiRelance + " semaines" : values.delaiRelance + " jours"}              </p>
+                <strong>Délai de relance:</strong>{" "}
+                {unit === "weeks"
+                  ? values.delaiRelance + " semaines"
+                  : values.delaiRelance + " jours"}{" "}
+              </p>
               <p>
                 <strong>Max de relance:</strong> {values.maxRelance} fois
               </p>
@@ -95,11 +100,10 @@ export const AddClientForm = ({ handleState }) => {
           onOk: () => {
             console.log("Submitted values:", dataToSend); // Utiliser dataToSend pour envoyer au backend
             setFormValues(values);
-    
+
             api
               .post("/user/create", dataToSend)
               .then((response) => {
-                console.log("Client ajouté avec succès:", response.data);
                 notification.success({ message: "Client ajouté avec succès" });
 
                 setShowAddForm(false);
@@ -128,22 +132,24 @@ export const AddClientForm = ({ handleState }) => {
   };
 
   const validateDelai = () => {
-    if (addForm.getFieldValue("delaiRelance") < 1 ||isNaN(addForm.getFieldValue("delaiRelance"))) {
+    if (
+      addForm.getFieldValue("delaiRelance") < 1 ||
+      isNaN(addForm.getFieldValue("delaiRelance"))
+    ) {
       return Promise.reject(
-        new Error(
-          "Le délai de relance doit etre supérieur à 1!"
-        )
+        new Error("Le délai de relance doit etre supérieur à 1!")
       );
     }
     return Promise.resolve();
   };
 
   const validateMaxRelance = () => {
-    if (addForm.getFieldValue("maxRelance") < 1 ||isNaN(addForm.getFieldValue("maxRelance"))) {
+    if (
+      addForm.getFieldValue("maxRelance") < 1 ||
+      isNaN(addForm.getFieldValue("maxRelance"))
+    ) {
       return Promise.reject(
-        new Error(
-          "Le max de relance doit etre supérieur à 1!"
-        )
+        new Error("Le max de relance doit etre supérieur à 1!")
       );
     }
     return Promise.resolve();
@@ -168,7 +174,7 @@ export const AddClientForm = ({ handleState }) => {
         <Form
           layout="vertical"
           name="addClientForm"
-          onFinish={handleAddClient} 
+          onFinish={handleAddClient}
           form={addForm}
         >
           <Form.Item
@@ -296,97 +302,97 @@ export const AddClientForm = ({ handleState }) => {
             />
           </Form.Item>
 
-          <div style={{ 
-             marginTop: "10px",
-             display: "flex",
-             alignItems: "center",
-             justifyContent: "center", 
-           }}>
-          <Switch size="small"  onChange={handleDisableChange} />
-
-      <span style={{ margin: "8px" }}>Désactiver les relances</span>
-    </div>
-
-    <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginBottom: "16px",
-          gap: "10px" 
-        }}
-      >
-        <Form.Item
-          name="delaiRelance"
-          label="Délai de relance"
-          style={{ margin: 0, flex: 1 }}
-          rules={[
-            {
-              required: true,
-              message: "Veuillez saisir le délai de relance!",
-            },
-            {
-              validator: validateDelai,
-            },
-          ]}
-        >
-          <Input
-            type="number"
-            placeholder="Délai de relance"
-            min={1}
-            disabled={relanceDisabled}
-            style={{ width: "170px" }}
-            onKeyPress={(e) => {
-              if (e.key === "," || e.key ===".") {
-                e.preventDefault();
-              }
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
-          />
-        </Form.Item> 
-        <Form.Item
-          label=" "
-          name="delaiUnit"
-          style={{ margin: 0 }}
-        >
-          <Select
-            value={unit}
-            placeholder="Jours"
-            disabled={relanceDisabled}
-            onChange={(value) => setUnit(value)} 
-            style={{ width: "110px" }}
           >
-            <Select.Option selected value="days">Jours</Select.Option>
-            <Select.Option value="weeks">Semaines</Select.Option>
-          </Select>
-        </Form.Item>
+            <Switch size="small" onChange={handleDisableChange} />
 
-        <Form.Item
-          name="maxRelance"
-          label="Maximum de relance"
-          style={{ margin: 0, flex: 1 }}
-          rules={[
-            {
-              required: true,
-              message: "Veuillez saisir le nombre maximum de relance!",
-            },
-            {
-              validator: validateMaxRelance,
-            },
-          ]}
-        >
-          <Input
-            type="number"
-            placeholder="Max de relance"
-            min={1}
-            disabled={relanceDisabled}
-            style={{ width: "170px" }}
-            onKeyPress={(e) => {
-              if (e.key === "," || e.key ===".") {
-                e.preventDefault();
-              }
+            <span style={{ margin: "8px" }}>Désactiver les relances</span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginBottom: "16px",
+              gap: "10px",
             }}
-          />
-        </Form.Item>
-      </div>
+          >
+            <Form.Item
+              name="delaiRelance"
+              label="Délai de relance"
+              style={{ margin: 0, flex: 1 }}
+              rules={[
+                {
+                  required: true,
+                  message: "Veuillez saisir le délai de relance!",
+                },
+                {
+                  validator: validateDelai,
+                },
+              ]}
+            >
+              <Input
+                type="number"
+                placeholder="Délai de relance"
+                min={1}
+                disabled={relanceDisabled}
+                style={{ width: "170px" }}
+                onKeyPress={(e) => {
+                  if (e.key === "," || e.key === ".") {
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </Form.Item>
+            <Form.Item label=" " name="delaiUnit" style={{ margin: 0 }}>
+              <Select
+                value={unit}
+                placeholder="Jours"
+                disabled={relanceDisabled}
+                onChange={(value) => setUnit(value)}
+                style={{ width: "110px" }}
+              >
+                <Select.Option selected value="days">
+                  Jours
+                </Select.Option>
+                <Select.Option value="weeks">Semaines</Select.Option>
+              </Select>
+            </Form.Item>
+
+            <Form.Item
+              name="maxRelance"
+              label="Maximum de relance"
+              style={{ margin: 0, flex: 1 }}
+              rules={[
+                {
+                  required: true,
+                  message: "Veuillez saisir le nombre maximum de relance!",
+                },
+                {
+                  validator: validateMaxRelance,
+                },
+              ]}
+            >
+              <Input
+                type="number"
+                placeholder="Max de relance"
+                min={1}
+                disabled={relanceDisabled}
+                style={{ width: "170px" }}
+                onKeyPress={(e) => {
+                  if (e.key === "," || e.key === ".") {
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </Form.Item>
+          </div>
 
           <Form.Item>
             <Space>

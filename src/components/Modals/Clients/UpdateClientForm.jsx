@@ -1,5 +1,15 @@
-import { Button, Form, Input, Modal, notification, Space, Tooltip , Switch, Select} from "antd";
-import { useState,useEffect } from "react";
+import {
+  Button,
+  Form,
+  Input,
+  Modal,
+  notification,
+  Space,
+  Tooltip,
+  Switch,
+  Select,
+} from "antd";
+import { useState, useEffect } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import api from "../../../utils/axios";
 
@@ -8,7 +18,9 @@ function UpdateClientForm({ record, handleState }) {
   const [editingUser, setEditingUser] = useState(null);
   const [editForm] = Form.useForm();
   const [relanceDisabled, setRelanceDisabled] = useState(false);
-  const [unit, setUnit] = useState(() => record.delaiRelance % 7 === 0 ? "weeks" : "days");
+  const [unit, setUnit] = useState(() =>
+    record.delaiRelance % 7 === 0 ? "weeks" : "days"
+  );
 
   useEffect(() => {
     const initialDelai = record.delaiRelance;
@@ -50,75 +62,74 @@ function UpdateClientForm({ record, handleState }) {
 
   const handleUpdateClient = () => {
     editForm
-    .validateFields()
-    .then((values) => {
-      const delaiRelanceInDays =
-        unit === "weeks" && !relanceDisabled
-          ? values.delaiRelance * 7
-          : values.delaiRelance;
+      .validateFields()
+      .then((values) => {
+        const delaiRelanceInDays =
+          unit === "weeks" && !relanceDisabled
+            ? values.delaiRelance * 7
+            : values.delaiRelance;
 
-      const dataToSend = {
-        ...values,
-        delaiRelance: delaiRelanceInDays,
-      };
-      
-          Modal.confirm({
-            title: "Confirmer la mise à jour du client",
-            content: (
-              <div>
-Voulez vous vraiment valider les modifications?              </div>
-            ),
-            okText: "Confirmer",
-            cancelText: "Annuler",
-            onOk: () => {
-              api
-                .put(`/user/updateClient/${record.key}`, dataToSend)
-                .then((response) => {
-                  console.log(response)
-                  handleState({
-                    ...dataToSend,
-                    key: record.key,
-                  });
-                  setIsEditModalVisible(false);
-                  notification.success({
-                    message: "Client mis à jour avec succès",
-                  });
-                })
-                .catch((error) => {
-                  notification.error({
-                    description:
-                      error?.response?.data?.erreur ||
-                      `Une erreur est survenue lors de la mise à jour du client "${record.username}"`,
-                  });
+        const dataToSend = {
+          ...values,
+          delaiRelance: delaiRelanceInDays,
+        };
+
+        Modal.confirm({
+          title: "Confirmer la mise à jour du client",
+          content: <div>Voulez vous vraiment valider les modifications? </div>,
+          okText: "Confirmer",
+          cancelText: "Annuler",
+          onOk: () => {
+            api
+              .put(`/user/updateClient/${record.key}`, dataToSend)
+              .then((response) => {
+                handleState({
+                  ...dataToSend,
+                  key: record.key,
                 });
-            },
-          });
-           
-        })
-        .catch((error) => {
-          console.error("Validation échouée:", error);
+                setIsEditModalVisible(false);
+                notification.success({
+                  message: "Client mis à jour avec succès",
+                });
+              })
+              .catch((error) => {
+                notification.error({
+                  description:
+                    error?.response?.data?.erreur ||
+                    `Une erreur est survenue lors de la mise à jour du client "${record.username}"`,
+                });
+              });
+          },
         });
-    };
+      })
+      .catch((error) => {
+        console.error("Validation échouée:", error);
+      });
+  };
 
-    const validateDelai = (rule, value) => {
-      if (relanceDisabled && value === 0) {
-        return Promise.resolve();
-      }
-      if (value < 1 || isNaN(value)) {
-        return Promise.reject(new Error("Le délai de relance doit être supérieur à 1!"));
-      }
+  const validateDelai = (rule, value) => {
+    if (relanceDisabled && value === 0) {
       return Promise.resolve();
-    };
-  
-    const validateMaxRelance = (rule, value) => {
-      if (relanceDisabled && value === 0) {
-        return Promise.resolve();
-      }
-      if (value < 1 || isNaN(value)) {
-        return Promise.reject(new Error("Le max de relance doit être supérieur à 1!"));
-      }
+    }
+    if (value < 1 || isNaN(value)) {
+      return Promise.reject(
+        new Error("Le délai de relance doit être supérieur à 1!")
+      );
+    }
+    return Promise.resolve();
+  };
+
+  const validateMaxRelance = (rule, value) => {
+    if (relanceDisabled && value === 0) {
       return Promise.resolve();
-    };
+    }
+    if (value < 1 || isNaN(value)) {
+      return Promise.reject(
+        new Error("Le max de relance doit être supérieur à 1!")
+      );
+    }
+    return Promise.resolve();
+  };
 
   const handleUnitChange = (value) => {
     const currentDelai = editForm.getFieldValue("delaiRelance");

@@ -13,26 +13,29 @@ const ExchangeRateHistoryModal = ({ currency, visible, onClose }) => {
   }, [visible]);
 
   const fetchHistoryData = () => {
-    api.get(`/paramentreprise/getExchangeRateHistory/${currency}`)
-      .then(response => {
-        console.log(response)
+    api
+      .get(`/paramentreprise/getExchangeRateHistory/${currency}`)
+      .then((response) => {
         setHistoryData(response.data.exchangeRateHistory);
       })
-      .catch(error => {
-        console.error("Erreur lors de la récupération de l'historique des taux:", error);
+      .catch((error) => {
+        console.error(
+          "Erreur lors de la récupération de l'historique des taux:",
+          error
+        );
       });
   };
 
   const columns = [
     {
-      title: 'Date d\'insertion',
-      dataIndex: 'dateInsertion',
+      title: "Date d'insertion",
+      dataIndex: "dateInsertion",
       render: (text) => moment(text).format("DD/MM/YYYY"),
       sorter: (a, b) => new Date(a.dateInsertion) - new Date(b.dateInsertion),
     },
     {
       title: `Taux (${currency} -> EUR)`,
-      dataIndex: 'exchangeRate',
+      dataIndex: "exchangeRate",
       sorter: (a, b) => a.exchangeRate - b.exchangeRate,
     },
   ];
@@ -43,19 +46,23 @@ const ExchangeRateHistoryModal = ({ currency, visible, onClose }) => {
       visible={visible}
       onCancel={onClose}
       footer={null}
-      style={{ top: 10 }} 
-
+      style={{ top: 10 }}
     >
-      <Table   scroll={{
-              x: "max-content",
-            }} columns={columns} size="small" dataSource={historyData}
-            pagination={{
-              total: historyData.length, 
-              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
-              pageSize: 10,
-            }}
-            showSorterTooltip={{ target: "sorter-icon" }}
-            />
+      <Table
+        scroll={{
+          x: "max-content",
+        }}
+        columns={columns}
+        size="small"
+        dataSource={historyData}
+        pagination={{
+          total: historyData.length,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} de ${total} éléments`,
+          pageSize: 10,
+        }}
+        showSorterTooltip={{ target: "sorter-icon" }}
+      />
     </Modal>
   );
 };

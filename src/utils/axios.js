@@ -31,7 +31,6 @@ api.interceptors.response.use(
               "Token expiré. Reconnectez-vous SVP.",
           });
         
-        console.log('Token expiré. Reconnectez-vous SVP.');
         window.location.href = '/login';
       } else {
         console.error('Erreur HTTP:', error.response.status);

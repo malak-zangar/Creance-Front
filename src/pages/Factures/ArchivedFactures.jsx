@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
-  FileDoneOutlined,FileTextOutlined,FilterTwoTone,
+  FileDoneOutlined,
+  FileTextOutlined,
+  FilterTwoTone,
   EyeTwoTone,
 } from "@ant-design/icons";
 import {
@@ -11,7 +13,8 @@ import {
   Space,
   Table,
   Tooltip,
-  Typography,DatePicker,
+  Typography,
+  DatePicker,
 } from "antd";
 import Highlighter from "react-highlight-words";
 import { useNavigate } from "react-router-dom";
@@ -157,6 +160,7 @@ const ArchivedFactures = () => {
           actif: facture.actif,
           client_id: facture.client_id,
           client: facture.client,
+          actifRelance: facture.actifRelance,
           contrat: facture.contrat,
           contrat_id: facture.contrat_id,
           solde: facture.solde,
@@ -172,7 +176,8 @@ const ArchivedFactures = () => {
         if (fetchedData.length === 0) {
           notification.info({
             message: "Aucune facture trouvée",
-            description: "Il n'y a aucune facture pour la période sélectionnée.",
+            description:
+              "Il n'y a aucune facture pour la période sélectionnée.",
           });
         }
 
@@ -182,7 +187,8 @@ const ArchivedFactures = () => {
       .catch((error) => {
         notification.error({
           message: "Erreur de récupération des factures",
-          description: "Il y a eu une erreur lors de la récupération des factures.",
+          description:
+            "Il y a eu une erreur lors de la récupération des factures.",
         });
         setLoading(false);
       });
@@ -196,12 +202,10 @@ const ArchivedFactures = () => {
   }, [dateRange]);
 
   const ToListActif = () => {
-    console.log("Button toListActif clicked");
     navigate("/factures/actif");
   };
 
   const Report = (key) => {
-    console.log("Generating facture with key: ", key);
     api
       .get(`/facture/auto/${key}`, { responseType: "blob" })
       .then((response) => {
@@ -209,14 +213,6 @@ const ArchivedFactures = () => {
           new Blob([response.data], { type: "application/pdf" })
         );
         window.open(url);
-        /* const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `facture_${reference}.pdf`); 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        fetchData();
-        notification.success({ message: "Rapport du contrat généré avec succès" });*/
       })
       .catch((error) => {
         notification.error(
@@ -224,6 +220,15 @@ const ArchivedFactures = () => {
           error
         );
       });
+  };
+
+  const formatMontant = (value, devise) => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: devise,
+      minimumFractionDigits: devise === "TND" ? 3 : 2,
+      maximumFractionDigits: devise === "TND" ? 3 : 2,
+    }).format(value);
   };
 
   const handleResetModel = () => {
@@ -293,8 +298,7 @@ const ArchivedFactures = () => {
       title: "Montant TTC",
       dataIndex: "montant",
       ...getColumnSearchProps("montant"),
-      sorter: (a, b) => a.montant - b.montant,
-      render: (_, record) => `${record.montant} ${record.devise}`,
+      render: (_, record) => formatMontant(record.montant, record.devise),
     },
 
     {
@@ -309,7 +313,7 @@ const ArchivedFactures = () => {
               onClick={() => Report(record.key)}
             ></Button>{" "}
           </Tooltip>
-          <DetailsFactureForm record={record} />
+          <DetailsFactureForm record1={record} />
         </Space>
       ),
     },
@@ -318,9 +322,12 @@ const ArchivedFactures = () => {
   return (
     <div>
       <Typography.Title level={4}>
-      <span> <FileTextOutlined/> </span>
-
-      {renderTitle()}{" "}</Typography.Title>
+        <span>
+          {" "}
+          <FileTextOutlined />{" "}
+        </span>
+        {renderTitle()}{" "}
+      </Typography.Title>
 
       <Space className="mb-4">
         <Button onClick={ToListActif} icon={<FileTextOutlined />}>
@@ -328,8 +335,8 @@ const ArchivedFactures = () => {
         </Button>
       </Space>
 
-      {(!data.length || dateRange.length === 0) ? ( // Check if data array is empty or date range is cleared
-              <div>
+      {!data.length || dateRange.length === 0 ? ( // Check if data array is empty or date range is cleared
+        <div>
           <Typography.Title level={5}>
             Veuillez sélectionner une période pour afficher les factures payées.
           </Typography.Title>
@@ -361,25 +368,22 @@ const ArchivedFactures = () => {
             Changer la période
           </Button>
 
-
-      <Table
-           scroll={{
-            x: "max-content"
-          }}
-          loading={loading}
-
-        size="small"
-        columns={columns}
-        dataSource={data}
-        pagination={{
-              total: data.length, 
-              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+          <Table
+            scroll={{
+              x: "max-content",
+            }}
+            loading={loading}
+            size="small"
+            columns={columns}
+            dataSource={data}
+            pagination={{
+              total: data.length,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} de ${total} éléments`,
               pageSize: 10,
             }}
-
-       
-      />
-       </>
+          />
+        </>
       )}
     </div>
   );

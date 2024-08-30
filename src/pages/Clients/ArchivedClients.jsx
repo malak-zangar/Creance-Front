@@ -146,12 +146,11 @@ const ArchivedClients = () => {
         setLoading(false);
 
          usernames = response.data.map((client) => client.username);
-         console.log(usernames)
 
 
       })
       .catch((error) => {
-        notification.error("There was an error fetching the clients!", error);
+        notification.error("Une erreur lors de la récupération des clients!", error);
       });
   };
 
@@ -161,7 +160,6 @@ const ArchivedClients = () => {
 
 
   const ToListClients = () => {
-    console.log("Button ToListClients clicked");
     navigate("/clients");
   };
 
@@ -195,14 +193,12 @@ const ArchivedClients = () => {
 
           }
         );
-        console.log(response)
         
         if (response.status !== 200) {
           throw new Error('Network response was not ok');
       }
   
         const blob = new Blob([response.data], { type: 'text/csv' });
-      console.log('Blob:', blob);
   
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -246,12 +242,6 @@ const ArchivedClients = () => {
 
 
   const columns = [
-
-    {
-      title: "Client",
-      dataIndex: "username",
-      ...getColumnSearchProps('username'),
-    },
     {
       title: "Date de creation",
       dataIndex: "dateCreation",
@@ -259,6 +249,12 @@ const ArchivedClients = () => {
       sorter: (a, b) => moment(a.dateCreation).unix()- moment(b.dateCreation).unix(),
   
     },
+    {
+      title: "Client",
+      dataIndex: "username",
+      ...getColumnSearchProps('username'),
+    },
+
  
     {
       title: "Action(s)",

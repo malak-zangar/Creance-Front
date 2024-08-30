@@ -7,7 +7,6 @@ import Headerr from "../../components/Modals/Headerr";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
-//const currentUserId = localStorage.getItem("currentUserId");
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -18,9 +17,7 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const query = useQuery();
-  console.log(query)
   const token = query.get("token"); 
-  console.log(token)
 
   useEffect(() => {
     if (!token) {
@@ -42,7 +39,6 @@ const ResetPassword = () => {
       navigate("/login");
 
     } catch (error) {
-      console.error("Erreur lors de la modification du mot de passe:",  error?.data?.erreur);
       message.error("Erreur lors de la modification du mot de passe");
     } finally {
       setIsModalVisible(false);

@@ -32,9 +32,11 @@ function UpdateContratForm({ record, handleState }) {
     if (record) {
       const initialValues = {
         ...record,
-        dateDebut: moment(record.dateDebut,"YYYY-MM-DD"),
+        dateDebut: moment(record.dateDebut),
         dateFin: moment(record.dateFin),
-
+        total: formatMontant(record.total, record.devise),
+        prixJourHomme: formatMontant(record.prixJourHomme, record.devise),
+        montantParMois: formatMontant(record.montantParMois,record.devise),
         contratFile: record.contratFile,
       };
       setInitialValues(initialValues);
@@ -43,6 +45,18 @@ function UpdateContratForm({ record, handleState }) {
   }, [record, editForm]);
 
   const handleUpdate = () => {
+    const formattedTotal = formatMontant(record.total, record.devise);
+    const formattedMontantParMois = formatMontant(record.montantParMois, record.devise);
+    const formattedPrixJourHomme = formatMontant(record.prixJourHomme, record.devise);
+
+    editForm.setFieldsValue({
+      ...record,
+      dateDebut: moment(record.dateDebut),
+      dateFin : moment(record.dateFin),
+      total: formattedTotal,
+      montantParMois: formattedMontantParMois,
+      prixJourHomme:formattedPrixJourHomme
+    });
     setIsEditModalVisible(true);
   };
 
@@ -69,12 +83,10 @@ function UpdateContratForm({ record, handleState }) {
 
       contratFile: file,
     };
-    console.log(formattedValues);
 
     api
       .put(`/contrat/updateContrat/${record.key}`, formattedValues)
       .then((response) => {
-        console.log(formattedValues)
         handleState({
           ...formattedValues,
           key: record.key,
@@ -177,6 +189,35 @@ function UpdateContratForm({ record, handleState }) {
       return isPDF || Upload.LIST_IGNORE;
     };
 
+    const formatMontant = (value, devise) => {
+      if (!value) return "";
+      const numberValue = parseFloat(value);
+      if (isNaN(numberValue)) return value;
+      return devise === "TND"
+        ? numberValue.toFixed(3) 
+        : numberValue.toFixed(2); 
+    };
+
+    const validateMontant = (rule, value) => {
+      if (value <= 0) {
+        return Promise.reject("Le montant ne peut pas être inférieur ou égal à 0!");
+      }
+
+      const validPattern = record.devise === "TND" ? /^\d+\.\d{3}$/ : /^\d+\.\d{2}$/;
+      const message =
+        record.devise === "TND"
+          ? "Le montant  doit comporter exactement 3 décimales pour TND!"
+          : "Le montant  doit comporter exactement 2 décimales pour EUR ou USD!";
+      if (!validPattern.test(value)) {
+        return Promise.reject(message);
+      }
+      return Promise.resolve();
+    };
+
+    const handleBlurTotal = (e) => {
+      const formattedValue = formatMontant(e.target.value, record.devise);
+      editForm.setFieldsValue({ total: formattedValue });
+    };
 
   return (
     <>
@@ -319,10 +360,14 @@ function UpdateContratForm({ record, handleState }) {
                     message:
                       "Veuillez saisir le montant TTC total du contrat!",
                   },
+                  { validator: validateMontant },
+
                 ]}
                 style={{ marginBottom: "8px" }}
               >
-                <Input type="number" min={1} step="0.001" />
+                <Input 
+             onBlur={handleBlurTotal}
+                 min={1} step="0.001" />
               </Form.Item>
               {typeFrequenceFacturation === "Mensuelle" && (
                 <Form.Item
@@ -334,10 +379,13 @@ function UpdateContratForm({ record, handleState }) {
                       message:
                         "Veuillez saisir le montant à facturer par mois!",
                     },
+                    { validator: validateMontant },
+
                   ]}
                   style={{ marginBottom: "8px" }}
                 >
-                  <Input type="number" min={1} step="0.001" />
+                  <Input 
+                  min={1} step="0.001" />
                 </Form.Item>
               )}
             </>
@@ -351,10 +399,13 @@ function UpdateContratForm({ record, handleState }) {
                   required: true,
                   message: "Veuillez saisir le prix du jour/homme!",
                 },
+                { validator: validateMontant },
+
               ]}
               style={{ marginBottom: "8px" }}
             >
-              <Input type="number" min={1} step="0.001" />
+              <Input 
+               min={1} step="0.001" />
             </Form.Item>
           )}
           {type === "Mix" && (
@@ -368,10 +419,13 @@ function UpdateContratForm({ record, handleState }) {
                     message:
                       "Veuillez saisir le montant TTC du contrat !",
                   },
+                  { validator: validateMontant },
+
                 ]}
                 style={{ marginBottom: "8px" }}
               >
-                <Input type="number" min={1} step="0.001" />
+                <Input 
+                 min={1} step="0.001" />
               </Form.Item>
               <Form.Item
                 name="prixJourHomme"
@@ -381,10 +435,13 @@ function UpdateContratForm({ record, handleState }) {
                     required: true,
                     message: "Veuillez saisir le prix du jour/homme!",
                   },
+                  { validator: validateMontant },
+
                 ]}
                 style={{ marginBottom: "8px" }}
               >
-                <Input type="number" min={1} step="0.001" />
+                <Input 
+                 min={1} step="0.001" />
               </Form.Item>
             </>
           )}
@@ -433,7 +490,6 @@ function UpdateContratForm({ record, handleState }) {
             style={{ marginBottom: "8px" }}
           >
             <Upload
-            // beforeUpload={() => false}
             beforeUpload={beforeUpload}
               onChange={handleFileChange}>
               <Button icon={<UploadOutlined />}>Sélectionner un fichier</Button>

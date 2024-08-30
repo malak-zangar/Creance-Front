@@ -1,12 +1,10 @@
+import { Button, Form, Input, Modal, notification, Space } from "antd";
 import {
-  Button,
-  Form,
-  Input,
-  Modal,
-  notification,
-  Space
-} from "antd";
-import { PlusCircleOutlined,LockOutlined,MailOutlined ,UserOutlined} from "@ant-design/icons";
+  PlusCircleOutlined,
+  LockOutlined,
+  MailOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { useState } from "react";
 import api from "../../../utils/axios";
 
@@ -51,8 +49,10 @@ export const AddAdminForm = ({ handleState }) => {
             api
               .post("/auth/create", dataToSend)
               .then((response) => {
-                console.log("Administrateur ajouté avec succès:", response.data);
-                notification.success({ message: "Administrateur ajouté avec succès" });
+           
+                notification.success({
+                  message: "Administrateur ajouté avec succès",
+                });
 
                 setShowAddForm(false);
                 handleState({
@@ -98,14 +98,17 @@ export const AddAdminForm = ({ handleState }) => {
         <Form
           layout="vertical"
           name="addAdminForm"
-          onFinish={handleAddAdmin} 
+          onFinish={handleAddAdmin}
           form={addForm}
         >
           <Form.Item
             name="username"
             label="Nom d'utilisateur"
             rules={[
-              { required: true, message: "Veuillez saisir le nom d'utilisateur!" },
+              {
+                required: true,
+                message: "Veuillez saisir le nom d'utilisateur!",
+              },
               { min: 3, message: "Le nom doit comporter au moins 3 lettres!" },
               { max: 25, message: "Le nom doit comporter au plus 25 lettres!" },
               {
@@ -119,9 +122,10 @@ export const AddAdminForm = ({ handleState }) => {
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Input 
+            <Input
               prefix={<UserOutlined className="site-form-item-icon" />}
-              placeholder="Saisir le nom d'utilisateur" />
+              placeholder="Saisir le nom d'utilisateur"
+            />
           </Form.Item>
           <Form.Item
             name="email"
@@ -133,29 +137,30 @@ export const AddAdminForm = ({ handleState }) => {
             style={{ marginBottom: "8px" }}
           >
             <Input
-          placeholder="Saisir l'adresse Email"
-             prefix={<MailOutlined className="site-form-item-icon" />}
+              placeholder="Saisir l'adresse Email"
+              prefix={<MailOutlined className="site-form-item-icon" />}
             />
           </Form.Item>
-       
+
           <Form.Item
-                label="Mot de passe"
-                name="password"
-                rules={[
-                  {
-                    required: true,
-                    message: "SVP entrer un mot de passe",
-                  },
-                ]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined className="site-form-item-icon" />}
-                  type="password"
-                  placeholder="Saisir le mot de passe"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)} />
-              </Form.Item>
-    
+            label="Mot de passe"
+            name="password"
+            rules={[
+              {
+                required: true,
+                message: "SVP entrer un mot de passe",
+              },
+            ]}
+          >
+            <Input.Password
+              prefix={<LockOutlined className="site-form-item-icon" />}
+              type="password"
+              placeholder="Saisir le mot de passe"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </Form.Item>
+
           <Form.Item>
             <Space>
               <Button type="primary" onClick={handleAddAdmin}>

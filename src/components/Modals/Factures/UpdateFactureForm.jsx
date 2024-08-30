@@ -6,6 +6,7 @@ import {
   Modal,
   notification,
   Space,
+  Switch,
   Tooltip,
 } from "antd";
 import { useState, useEffect } from "react";
@@ -20,12 +21,24 @@ function UpdateFactureForm({ record, handleState }) {
   const [contratDevise, setContratDevise] = useState("");
   const [contratDateDebut, setContratDateDebut] = useState(moment());
   const [contratDateFin, setContratDateFin] = useState(moment());
+  const [isRelanceActive, setIsRelanceActive] = useState(record?.actifRelance);
 
   const handleUpdate = () => {
-    console.log(record.delai);
     setContratDevise(record.devise);
 
-    editForm.setFieldsValue({ ...record, date: moment(record.date) });
+    const formattedMontant = formatMontant(record.montant, record.devise);
+    const formattedMontantEncaisse = formatMontant(
+      record.montantEncaisse,
+      record.devise
+    );
+
+    editForm.setFieldsValue({
+      ...record,
+      date: moment(record.date),
+      montant: formattedMontant,
+      montantEncaisse: formattedMontantEncaisse,
+    });
+
     setIsEditModalVisible(true);
   };
 
@@ -34,17 +47,17 @@ function UpdateFactureForm({ record, handleState }) {
       editForm.setFieldsValue({
         ...record,
         date: moment(record.date),
-        delai: record.delai,
+        montant: formatMontant(record.montant, contratDevise),
+        montantEncaisse: formatMontant(record.montantEncaisse, contratDevise),
+        actifRelance: record.actifRelance,
       });
+      editForm.validateFields(["montant", "montantEncaisse"]);
     }
-  }, [isEditModalVisible, record, editForm]);
+  }, [isEditModalVisible, record, editForm, contratDevise]);
 
   const handleDateCreationDisabledDate = (current) => {
     const contrat = editForm.getFieldValue("contrat");
-    console.log(contrat);
-
     const delai = editForm.getFieldValue("delai");
-    console.log(delai); // Récupérer le délai du formulaire
     if (!contratDateDebut || !contratDateFin) {
       return false;
     }
@@ -55,18 +68,8 @@ function UpdateFactureForm({ record, handleState }) {
     );
   };
 
-  const validateDelai = (e) => {
-    let value = e.target.value;
-    value = value.replace(/,/g, "");
-    if (parseInt(value, 10) < 1) {
-      value = 1;
-    }
-    editForm.setFieldsValue({ delai: value });
-  };
-
   const handleCancel = () => {
     setIsEditModalVisible(false);
-
     editForm.setFieldsValue({ ...record, date: moment(record.date) });
   };
 
@@ -84,6 +87,7 @@ function UpdateFactureForm({ record, handleState }) {
     const formattedValues = {
       ...values,
       date: values.date.format("YYYY-MM-DD"),
+      actifRelance: isRelanceActive,
     };
 
     api
@@ -92,6 +96,7 @@ function UpdateFactureForm({ record, handleState }) {
         handleState({
           ...values,
           key: record.key,
+          actifRelance: isRelanceActive,
         });
         setIsEditModalVisible(false);
         notification.success({ message: "Facture modifiée avec succès" });
@@ -105,21 +110,74 @@ function UpdateFactureForm({ record, handleState }) {
       });
   };
 
+  const validateMontant = (rule, value) => {
+    const montantEncaisse = editForm.getFieldValue("montantEncaisse");
+    const valueStr = value ? value.toString() : "";
+    if (valueStr === "" || montantEncaisse === "") {
+      return Promise.reject("Les montants doivent être des nombres valides!");
+    }
+    if (parseFloat(valueStr) < parseFloat(montantEncaisse)) {
+      return Promise.reject(
+        "Le montant ne peut pas être inférieur au montant encaissé!"
+      );
+    }
+    const validPattern =
+      contratDevise === "TND" ? /^\d+\.\d{3}$/ : /^\d+\.\d{2}$/;
+    const message =
+      contratDevise === "TND"
+        ? "Le montant doit comporter exactement 3 décimales pour TND!"
+        : "Le montant doit comporter exactement 2 décimales pour EUR ou USD!";
+    if (!validPattern.test(valueStr)) {
+      return Promise.reject(message);
+    }
+    return Promise.resolve();
+  };
+
+  const formatMontant = (value, devise) => {
+    if (!value) return "";
+    const numberValue = parseFloat(value);
+    if (isNaN(numberValue)) return value;
+    return devise === "TND"
+      ? numberValue.toFixed(3) // Format TND (3 decimals)
+      : numberValue.toFixed(2); // Format other currencies (2 decimals)
+  };
+
   const validateMontantEncaisse = () => {
     const montant = editForm.getFieldValue("montant");
     const montantEncaisse = editForm.getFieldValue("montantEncaisse");
-
     if (montantEncaisse > montant) {
       return Promise.reject(
         new Error("Le montant encaissé ne doit pas dépasser le montant total!")
       );
     }
+    const validPattern =
+      contratDevise === "TND" ? /^\d+\.\d{3}$/ : /^\d+\.\d{2}$/;
+    const message =
+      contratDevise === "TND"
+        ? "Le montant encaissé doit comporter exactement 3 décimales pour TND!"
+        : "Le montant encaissé doit comporter exactement 2 décimales pour EUR ou USD!";
+    if (!validPattern.test(montantEncaisse)) {
+      return Promise.reject(message);
+    }
     return Promise.resolve();
+  };
+
+  const handleSwitchChange = (checked) => {
+    setIsRelanceActive(checked);
+  };
+
+  const handleBlurMontant = (e) => {
+    const formattedValue = formatMontant(e.target.value, contratDevise);
+    editForm.setFieldsValue({ montant: formattedValue });
+  };
+
+  const handleBlurMontantEncaisse = (e) => {
+    const formattedValue = formatMontant(e.target.value, contratDevise);
+    editForm.setFieldsValue({ montantEncaisse: formattedValue });
   };
 
   return (
     <>
-      {" "}
       <Tooltip title="Modifier">
         <Button
           icon={<EditOutlined />}
@@ -190,24 +248,24 @@ function UpdateFactureForm({ record, handleState }) {
 
           <Form.Item
             name="montant"
-            //label="Montant"
             label={`Montant TTC de la facture en : ${contratDevise}`}
             rules={[
               {
                 required: true,
                 message: "Veuillez saisir le montant de la facture!",
               },
+              { validator: validateMontant },
             ]}
             style={{ marginBottom: "8px" }}
           >
             <Input
-              type="number"
-              onChange={() => editForm.validateFields(["montantEncaisse"])}
+              onBlur={handleBlurMontant}
               min={1}
-              step="0.001"
-              placeholder="Montant TTC"
+              step={contratDevise === "TND" ? "0.001" : "0.01"}
+              placeholder={contratDevise === "TND" ? "1.000" : "1.00"}
             />
           </Form.Item>
+
           <Form.Item
             name="montantEncaisse"
             label={`Montant encaisse de la facture en : ${contratDevise}`}
@@ -222,25 +280,55 @@ function UpdateFactureForm({ record, handleState }) {
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Input type="number" min={1} step="0.001" />
+            <Input
+              onBlur={handleBlurMontantEncaisse}
+              min={1}
+              step={contratDevise === "TND" ? "0.001" : "0.01"}
+              placeholder={contratDevise === "TND" ? "1.000" : "1.00"}
+            />
           </Form.Item>
+
           <Form.Item
             name="date"
-            label="Date d'émission"
+            label="Date de création"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir la date d'émission de la facture!",
+                message: "Veuillez saisir la date de création!",
               },
             ]}
             style={{ marginBottom: "8px" }}
           >
             <DatePicker
-              style={{ width: "100%" }}
               disabledDate={handleDateCreationDisabledDate}
+              format="DD/MM/YYYY"
             />
           </Form.Item>
-         
+
+          <Form.Item
+            name="delai"
+            label="Délai"
+            rules={[
+              {
+                required: true,
+                message: "Veuillez saisir le délai!",
+              },
+            ]}
+            style={{ marginBottom: "8px" }}
+          >
+            <Input
+              type="number"
+              disabled
+              min={0}
+              step={1}
+              placeholder="Délai en jours"
+            />
+          </Form.Item>
+
+          <Form.Item name="actifRelance" label="Activer relance">
+            <Switch checked={isRelanceActive} onChange={handleSwitchChange} />
+          </Form.Item>
+
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">

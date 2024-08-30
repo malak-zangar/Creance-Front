@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { Card, Row, Col, Table, Spin, notification, DatePicker, Modal, Button } from "antd";
+import {
+  Card,
+  Row,
+  Col,
+  Table,
+  Spin,
+  notification,
+  DatePicker,
+  Modal,
+  Button,
+} from "antd";
 import {
   PieChart,
   Pie,
@@ -16,7 +26,8 @@ import {
   Line,
 } from "recharts";
 import {
-  EuroOutlined,FilterTwoTone,
+  EuroOutlined,
+  FilterTwoTone,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
@@ -36,7 +47,7 @@ const Dashboard = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [caEvolution, setCAevolution] = useState([]);
   const [creanceEvolution, setCreanceEvolution] = useState([]);
-  const [ca,setCa]=useState([])
+  const [ca, setCa] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -44,34 +55,26 @@ const Dashboard = () => {
 
   const fetchCa = async (startDate, endDate) => {
     try {
-
       let url = "/dashboard/getCA";
       if (startDate && endDate) {
-        console.log(startDate)
-        console.log(endDate)
+    
 
         url += `?start=${startDate}&end=${endDate}`;
       }
 
       const caResponse = await api.get(url);
-      console.log(caResponse)
-      setCa(caResponse.data)
-
-    }
-    catch (error) {
+      setCa(caResponse.data);
+    } catch (error) {
       console.error("Error fetching data", error);
       notification.error({
         description: "Erreur lors de la récupération des données",
       });
     }
-  }
+  };
 
   useEffect(() => {
-   
     const fetchData = async () => {
       try {
-
-
         const statsResponse = await api.get("/dashboard/factureStats");
         const tauxResponse = await api.get("/dashboard/getTauxRecouvrement");
         const pourcentageResponse = await api.get(
@@ -103,7 +106,6 @@ const Dashboard = () => {
           contractToExpire: contratActiftoExpire.data,
         });
 
-        console.log(data.contractToExpire);
 
         setPieData([
           { name: "Échue", value: pourcentageResponse.data.echues },
@@ -112,7 +114,6 @@ const Dashboard = () => {
 
         setBarChartData(oldestUnpaidFacturesResponse.data);
 
-        console.log(barChartData);
         setOldestFactures(oldestFacturesResponse.data);
 
         setCAevolution(CAparMois.data);
@@ -162,9 +163,10 @@ const Dashboard = () => {
       if (contrat.length === 1) {
         return (
           <div>
-            {contrat[0].reference}     
-                   <DetailsContratForm record={contrat[0]} />
-
+            {contrat[0].reference}
+            <DetailsContratForm
+              record={{ ...contrat[0], key: contrat[0].id }}
+            />
           </div>
         );
       } else if (contrat.length > 1) {
@@ -346,7 +348,7 @@ const Dashboard = () => {
   const handleFilter = () => {
     if (dateRange.length === 2) {
       const [startDate, endDate] = dateRange;
-      fetchCa(startDate.format('YYYY-MM-DD'), endDate.format('YYYY-MM-DD'));
+      fetchCa(startDate.format("YYYY-MM-DD"), endDate.format("YYYY-MM-DD"));
       setIsModalVisible(false);
     } else {
       notification.warning({
@@ -360,14 +362,14 @@ const Dashboard = () => {
       const [startDate, endDate] = dateRange;
       return (
         <span>
-          Chiffre d'affaires{' '}
-          <span style={{ color: 'gray', fontSize: '11px' }}>
-            ({startDate.format('DD/MM/YYYY')} - {endDate.format('DD/MM/YYYY')})
+          Chiffre d'affaires{" "}
+          <span style={{ color: "gray", fontSize: "11px" }}>
+            ({startDate.format("DD/MM/YYYY")} - {endDate.format("DD/MM/YYYY")})
           </span>
         </span>
       );
     }
-    return 'Chiffre d\'affaires total';
+    return "Chiffre d'affaires total";
   };
 
   return loading ? (
@@ -385,9 +387,14 @@ const Dashboard = () => {
                 title={
                   <div>
                     <span>{renderTitle()}</span>
-                    <FilterTwoTone 
-                            style={{ marginLeft: '5px', fontSize: '15px', cursor: 'pointer' }}
-                            onClick={() => setIsModalVisible(true)} />
+                    <FilterTwoTone
+                      style={{
+                        marginLeft: "5px",
+                        fontSize: "15px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setIsModalVisible(true)}
+                    />
                   </div>
                 }
                 style={{ boxShadow: "0 0 10px 0px rgba(0, 0, 0, 0.1)" }}
@@ -397,28 +404,32 @@ const Dashboard = () => {
               </Card>
               <FactureCount count={ca.nombre} />
               <Modal
-        title="Filtrer le chiffre d'affaires par une durée"
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={[
-          <Button key="cancel" onClick={handleCancel}>
-          Annuler
-        </Button>,
-          <Button key="reset" onClick={handleReset} style={{ marginRight: '18px' }}>
-            Réinitialiser
-          </Button>,
-          <Button key="filter" type="primary" onClick={handleFilter}>
-            Filtrer
-          </Button>,
-        ]}
-      >
-        <RangePicker
-          value={dateRange}
-          onChange={(dates) => setDateRange(dates)}
-          style={{ width: '100%' }}
-          placeholder={['Date de début', 'Date de fin']}
-        />
-      </Modal>
+                title="Filtrer le chiffre d'affaires par une durée"
+                visible={isModalVisible}
+                onCancel={() => setIsModalVisible(false)}
+                footer={[
+                  <Button key="cancel" onClick={handleCancel}>
+                    Annuler
+                  </Button>,
+                  <Button
+                    key="reset"
+                    onClick={handleReset}
+                    style={{ marginRight: "18px" }}
+                  >
+                    Réinitialiser
+                  </Button>,
+                  <Button key="filter" type="primary" onClick={handleFilter}>
+                    Filtrer
+                  </Button>,
+                ]}
+              >
+                <RangePicker
+                  value={dateRange}
+                  onChange={(dates) => setDateRange(dates)}
+                  style={{ width: "100%" }}
+                  placeholder={["Date de début", "Date de fin"]}
+                />
+              </Modal>
             </div>
           </div>
           <div className="w-full">

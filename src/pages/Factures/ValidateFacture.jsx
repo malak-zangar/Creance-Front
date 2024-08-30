@@ -2,15 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
   DownloadOutlined,
-  RetweetOutlined,FileTextOutlined
+  RetweetOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { Button, Input, notification, Space, Table, Typography } from "antd";
 import Highlighter from "react-highlight-words";
 import DetailsFactureForm from "../../components/Modals/Factures/DetailsFactureForm";
 import moment from "moment";
-import { useParams } from 'react-router-dom';
+import { useParams } from "react-router-dom";
 import api from "../../utils/axios";
-
 
 const ValidateFacture = () => {
   const { param } = useParams();
@@ -133,16 +133,14 @@ const ValidateFacture = () => {
   });
 
   const handleActivate = (key) => {
-    console.log("activated record with key: ", key);
     api
       .put(`/facture/restaureFacture/${key}`)
       .then((response) => {
-        console.log("Facture activated successfully:", response.data);
         notification.success({ message: "Facture activée avec succès" });
         fetchData(response.data.client_id);
       })
       .catch((error) => {
-        notification.error("There was an error activating the Facture!", error);
+        notification.error("Erreur lors de l'activation de la facture!", error);
       });
   };
 
@@ -151,7 +149,7 @@ const ValidateFacture = () => {
       .get(`/facture/getByClient/${param}`)
       .then((response) => {
         if (response.data.length > 0) {
-          setClientName(response.data[0].client); 
+          setClientName(response.data[0].client);
         }
         setData(
           response.data.map((facture) => ({
@@ -173,14 +171,13 @@ const ValidateFacture = () => {
             statut: facture.statut,
             dateFinalisation: facture.dateFinalisation
               ? moment(facture.dateFinalisation).format("YYYY-MM-DD")
-              : null, 
+              : null,
           }))
         );
         setLoading(false);
-
       })
       .catch((error) => {
-        notification.error("There was an error fetching the factures!", error);
+        notification.error("Une erreur lors de la récupération des factures!", error);
       });
   };
 
@@ -189,13 +186,11 @@ const ValidateFacture = () => {
   }, []);
 
   const Report = (key) => {
-    console.log("Generating report with key: ", key);
     api
       .get(`/facture/report/${key}`, {
         responseType: "blob",
       })
       .then((response) => {
-        console.log("Report generated successfully:", response.data);
 
         const url = window.URL.createObjectURL(
           new Blob([response.data], { type: "application/pdf" })
@@ -211,12 +206,20 @@ const ValidateFacture = () => {
         fetchData();
       })
       .catch((error) => {
-        notification.error("There was an error generating the report!", error);
+        notification.error("Une erreur lors de la génération du rapport!", error);
       });
   };
 
-  const columns = [
+  const formatMontant = (value, devise) => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: devise,
+      minimumFractionDigits: devise === "TND" ? 3 : 2,
+      maximumFractionDigits: devise === "TND" ? 3 : 2,
+    }).format(value);
+  };
 
+  const columns = [
     {
       title: "Référence",
       dataIndex: "numero",
@@ -244,6 +247,7 @@ const ValidateFacture = () => {
       dataIndex: "montant",
       ...getColumnSearchProps("montant"),
       sorter: (a, b) => a.montant - b.montant,
+      render: (_, record) => formatMontant(record.montant, record.devise),
     },
 
     {
@@ -276,27 +280,28 @@ const ValidateFacture = () => {
   return (
     <div>
       <Typography.Title level={4}>
-      <span> <FileTextOutlined/> </span>
-
-      {`Les factures du client : ${clientName}`}      </Typography.Title> 
+        <span>
+          {" "}
+          <FileTextOutlined />{" "}
+        </span>
+        {`Les factures du client : ${clientName}`}{" "}
+      </Typography.Title>
 
       <Table
-           scroll={{
-            x: "max-content"
-          }}
-          loading={loading}
-
+        scroll={{
+          x: "max-content",
+        }}
+        loading={loading}
         size="small"
         columns={columns}
         dataSource={data}
         pagination={{
-              total: data.length, 
-              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
-              pageSize: 10,
-            }}
-
+          total: data.length,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} de ${total} éléments`,
+          pageSize: 10,
+        }}
       />
-
     </div>
   );
 };

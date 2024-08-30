@@ -27,8 +27,8 @@ const DetailsEncaissementForm = ({ record }) => {
       api
         .get(`/facture/getByID/${record.facture_id}`)
         .then((response) => {
-          console.log(response?.data?.facture);
-          setFacture(response?.data?.facture); // Mettre à jour l'état avec la facture
+          setFacture(response?.data?.facture);
+          setSelectedFact(response?.data?.facture) // Mettre à jour l'état avec la facture
         })
         .catch((error) => {
           notification.error(
@@ -41,7 +41,6 @@ const DetailsEncaissementForm = ({ record }) => {
       api
         .get(`/contrat/getByID/${record.contrat_id}`)
         .then((response) => {
-          console.log(response?.data?.contrat);
           setContrat(response?.data?.contrat); // Mettre à jour l'état avec la facture
         })
         .catch((error) => {
@@ -52,7 +51,6 @@ const DetailsEncaissementForm = ({ record }) => {
         });
     }
 
-    console.log(record);
   }, [record, isDetailsModalVisible]);
 
   const handleDetails = () => {
@@ -65,19 +63,30 @@ const DetailsEncaissementForm = ({ record }) => {
     setSelectedCont(null);
   };
 
-
   const formatDate = (date) => {
     return moment(date).format("DD/MM/YYYY");
   };
-  const handleFactClick = (fact) => {
-    setSelectedFact(fact);
-    setIsFactModalVisible(true);
-  };
 
-  const handleContClick = (contrat) => {
-    setSelectedCont(contrat);
-    setIsContModalVisible(true);
-  };
+  const formatMontant = (value, devise) => {
+    if (value === 0) {
+      return new Intl.NumberFormat("fr-FR", {
+        style: "currency",
+        currency: devise || "EUR",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(0);
+    }
+    if (!value || !devise) return "";
+
+    const supportedCurrencies = ["EUR", "USD", "TND"];
+    const currency = supportedCurrencies.includes(devise) ? devise : "";  
+    return  new Intl.NumberFormat("fr-FR", {
+      currency: currency,
+      style: "currency",
+      minimumFractionDigits: devise === "TND" ? 3 : 2,
+      maximumFractionDigits: devise === "TND" ? 3 : 2,
+    }).format(value);};
+    
   return (
     <>
       {" "}
@@ -129,32 +138,36 @@ const DetailsEncaissementForm = ({ record }) => {
             {formatDate(record.date)}
           </Descriptions.Item>
           <Descriptions.Item label="Montant encaissé">
-            {record.montantEncaisse} {record.devise}
+            {formatMontant(record.montantEncaisse,record.devise)}
           </Descriptions.Item>
           <Descriptions.Item label="Mode de règlement">
             {record.modeReglement}
           </Descriptions.Item>
-          <Descriptions.Item label="Client correspondant">{record.client}</Descriptions.Item>
+          <Descriptions.Item label="Client correspondant">
+            {record.client}
+          </Descriptions.Item>
 
           <Descriptions.Item label="Facture correspondante">
-            <span onClick={() => handleFactClick(facture)}>
-              {record.facture}
-            </span>
-            <DetailsFactureForm record={facture} />
+          {facture ? (
+              <>
+            <span>{record.facture}</span>
+            <DetailsFactureForm record1={{ ...facture, key: facture.id }} />
+            </>
+            ) : (
+              <span>Aucune facture</span>
+            )}
           </Descriptions.Item>
 
           <Descriptions.Item label="Contrat correspondant">
-          {contrat ? (
-    <>
-      <span onClick={() => handleContClick(contrat)}>
-        {record.contrat}
-      </span>       
-      <DetailsContratForm record={{ ...contrat, key: contrat.id }} />
-    </>
-  ) : (
-    <span>Aucun contrat</span>
-  )}
-            </Descriptions.Item>
+            {contrat ? (
+              <>
+                <span>{record.contrat}</span>
+                <DetailsContratForm record={{ ...contrat, key: contrat.id }} />
+              </>
+            ) : (
+              <span>Aucun contrat</span>
+            )}
+          </Descriptions.Item>
         </Descriptions>
       </Modal>
     </>

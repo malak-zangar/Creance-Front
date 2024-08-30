@@ -1,56 +1,7 @@
-
-      {/* <Descriptions
-        bordered
-        column={2}
-        size="small"
-        className="mb-6 mt-6"
-      >
-
-        <Descriptions.Item label="Raison sociale">
-          {data.raisonSociale}
-        </Descriptions.Item>
-        <Descriptions.Item label="Email">{data.email}</Descriptions.Item>
-        <Descriptions.Item label="Téléphone">{data.phone}</Descriptions.Item>
-        <Descriptions.Item label="ID Fiscal">
-          {data.identifiantFiscal}
-        </Descriptions.Item>
-        
-        <Descriptions.Item label="Date d'insertion">
-          {formatDate(data.dateInsertion)}
-        </Descriptions.Item>
-        <Descriptions.Item label="Adresse">{data.adresse}</Descriptions.Item>
-        <Descriptions.Item label="Action(s)">
-        <UpdateParamForm record={data} handleState={handleParams} />
-        </Descriptions.Item>
-      </Descriptions>
-      <Descriptions
-        bordered
-        column={2}
-        size="small"
-        className="mb-6 mt-6"
-
-      >
-        
-        
-        <Descriptions.Item label="Date d'insertion">
-          {formatDate(data.dateInsertion)}
-        </Descriptions.Item>
-        <Descriptions.Item label="Taux de change (TND -> EUR)">
-          {data.tauxTndEur}
-        </Descriptions.Item>
-        <Descriptions.Item label="Taux de change (USD -> EUR)">
-        {data.tauxUsdEur}
-        </Descriptions.Item>
-        <Descriptions.Item label="Action(s)">
-        <UpdateParamForm record={data} handleState={handleParams} />
-        </Descriptions.Item>
-      </Descriptions> */}
 import { useState, useEffect } from "react";
 import {
   ControlTwoTone,
   SettingOutlined,
-  EditOutlined,
-  PlusCircleOutlined,
   MailTwoTone,
   InfoCircleTwoTone,
   MoneyCollectTwoTone,
@@ -112,7 +63,6 @@ const EntrepParamActuel = () => {
       .get("/emailcascade/getAll")
       .then((response) => {
         const mails = response.data;
-        console.log(mails)
         setMail(
           mails.map((mail) => ({
             key: mail.id,
@@ -147,10 +97,8 @@ const EntrepParamActuel = () => {
   const handleAddEmailState = (record) => {
     setMail([record, ...mail]);
     fetchMail();
+  };
 
-    };
-
-  
   const handleEmails = () => {
     fetchData();
     fetchMail();
@@ -254,9 +202,12 @@ const EntrepParamActuel = () => {
           >
             <Descriptions bordered size="small" column={2}>
               {mail.map((mail) => (
-                <Descriptions.Item key={mail.key} label={"Mail de " + mail.type}>
+                <Descriptions.Item
+                  key={mail.key}
+                  label={"Mail de " + mail.type}
+                >
                   <UpdateMailForm record={mail} handleState={handleEmails} />
-                  </Descriptions.Item>
+                </Descriptions.Item>
               ))}
             </Descriptions>
           </Card>

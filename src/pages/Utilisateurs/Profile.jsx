@@ -25,7 +25,6 @@ const Profile = () => {
       const values = await form.validateFields();
     
       const response = await api.post(`/auth/verify-password/${currentUserId}`, { password: currentPassword });
-      console.log("Response:", response.data);
     
       if (response.status === 200) {
         const updateResponse = await api.put(`/auth/profile/${currentUserId}`, values);
@@ -39,7 +38,6 @@ const Profile = () => {
         throw new Error('Mot de passe incorrect');
       }
     } catch (error) {
-      console.log(error.response.data.message)
       if (error.response.data.message === 'Mot de passe incorrect') {
         message.error("Mot de passe actuel incorrect");
       } else {
@@ -115,10 +113,7 @@ const Profile = () => {
               label="Nouveau mot de passe"
               name="password"
               rules={[
-               /* {
-                  required: true,
-                  message: "Veuillez entrer votre nouveau mot de passe!",
-                },*/
+              
                 {
                   min: 6,
                   message: "Le mot de passe doit contenir au moins 6 caractères.",
@@ -146,10 +141,7 @@ const Profile = () => {
               name="confirmPassword"
               dependencies={["password"]}
               rules={[
-              /*  {
-                  required: true,
-                  message: "Veuillez confirmer votre mot de passe!",
-                },*/
+            
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     if (!value || getFieldValue("password") === value) {

@@ -1,7 +1,20 @@
-import { useState,useRef, useEffect } from "react";
-import { SearchOutlined,FileDoneOutlined, EyeTwoTone,FolderOpenOutlined  } from '@ant-design/icons';
-import { Button, Input, notification, Space, Table, Tooltip, Typography } from 'antd';
-import Highlighter from 'react-highlight-words';
+import { useState, useRef, useEffect } from "react";
+import {
+  SearchOutlined,
+  FileDoneOutlined,
+  EyeTwoTone,
+  FolderOpenOutlined,
+} from "@ant-design/icons";
+import {
+  Button,
+  Input,
+  notification,
+  Space,
+  Table,
+  Tooltip,
+  Typography,
+} from "antd";
+import Highlighter from "react-highlight-words";
 import UpdateContratForm from "../../components/Modals/Contrats/UpdateContratForm";
 import DetailsContratForm from "../../components/Modals/Contrats/DetailsContratForm";
 import { AddContratForm } from "../../components/Modals/Contrats/AddContratForm";
@@ -10,14 +23,12 @@ import api from "../../utils/axios";
 import { useNavigate } from "react-router-dom";
 
 const ActifContracts = () => {
-
   const [data, setData] = useState([]);
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -26,10 +37,16 @@ const ActifContracts = () => {
   };
   const handleReset = (clearFilters) => {
     clearFilters();
-    setSearchText('');
+    setSearchText("");
   };
   const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
       <div
         style={{
           padding: 8,
@@ -40,11 +57,13 @@ const ActifContracts = () => {
           ref={searchInput}
           placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
             marginBottom: 8,
-            display: 'block',
+            display: "block",
           }}
         />
         <Space>
@@ -96,7 +115,7 @@ const ActifContracts = () => {
     filterIcon: (filtered) => (
       <SearchOutlined
         style={{
-          color: filtered ? '#1677ff' : undefined,
+          color: filtered ? "#1677ff" : undefined,
         }}
       />
     ),
@@ -111,18 +130,17 @@ const ActifContracts = () => {
       searchedColumn === dataIndex ? (
         <Highlighter
           highlightStyle={{
-            backgroundColor: '#ffc069',
+            backgroundColor: "#ffc069",
             padding: 0,
           }}
           searchWords={[searchText]}
           autoEscape
-          textToHighlight={text ? text.toString() : ''}
+          textToHighlight={text ? text.toString() : ""}
         />
       ) : (
         text
       ),
   });
-
 
   const fetchData = () => {
     api
@@ -132,8 +150,8 @@ const ActifContracts = () => {
           response.data.map((contrat) => ({
             key: contrat.id,
             reference: contrat.reference,
-            dateDebut: moment(contrat.dateDebut).format('YYYY-MM-DD'),
-            dateFin: moment(contrat.dateFin).format('YYYY-MM-DD'),
+            dateDebut: moment(contrat.dateDebut).format("YYYY-MM-DD"),
+            dateFin: moment(contrat.dateFin).format("YYYY-MM-DD"),
             delai: contrat.delai,
             type: contrat.type,
             total: contrat.total,
@@ -144,82 +162,75 @@ const ActifContracts = () => {
             devise: contrat.devise,
             client_id: contrat.client_id,
             client: contrat.client,
-            contratFile : contrat.contratFile
-
+            contratFile: contrat.contratFile,
           }))
         );
         setLoading(false);
-
       })
       .catch((error) => {
-        notification.error("Une erreur lors de la recherche des contrats!", error);
+        notification.error(
+          "Une erreur lors de la recherche des contrats!",
+          error
+        );
       });
   };
-  
 
   useEffect(() => {
     fetchData();
   }, []);
-
 
   const handleContracts = (record) => {
     fetchData();
   };
 
   const handleAddContractState = (record) => {
-    setData([ record, ...data,]);
+    setData([record, ...data]);
   };
 
   const ToListArchive = () => {
-    console.log("Button ToListArchive clicked");
     navigate("/contrats/archive");
   };
 
-  const Report = (key,reference) => {
-    console.log("Generating contract with key: ", key," and reference : ", reference);
+  const Report = (key, reference) => {
+    
     api
-      .get(`/contrat/contratFile/${key}/${reference}`, {responseType: 'blob', })
+      .get(`/contrat/contratFile/${key}/${reference}`, { responseType: "blob" })
       .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-        window.open(url); 
-       /* const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `contrat_${reference}.pdf`); 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        fetchData();
-        notification.success({ message: "Rapport du contrat généré avec succès" });*/
-
+        const url = window.URL.createObjectURL(
+          new Blob([response.data], { type: "application/pdf" })
+        );
+        window.open(url);
       })
       .catch((error) => {
-        notification.error("Une erreur lors de la génération du contrat!", error);
+        notification.error(
+          "Une erreur lors de la génération du contrat!",
+          error
+        );
       });
   };
 
   const columns = [
-
     {
-      title: "Référence",
-      dataIndex: "reference",
-      ...getColumnSearchProps('reference'),
-    },
-    {
-      title: "Client",
-      dataIndex: "client",
-      ...getColumnSearchProps('client'),
+      title: "Date fin",
+      dataIndex: "dateFin",
+      render: (text) => moment(text).format("DD/MM/YYYY"),
+      sorter: (a, b) => moment(a.dateFin).unix() - moment(b.dateFin).unix(),
     },
     {
       title: "Date début",
       dataIndex: "dateDebut",
-      render: (text) => moment(text).format('DD/MM/YYYY'),
+      render: (text) => moment(text).format("DD/MM/YYYY"),
       sorter: (a, b) => moment(a.dateDebut).unix() - moment(b.dateDebut).unix(),
     },
     {
-      title: "Date fin",
-      dataIndex: "dateFin",
-      render: (text) => moment(text).format('DD/MM/YYYY'),
-      sorter: (a, b) => moment(a.dateFin).unix() - moment(b.dateFin).unix(),
+      title: "Référence",
+      dataIndex: "reference",
+      ...getColumnSearchProps("reference"),
+    },
+    {
+      title: "Client",
+      dataIndex: "client",
+      ...getColumnSearchProps("client"),
     },
 
     {
@@ -228,54 +239,54 @@ const ActifContracts = () => {
       render: (_, record) => (
         <Space>
           <UpdateContratForm record={record} handleState={handleContracts} />
-          <Tooltip title={record.contratFile ? "Visualiser" : "Pas de document"}>
-  <Button
-    disabled={!record.contratFile}
-    icon={<EyeTwoTone />}
-    size="small"
-    onClick={() => Report(record.key, record.reference)}
-  />
-</Tooltip>
+          <Tooltip
+            title={record.contratFile ? "Visualiser" : "Pas de document"}
+          >
+            <Button
+              disabled={!record.contratFile}
+              icon={<EyeTwoTone />}
+              size="small"
+              onClick={() => Report(record.key, record.reference)}
+            />
+          </Tooltip>
           <DetailsContratForm record={record} />
-         
         </Space>
       ),
     },
   ];
-  
+
   return (
     <div>
-        <Typography.Title level={4}>
-      <span> <FileDoneOutlined/> </span>
+      <Typography.Title level={4}>
+        <span>
+          {" "}
+          <FileDoneOutlined />{" "}
+        </span>
+        Liste des Contrats
+      </Typography.Title>
 
-          Liste des Contrats</Typography.Title>
-    
       <Space className="mb-4">
-        <AddContratForm handleState={handleAddContractState}  />
-        <Button  onClick={ToListArchive} icon={<FolderOpenOutlined />}>
+        <AddContratForm handleState={handleAddContractState} />
+        <Button onClick={ToListArchive} icon={<FolderOpenOutlined />}>
           Contrats archivés
         </Button>
       </Space>
       <Table
-       scroll={{
-        x: "max-content"
-      }}
-      loading={loading}
-
-      size="small"
+        scroll={{
+          x: "max-content",
+        }}
+        loading={loading}
+        size="small"
         columns={columns}
         dataSource={data}
         pagination={{
-              total: data.length, 
-              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
-              pageSize: 10,
-            }}
-     
-        showSorterTooltip={{ target: 'sorter-icon' }}
+          total: data.length,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} de ${total} éléments`,
+          pageSize: 10,
+        }}
+        showSorterTooltip={{ target: "sorter-icon" }}
       />
-
-      
-
     </div>
   );
 };

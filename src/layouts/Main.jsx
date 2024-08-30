@@ -71,9 +71,7 @@ const Main = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = localStorage.getItem('currentUser');
-  console.log(localStorage)
 
-console.log(currentUser)
   const handleLogout = () => {
     removeaccess_token();
     navigate("/login");
@@ -110,8 +108,6 @@ console.log(currentUser)
         <Menu
           theme="dark"
           className="h-[100vh]"
-          //style={{ backgroundColor: "#336699" }} // Changez cette couleur à votre convenance
-
           mode="inline"
           selectedKeys={[selectedKey]} 
         >

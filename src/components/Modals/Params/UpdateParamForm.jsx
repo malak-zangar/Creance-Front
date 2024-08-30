@@ -1,6 +1,6 @@
 import { Button, Form, Input, Modal, notification, Space, Tooltip } from "antd";
 import { useState } from "react";
-import {  EditTwoTone } from '@ant-design/icons';
+import { EditTwoTone } from "@ant-design/icons";
 import api from "../../../utils/axios";
 import ExchangeRateHistoryModal from "./ExchangeRateHistoryModal";
 
@@ -10,7 +10,6 @@ function UpdateParamForm({ record, handleState }) {
   const [editForm] = Form.useForm();
   const [isTndHistoryVisible, setIsTndHistoryVisible] = useState(false);
   const [isUsdHistoryVisible, setIsUsdHistoryVisible] = useState(false);
-
 
   const handleUpdate = () => {
     editForm.setFieldsValue({ ...record });
@@ -23,40 +22,59 @@ function UpdateParamForm({ record, handleState }) {
   };
 
   const handleEditParam = (values) => {
-    
-    api
-      .put(`/paramentreprise/updateparamentrep/${record.key}`, values)
-      .then((response) => {
-        
-        handleState({
-            ...values,
-            key: record.key
+    editForm
+      .validateFields()
+      .then((values) => {
+        Modal.confirm({
+          title: "Confirmer la mise à jour des paramètres ",
+          content: <div>Voulez vous vraiment valider les modifications? </div>,
+          okText: "Confirmer",
+          cancelText: "Annuler",
+          onOk: () => {
+            api
+              .put(`/paramentreprise/updateparamentrep/${record.key}`, values)
+              .then((response) => {
+                handleState({
+                  ...values,
+                  key: record.key,
+                });
+                setIsEditModalVisible(false);
+                notification.success({
+                  message: "Paramètres mis à jour avec succès",
+                });
+              })
+              .catch((error) => {
+                notification.error({
+                  description:
+                    error?.response?.data?.error ||
+                    `Une erreur lors de la modification des paramètres d'ID "${record?.key}"`,
+                });
+              });
+          },
         });
-        setIsEditModalVisible(false);
       })
       .catch((error) => {
-        notification.error({
-          description:
-            error?.response?.data?.error ||
-            `Une erreur lors de la modification des paramètres d'ID "${record?.key}"`,
-        });
+        console.error("Validation échouée:", error);
       });
   };
 
   return (
-    <>  <Tooltip title="Modifier">
-      <Button icon={<EditTwoTone />}  size="small" onClick={handleUpdate}>Modifier les paramètres</Button>
-</Tooltip>
+    <>
+      {" "}
+      <Tooltip title="Modifier">
+        <Button icon={<EditTwoTone />} size="small" onClick={handleUpdate}>
+          Modifier les paramètres
+        </Button>
+      </Tooltip>
       <Modal
-        title={"Modifier les paramètres d'ID : "+ record?.key}
+        title={"Modifier les paramètres d'ID : " + record?.key}
         visible={isEditModalVisible}
         onCancel={() => {
           setIsEditModalVisible(false);
           setEditingParam(null);
         }}
         footer={null}
-        style={{ top: 10 }} 
-
+        style={{ top: 10 }}
       >
         <Form
           form={editForm}
@@ -65,17 +83,20 @@ function UpdateParamForm({ record, handleState }) {
           layout="vertical"
           onFinish={handleEditParam}
         >
-          
           <Form.Item
             name="raisonSociale"
             label="Raison sociale"
             rules={[
-              { required: true, message: "Veuillez saisir la raison sociale de l'entreprise!" },
+              {
+                required: true,
+                message: "Veuillez saisir la raison sociale de l'entreprise!",
+              },
               {
                 pattern: /^[a-zA-Z0-9 ]+$/,
                 message: "La raison sociale doit être alphanumérique!",
               },
-            ]}            style={{ marginBottom: '8px' }} 
+            ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -83,21 +104,27 @@ function UpdateParamForm({ record, handleState }) {
             name="email"
             label="Email"
             rules={[
-              { required: true, message: "Veuillez saisir l'email de l'entreprise!" },
-            ]}style={{ marginBottom: '8px' }} 
+              {
+                required: true,
+                message: "Veuillez saisir l'email de l'entreprise!",
+              },
+            ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
-          
+
           <Form.Item
             name="phone"
             label="Téléphone"
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir le numéro de téléphone de l'entreprise!",
+                message:
+                  "Veuillez saisir le numéro de téléphone de l'entreprise!",
               },
-            ]}style={{ marginBottom: '8px' }} 
+            ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -107,9 +134,11 @@ function UpdateParamForm({ record, handleState }) {
             rules={[
               {
                 required: true,
-                message: "Veuillez saisir l'identifiant fiscal de l'entreprise!",
+                message:
+                  "Veuillez saisir l'identifiant fiscal de l'entreprise!",
               },
-            ]}style={{ marginBottom: '8px' }} 
+            ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -125,7 +154,8 @@ function UpdateParamForm({ record, handleState }) {
                 pattern: /^[a-zA-Z0-9 ]+$/,
                 message: "L'adresse doit être alphanumérique!",
               },
-            ]}style={{ marginBottom: '8px' }} 
+            ]}
+            style={{ marginBottom: "8px" }}
           >
             <Input />
           </Form.Item>
@@ -134,40 +164,62 @@ function UpdateParamForm({ record, handleState }) {
               <Form.Item
                 name="tauxTndEur"
                 rules={[
-                  { required: true, message: "Veuillez saisir le taux de change TND!" },
+                  {
+                    required: true,
+                    message: "Veuillez saisir le taux de change TND!",
+                  },
                 ]}
-                style={{ width: '48%', marginRight: '4px',border: 'none' }}
+                style={{ width: "48%", marginRight: "4px", border: "none" }}
               >
-                <Input type="number" min={0} step={0.01} addonBefore={
-                    <Button size="small"
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  addonBefore={
+                    <Button
+                      size="small"
                       type="link"
                       onClick={() => setIsTndHistoryVisible(true)}
-                      style={{ padding: 0 }} 
-                    >TND</Button>} />
+                      style={{ padding: 0 }}
+                    >
+                      TND
+                    </Button>
+                  }
+                />
               </Form.Item>
               <Form.Item
                 name="tauxUsdEur"
                 rules={[
-                  { required: true, message: "Veuillez saisir le taux de change USD!" },
+                  {
+                    required: true,
+                    message: "Veuillez saisir le taux de change USD!",
+                  },
                 ]}
-                style={{ width: '48%',border: 'none' }}
+                style={{ width: "48%", border: "none" }}
               >
-                <Input type="number" step={0.01} min={0} addonBefore={
-                    <Button size="small"
+                <Input
+                  type="number"
+                  step={0.01}
+                  min={0}
+                  addonBefore={
+                    <Button
+                      size="small"
                       type="link"
                       onClick={() => setIsUsdHistoryVisible(true)}
-                      style={{ padding: 0 }} 
-                    >USD</Button>
+                      style={{ padding: 0 }}
+                    >
+                      USD
+                    </Button>
                   }
-                  />
+                />
               </Form.Item>
             </Input.Group>
           </Form.Item>
           <Form.Item>
-          <Space>
+            <Space>
               <Button type="primary" htmlType="submit">
                 Modifier
-              </Button>  
+              </Button>
               <Button type="default" onClick={handleCancel}>
                 Annuler
               </Button>
@@ -180,7 +232,6 @@ function UpdateParamForm({ record, handleState }) {
         visible={isTndHistoryVisible}
         onClose={() => setIsTndHistoryVisible(false)}
       />
-
       <ExchangeRateHistoryModal
         currency="USD"
         visible={isUsdHistoryVisible}

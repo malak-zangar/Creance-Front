@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   SearchOutlined,
   FolderOpenOutlined,
-  HistoryOutlined,FileTextOutlined,FileTextTwoTone,TeamOutlined
+  HistoryOutlined,FileTextTwoTone,TeamOutlined
 } from "@ant-design/icons";
 import {
   Button,
@@ -24,7 +24,6 @@ import { AddClientForm } from "../../components/Modals/Clients/AddClientForm";
 import DetailsClientForm from "../../components/Modals/Clients/DetailsClientForm";
 import api from "../../utils/axios";
 import moment from "moment";
-//import { ColorFactory } from "antd/es/color-picker/color";
 
 const ListeClients = () => {
   const [data, setData] = useState([]);
@@ -142,20 +141,7 @@ const ListeClients = () => {
         setTimeout(() => searchInput.current?.select(), 100);
       }
     },
-    /* render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{
-            backgroundColor: '#ffc069',
-            padding: 0,
-          }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ''}
-        />
-      ) : (
-        text
-      ),*/
+
     render: (text, record) => {
       if (isNestedArray) {
         return text.map((contract) =>
@@ -315,14 +301,12 @@ const ListeClients = () => {
 
           }
         );
-        console.log(response)
         
         if (response.status !== 200) {
           throw new Error('Network response was not ok');
       }
   
         const blob = new Blob([response.data], { type: 'text/csv' });
-      console.log('Blob:', blob);
   
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -352,16 +336,17 @@ const ListeClients = () => {
     };
   const columns = [
     {
-      title: "Client",
-      dataIndex: "username",
-      ...getColumnSearchProps("username"),
-    },
-    {
       title: "Date de création",
       dataIndex: "dateCreation",
       render: (text) => moment(text).format("DD/MM/YYYY"),
       sorter: (a, b) => moment(a.dateCreation)-(moment(b.dateCreation)),
     },
+    {
+      title: "Client",
+      dataIndex: "username",
+      ...getColumnSearchProps("username"),
+    },
+  
 
     {
       title: "Action(s)",

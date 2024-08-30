@@ -17,24 +17,17 @@ const Login = () => {
 
   const onFinish = async (values) => {
     try {
-      console.log(values);
       const response = await api.post("/auth/login", values);
-      console.log(response.data);
       localStorage.setItem("access_token", response.data.access_token);
       setaccess_token(response.data.access_token);
       message.success("Connexion réussie");
-      console.log(response.data.user);
       setCurrentUser(response.data.user.username);
-      console.log(currentUser);
 
       localStorage.setItem("currentUser", response.data.user.username);
-      console.log(localStorage.getItem("currentUser"));
 
       localStorage.setItem("currentUserId", response.data.user.id);
-      console.log(localStorage.getItem("currentUserId"));
 
       localStorage.setItem("currentUserEmail", response.data.user.email);
-      console.log(localStorage.getItem("currentUserEmail"));
 
       navigate("/dashboard");
     } catch (error) {

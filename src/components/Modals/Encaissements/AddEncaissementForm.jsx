@@ -45,7 +45,6 @@ export const AddEncaissementForm = ({ handleState }) => {
       .then((response) => {
         if (response.data) {
           setFactures(response.data);
-          console.log(response.data);
         } else {
           setFactures([]);
         }
@@ -57,8 +56,14 @@ export const AddEncaissementForm = ({ handleState }) => {
 
   useEffect(() => {
     fetchClients();
-    addForm.validateFields(["montantEncaisse"]);
-  }, [addForm]);
+    if (selectedFacture) {
+      addForm.setFieldsValue({
+        montant: formatMontant(selectedFacture.montant, selectedFacture.devise),
+        solde: formatMontant(selectedFacture.solde, selectedFacture.devise),
+      });
+    }
+    addForm.validateFields(["solde", "montant"]);
+  }, [addForm, selectedFacture]);
 
   const handleClientChange = (value) => {
     if (value) {
@@ -71,7 +76,7 @@ export const AddEncaissementForm = ({ handleState }) => {
   const handleFactureChange = (value) => {
     const facture = factures.find((facture) => facture.id === value);
     setSelectedFacture(facture);
-    setFactureMontantTotal(facture.montant); // Assurez-vous que 'montantTotal' est un champ de votre facture
+    setFactureMontantTotal(facture.montant); 
     setFactureSolde(facture.solde);
   };
 
@@ -82,7 +87,6 @@ export const AddEncaissementForm = ({ handleState }) => {
 
   const handleAddEncaissement = (values) => {
     const factureId = values.facture;
-    console.log(factureId)
     const selectedFacture = factures.find(
       (facture) => facture.id === factureId
     );
@@ -97,7 +101,6 @@ export const AddEncaissementForm = ({ handleState }) => {
       ...values,
       facture_numero: factureId,
       date: values.date.format("YYYY-MM-DD"),
-
     };
 
     Modal.confirm({
@@ -105,7 +108,7 @@ export const AddEncaissementForm = ({ handleState }) => {
       content: (
         <div>
           <p>
-            <strong>Référence:</strong> {reference}
+            <strong>Référence:</strong> {values.reference}
           </p>
           <p>
             <strong>Client:</strong>{" "}
@@ -133,7 +136,6 @@ export const AddEncaissementForm = ({ handleState }) => {
         api
           .post("/encaissement/create", dataToSend)
           .then((response) => {
-            console.log("Paiement added successfully:", response.data);
             notification.success({ message: "Paiement ajouté avec succès" });
 
             setShowAddForm(false);
@@ -166,24 +168,20 @@ export const AddEncaissementForm = ({ handleState }) => {
 
   const handleDisabledDate = (current) => {
     const currentDate = moment();
-    console.log(selectedFacture);
     if (!selectedFacture) {
       return currentDate ? current > currentDate.startOf("day") : false;
     }
 
     const dateDebutFacture = moment(selectedFacture.date);
-    console.log(dateDebutFacture); // Utiliser la date de début de la facture
     return (
       current < dateDebutFacture.startOf("day") ||
       current > currentDate.endOf("day")
-    ); // Désactiver les dates avant la date de début
+    );
   };
 
   const validateMontantEncaisse = () => {
     const solde = selectedFacture?.solde;
-    console.log(solde);
     const montantEncaisse = addForm.getFieldValue("montantEncaisse");
-    console.log(montantEncaisse);
 
     if (montantEncaisse > solde || montantEncaisse < 1) {
       return Promise.reject(
@@ -192,7 +190,41 @@ export const AddEncaissementForm = ({ handleState }) => {
         )
       );
     }
+    const validPattern =
+      selectedFacture.devise === "TND" ? /^\d+\.\d{3}$/ : /^\d+\.\d{2}$/;
+    const message =
+      selectedFacture.devise === "TND"
+        ? "Le montant encaissé doit comporter exactement 3 décimales pour TND!"
+        : "Le montant encaissé doit comporter exactement 2 décimales pour EUR ou USD!";
+    if (!validPattern.test(montantEncaisse)) {
+      return Promise.reject(message);
+    }
     return Promise.resolve();
+  };
+
+  const formatMontant = (value, devise) => {
+    if (!value) return "";
+    const numberValue = parseFloat(value);
+    if (isNaN(numberValue)) return value;
+    return devise === "TND"
+      ? numberValue.toFixed(3) 
+      : numberValue.toFixed(2); 
+  };
+
+  const handleBlurSolde = (e) => {
+    const formattedValue = formatMontant(
+      e.target.value,
+      selectedFacture.devise
+    );
+    addForm.setFieldsValue({ solde: formattedValue });
+  };
+
+  const handleBlurMontant = (e) => {
+    const formattedValue = formatMontant(
+      e.target.value,
+      selectedFacture.devise
+    );
+    addForm.setFieldsValue({ montant: formattedValue });
   };
 
   return (
@@ -318,14 +350,24 @@ export const AddEncaissementForm = ({ handleState }) => {
               <Form.Item
                 label={`Montant TTC de la Facture (${selectedFacture.devise})`}
                 style={{ marginBottom: "8px" }}
+                name="montant"
               >
-                <Input value={selectedFacture.montant} disabled />
+                <Input
+                  value={selectedFacture.montant}
+                  onBlur={handleBlurMontant}
+                  disabled
+                />
               </Form.Item>
               <Form.Item
                 label={`Solde de la Facture (${selectedFacture.devise})`}
                 style={{ marginBottom: "8px" }}
+                name="solde"
               >
-                <Input value={selectedFacture.solde} disabled />
+                <Input
+                  value={selectedFacture.solde}
+                  onBlur={handleBlurSolde}
+                  disabled
+                />
               </Form.Item>
               <Form.Item
                 name="montantEncaisse"
@@ -345,7 +387,7 @@ export const AddEncaissementForm = ({ handleState }) => {
                 <Input
                   type="number"
                   min={1}
-                  step="0.001"
+                  step={selectedFacture.devise === "TND" ? "0.001" : "0.01"}
                   placeholder="Montant à encaisser "
                 />
               </Form.Item>

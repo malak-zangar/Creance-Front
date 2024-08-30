@@ -1,9 +1,7 @@
-import { Button, DatePicker, Form, Input, Modal, notification, Select, Space, Tooltip } from "antd";
+import { Button, Form, Input, Modal, notification, Select, Space, Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { EditOutlined } from '@ant-design/icons';
 import api from "../../../utils/axios";
-import moment from "moment";
-import dayjs from 'dayjs';
 
 function UpdateEncaissementForm({ record, handleState }) {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -34,13 +32,11 @@ function UpdateEncaissementForm({ record, handleState }) {
   };
 
   const fetchFactures = (clientId) => {
-    console.log(clientId)
     api
       .get(`/facture/getByClient/actif/${clientId}`)
       .then((response) => {
         if (response.data) {
           setFactures(response.data);
-          console.log(response.data);
         } else {
           setFactures([]);
         }
@@ -76,7 +72,6 @@ function UpdateEncaissementForm({ record, handleState }) {
         .get(`/facture/getByID/${record.facture_id}`)
         .then((response) => {
           setFacture(response.data.facture); 
-          console.log(facture)
         })
     }
 
@@ -84,14 +79,24 @@ function UpdateEncaissementForm({ record, handleState }) {
 fetchClients();
   }, [record,editForm]);
 
+  const formatMontant = (value, devise) => {
+    if (!value) return "";
+    const numberValue = parseFloat(value);
+    if (isNaN(numberValue)) return value;
+    return devise === "TND"
+      ? numberValue.toFixed(3) // Format TND (3 decimals)
+      : numberValue.toFixed(2); // Format other currencies (2 decimals)
+  };
+
   const handleCancel = () => {
     setIsEditModalVisible(false);
     editForm.setFieldsValue({ ...record });
   };
 
   const handleUpdate = () => {
-    editForm.setFieldsValue({ ...record });
-    console.log(record)
+    const formattedMontantEncaisse = formatMontant(record.montantEncaisse, record.devise);
+
+    editForm.setFieldsValue({ ...record,  montantEncaisse: formattedMontantEncaisse, });
     setIsEditModalVisible(true);
   };
 
@@ -106,7 +111,6 @@ fetchClients();
   };
 
   const handleEditEncaissement = (values) => {
-    console.log(values)
     api
       .put(`/encaissement/updateEncaissement/${record.key}`, values)
       .then((response) => {
@@ -119,7 +123,6 @@ fetchClients();
         notification.success({ message: "Encaissement modifié avec succès" });
       })
       .catch((error) => {
-        console.log(error)
         notification.error({
           description:
             error?.response?.data?.error ||
@@ -131,10 +134,8 @@ fetchClients();
 
 
   const validateMontantEncaisse = () => {
-    const solde = facture?.solde;
-    console.log(solde);
+    const solde = record?.solde;
     const montantEncaisse = editForm.getFieldValue("montantEncaisse");
-    console.log(montantEncaisse);
 
     if (montantEncaisse > solde || montantEncaisse < 1) {
       return Promise.reject(
@@ -143,9 +144,20 @@ fetchClients();
         )
       );
     }
+    const validPattern = record.devise === "TND" ? /^\d+\.\d{3}$/ : /^\d+\.\d{2}$/;
+    const message =
+      record.devise === "TND"
+        ? "Le montant encaissé doit comporter exactement 3 décimales pour TND!"
+        : "Le montant encaissé doit comporter exactement 2 décimales pour EUR ou USD!";
+    if (!validPattern.test(montantEncaisse)) {
+      return Promise.reject(message);
+    }
     return Promise.resolve();
   };
-
+  const handleBlurMontantEncaisse = (e) => {
+    const formattedValue = formatMontant(e.target.value, record.devise);
+    editForm.setFieldsValue({ montantEncaisse: formattedValue });
+  };
   return (
     <>  <Tooltip title="Modifier">
       <Button
@@ -282,7 +294,7 @@ fetchClients();
           )}
           <Form.Item
             name="montantEncaisse"
-            label={`Montant encaissé en ${selectedFacture?.devise}`}
+            label={`Montant encaissé en ${facture?.devise}`}
           
             rules={[
               {
@@ -295,9 +307,13 @@ fetchClients();
             ]}
             style={{ marginBottom: '8px' }}
           >
-            <Input type="number"   min={1}
-                  step="0.001"
-                  placeholder="Montant à encaisser " />
+            <Input
+                          onBlur={handleBlurMontantEncaisse}
+
+           // type="number" 
+              min={1}
+            step={record.devise === "TND" ? "0.001" : "0.01"}
+            placeholder="Montant à encaisser " />
           </Form.Item>
           <Form.Item
             name="date"

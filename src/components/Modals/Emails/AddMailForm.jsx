@@ -1,11 +1,4 @@
-import {
-  Button,
-  Form,
-  Input,
-  Modal,
-  notification,
-  Space,
-} from "antd";
+import { Button, Form, Input, Modal, notification, Space } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import api from "../../../utils/axios";
@@ -56,18 +49,15 @@ export const AddMailForm = () => {
             api
               .post("/emailcascade/create", dataToSend)
               .then((response) => {
-                console.log("Email ajouté avec succès:", response.data.emailcascade);
 
                 setShowAddForm(false);
                 notification.success({ message: "Email ajouté avec succès" });
                 addForm.resetFields();
-                console.log(response.data.emailcascade.id);
 
                 handleState({
                   ...response.data.emailcascade,
                   key: response.data.emailcascade.id,
                 });
-
               })
               .catch((error) => {
                 notification.error({
@@ -80,7 +70,7 @@ export const AddMailForm = () => {
           onCancel() {
             console.log("Ajout de l'email annulé");
           },
-          style: { top: 15 }, 
+          style: { top: 15 },
         });
       })
       .catch((error) => {
@@ -90,12 +80,11 @@ export const AddMailForm = () => {
 
   return (
     <>
-      <Button  style={{ fontSize: '18px' }}
+      <Button
+        style={{ fontSize: "18px" }}
         onClick={() => setShowAddForm(true)}
         icon={<PlusCircleOutlined />}
-      >
-       
-      </Button>
+      ></Button>
       <Modal
         title="Ajouter un nouveau email"
         visible={showAddForm}
@@ -154,9 +143,7 @@ export const AddMailForm = () => {
                 message:
                   "L'objet ne doit pas commencer ou finir par un espace!",
               },
-         
             ]}
-
             style={{ marginBottom: "8px" }}
           >
             <Input />
@@ -177,13 +164,8 @@ export const AddMailForm = () => {
                 max: 1000,
                 message: "Le corps doit comporter au plus 900 lettres!",
               },
-             /* {
-                pattern: /^\S.*\S$|^\S{1,2}$/,
-                message:
-                  "Le corps ne doit pas commencer ou finir par un espace!",
-              },*/
             ]}
-            normalize={(value) => value.trim()} // Supprime les espaces en début/fin
+            normalize={(value) => value.trim()}
             style={{ marginBottom: "8px" }}
           >
             <TextArea rows={10} placeholder="Corps de l'email" />

@@ -46,6 +46,27 @@ const ActifFactures = () => {
     setSearchText("");
   };
 
+  const formatMontant = (value, devise) => {
+    if (value === 0) {
+      return new Intl.NumberFormat("fr-FR", {
+        style: "currency",
+        currency: devise || "EUR",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(0);
+    }
+    if (!value || !devise) return "";
+
+    // Liste des devises supportées
+    const supportedCurrencies = ["EUR", "USD", "TND"];
+    const currency = supportedCurrencies.includes(devise) ? devise : "";  
+    return  new Intl.NumberFormat("fr-FR", {
+      currency: currency,
+      style: "currency",
+      minimumFractionDigits: devise === "TND" ? 3 : 2,
+      maximumFractionDigits: devise === "TND" ? 3 : 2,
+    }).format(value);};
+
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({
       setSelectedKeys,
@@ -173,6 +194,7 @@ const ActifFactures = () => {
           devise: facture.devise,
           echeance: moment(facture.echeance).format("YYYY-MM-DD"),
           retard: facture.retard,
+          actifRelance : facture.actifRelance,
           statut: facture.statut,
           dateFinalisation: facture.dateFinalisation
             ? moment(facture.dateFinalisation).format("YYYY-MM-DD")
@@ -194,7 +216,6 @@ const ActifFactures = () => {
   }, []);
 
   const ToListArchive = () => {
-    console.log("Button ToListArchive clicked");
     navigate("/factures/archive");
   };
 
@@ -216,7 +237,6 @@ const ActifFactures = () => {
   };
 
   const Report = (key) => {
-    console.log("Generating facture with key: ", key);
     api
       .get(`/facture/auto/${key}`, { responseType: "blob" })
       .then((response) => {
@@ -249,6 +269,7 @@ const ActifFactures = () => {
     { label: "Actif", value: "actif" },
     { label: "Client", value: "client" },
     { label: "Contrat", value: "contrat" },
+    { label : "Relance active", value: "actifRelance"},
   ];
 
   const showModal = () => {
@@ -264,13 +285,11 @@ const ActifFactures = () => {
           responseType: "blob",
         }
       );
-      console.log(response);
 
       if (response.status !== 200) {
         throw new Error("Network response was not ok");
       }
       const text = await response.data.text();
-      console.log("CSV Content:", text);
       const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
 
       const url = window.URL.createObjectURL(blob);
@@ -348,8 +367,7 @@ const ActifFactures = () => {
       title: "Montant TTC",
       dataIndex: "montant",
       ...getColumnSearchProps("montant"),
-      sorter: (a, b) => a.montant - b.montant,
-      render: (_, record) => `${record.montant} ${record.devise}`,
+      render: (_, record) => formatMontant(record.montant, record.devise),
     },
     {
       title: "Statut",
@@ -389,7 +407,7 @@ const ActifFactures = () => {
               onClick={() => Report(record.key)}
             ></Button>
           </Tooltip>
-          <DetailsFactureForm record={record} />
+          <DetailsFactureForm record1={record} />
         </Space>
       ),
     },

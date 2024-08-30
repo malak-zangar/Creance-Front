@@ -3,7 +3,6 @@ import {
   Modal,
   Button,
   Descriptions,
-  Card,
   Avatar,
   Tooltip,
   notification,
@@ -21,7 +20,6 @@ const DetailsContratForm = ({ record }) => {
 
   const handleDetails = () => {
     setIsDetailsModalVisible(true);
-    console.log(record);
   };
 
   const handleClose = () => {
@@ -33,12 +31,6 @@ const DetailsContratForm = ({ record }) => {
   };
 
   const Report = (key, reference) => {
-    console.log(
-      "Generating contract with key: ",
-      key,
-      " and reference : ",
-      reference
-    );
     api
       .get(`/contrat/contratFile/${key}/${reference}`, { responseType: "blob" })
       .then((response) => {
@@ -54,6 +46,14 @@ const DetailsContratForm = ({ record }) => {
         );
       });
   };
+  const formatMontant = (value, devise) => {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: devise,
+      minimumFractionDigits: devise === "TND" ? 3 : 2,
+      maximumFractionDigits: devise === "TND" ? 3 : 2,
+    }).format(value);
+  };
 
   const renderDescriptions = () => {
     const fields = [
@@ -62,7 +62,7 @@ const DetailsContratForm = ({ record }) => {
         label: "Date de fin",
         value: record?.dateFin && formatDate(record?.dateFin),
       },
-      { label: "Délai de paiement (en jours)", value: record?.delai },
+      { label: "Délai de paiement", value: record?.delai + " jours" },
       { label: "Client", value: record?.client },
       { label: "Type de contrat", value: record?.type },
       {
@@ -71,7 +71,7 @@ const DetailsContratForm = ({ record }) => {
           record?.total !== undefined &&
           record?.total !== null &&
           record?.devise
-            ? `${record?.total} ${record?.devise}`
+            ? formatMontant(record?.total, record?.devise)
             : null,
       },
       {
@@ -80,7 +80,7 @@ const DetailsContratForm = ({ record }) => {
           record?.prixJourHomme !== undefined &&
           record?.prixJourHomme !== null &&
           record?.devise
-            ? `${record?.prixJourHomme} ${record?.devise}`
+            ? formatMontant(record?.prixJourHomme, record?.devise)
             : null,
       },
       {
@@ -93,7 +93,7 @@ const DetailsContratForm = ({ record }) => {
           record?.montantParMois !== undefined &&
           record?.montantParMois !== null &&
           record?.devise
-            ? `${record?.montantParMois} ${record?.devise}`
+            ? formatMontant(record?.montantParMois, record?.devise)
             : null,
       },
       {

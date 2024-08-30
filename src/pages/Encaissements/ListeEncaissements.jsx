@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Table,
-  Button,Modal,
+  Button,
+  Modal,
   Typography,
   Space,
   Input,
@@ -11,7 +12,8 @@ import {
 } from "antd";
 import Highlighter from "react-highlight-words";
 import {
-  SearchOutlined,DeleteTwoTone,
+  SearchOutlined,
+  DeleteTwoTone,
   FilterTwoTone,
   EyeTwoTone,
   EuroCircleOutlined,
@@ -152,63 +154,34 @@ const ListeEncaissements = () => {
     }
   }, [dateRange]);
 
-const Delete = (key) => {
-  Modal.confirm({
-    title: "Êtes-vous sûr de vouloir supprimer cet encaissement?",
-    content: "Cette action est irréversible.",
-    okText: "Oui",
-    okType: "danger",
-    cancelText: "Non",
-    onOk: () => {
-      api
-        .delete(`/encaissement/cancelEncaissement/${key}`)
-        .then((response) => {
-          console.log(response);
-          handleFilter();
-          notification.success({
-            message: "Encaissement supprimé avec succès",
+  const Delete = (key) => {
+    Modal.confirm({
+      title: "Êtes-vous sûr de vouloir supprimer cet encaissement?",
+      content: "Cette action est irréversible.",
+      okText: "Oui",
+      okType: "danger",
+      cancelText: "Non",
+      onOk: () => {
+        api
+          .delete(`/encaissement/cancelEncaissement/${key}`)
+          .then((response) => {
+            handleFilter();
+            notification.success({
+              message: "Encaissement supprimé avec succès",
+            });
+          })
+          .catch((error) => {
+            notification.error({
+              message: "Erreur lors de la suppression de l'encaissement!",
+              description: error.toString(),
+            });
           });
-        })
-        .catch((error) => {
-          notification.error({
-            message: "Erreur lors de la suppression de l'encaissement!",
-            description: error.toString(),
-          });
-        });
-    },
-  });
-}
-
-  const Report = (key) => {
-    console.log("Generating report with key: ", key);
-    api
-      .get(`/encaissement/recu/${key}`, {
-        responseType: "blob",
-      })
-      .then((response) => {
-        const url = window.URL.createObjectURL(
-          new Blob([response.data], { type: "application/pdf" })
-        );
-        window.open(url);
-
-        /* 
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `report_${key}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        fetchData();
-        notification.success({ message: "Rapport paiement généré avec succès" });*/
-      })
-      .catch((error) => {
-        notification.error("There was an error generating the report!", error);
-      });
+      },
+    });
   };
 
+
   const handleAddEncaissementState = (record) => {
-    //setData([record, ...data]);
   };
 
   const handleEncaissements = (record) => {
@@ -221,8 +194,7 @@ const Delete = (key) => {
     });
 
     setData(tempEncaissement);
-    //fetchData();
-    handleFilter()
+    handleFilter();
   };
 
   const fetchData = (startDate, endDate) => {
@@ -230,38 +202,39 @@ const Delete = (key) => {
     api
       .get(`/encaissement/getAll?start=${startDate}&end=${endDate}`)
       .then((response) => {
-       // setData(
-          const fetchedData = response.data.map((encaissement) => ({
-            key: encaissement.id,
-            reference: encaissement.reference,
-            date: moment(encaissement.date).format("YYYY-MM-DD"),
-            modeReglement: encaissement.modeReglement,
-            montantEncaisse: encaissement.montantEncaisse,
-            facture_id: encaissement.facture_id,
-            facture: encaissement.facture,
-            client: encaissement.client,
-            contrat: encaissement.contrat,
-            devise: encaissement.devise,
-            contrat_id: encaissement.contrat_id,
-            client_id: encaissement.client_id,
-          }));
-          if (fetchedData.length === 0) {
-            notification.info({
-              message: "Aucun paiement trouvé",
-              description: "Il n'y a aucun paiement pour la période sélectionnée.",
-            });
-          }
-          setData(fetchedData);
+        const fetchedData = response.data.map((encaissement) => ({
+          key: encaissement.id,
+          reference: encaissement.reference,
+          date: moment(encaissement.date).format("YYYY-MM-DD"),
+          modeReglement: encaissement.modeReglement,
+          montantEncaisse: encaissement.montantEncaisse,
+          facture_id: encaissement.facture_id,
+          facture: encaissement.facture,
+          client: encaissement.client,
+          contrat: encaissement.contrat,
+          devise: encaissement.devise,
+          contrat_id: encaissement.contrat_id,
+          client_id: encaissement.client_id,
+        }));
+        if (fetchedData.length === 0) {
+          notification.info({
+            message: "Aucun paiement trouvé",
+            description:
+              "Il n'y a aucun paiement pour la période sélectionnée.",
+          });
+        }
+        setData(fetchedData);
 
-        console.log(data);
         setLoading(false);
       })
       .catch((error) => {
         notification.error({
           message: "Erreur de récupération des paiements",
-          description: "Il y a eu une erreur lors de la récupération des paiements.",
+          description:
+            "Il y a eu une erreur lors de la récupération des paiements.",
         });
-        setLoading(false);      });
+        setLoading(false);
+      });
   };
 
   const handleResetModel = () => {
@@ -338,13 +311,7 @@ const Delete = (key) => {
             record={record}
             handleState={handleEncaissements}
           />{" "}
-          <Tooltip title="Visualiser">
-            <Button
-              icon={<EyeTwoTone />}
-              size="small"
-              onClick={() => Report(record.key)}
-            ></Button>
-          </Tooltip>
+
           <DetailsEncaissementForm record={record} />
           <Tooltip title="Supprimer">
             <Button
@@ -371,8 +338,8 @@ const Delete = (key) => {
         <AddEncaissementForm handleState={handleAddEncaissementState} />
       </Space>
 
-      {(!data.length || dateRange.length === 0) ? ( // Check if data array is empty or date range is cleared
-              <div>
+      {!data.length || dateRange.length === 0 ? ( // Check if data array is empty or date range is cleared
+        <div>
           <Typography.Title level={5}>
             Veuillez sélectionner une période pour afficher les paiements.
           </Typography.Title>
@@ -413,8 +380,9 @@ const Delete = (key) => {
             columns={columns}
             dataSource={data}
             pagination={{
-              total: data.length, 
-              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
+              total: data.length,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} de ${total} éléments`,
               pageSize: 10,
             }}
             showSorterTooltip={{ target: "sorter-icon" }}

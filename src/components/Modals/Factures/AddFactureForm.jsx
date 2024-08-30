@@ -1,387 +1,3 @@
-/*import {
-  Button,
-  DatePicker,
-  Form,
-  Input,
-  Modal,
-  notification,
-  Select,
-  Space,
-} from "antd";
-import { PlusCircleOutlined } from "@ant-design/icons";
-import { useState, useEffect } from "react";
-import api from "../../../utils/axios";
-import moment from "moment";
-
-export const AddFactureForm = ({ handleState }) => {
-  const { Option } = Select;
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [addForm] = Form.useForm();
-  const [clients, setClients] = useState([]);
-  const [contrats, setContrats] = useState([]);
-  const [contratDevise, setContratDevise] = useState("");
-  const [contratDateDebut, setContratDateDebut] = useState(moment());
-  const [contratDateFin, setContratDateFin] = useState(moment());
-  const [contratDelais, setContratDelais] = useState("");
-
-  const fetchClients = () => {
-    api
-      .get("/user/getAllActif")
-      .then((response) => {
-        setClients(
-          response.data
-          .filter(client => client.contratsEncours.length > 0)
-          .map(client => ({
-            id: client.id,
-            username: client.username,
-          }))
-        );
-      })
-      .catch((error) => {
-        notification.error("Error fetching clients:", error);
-      });
-  };
-
- 
-
-  const handleDateCreationDisabledDate = (current) => {
-    const delai = addForm.getFieldValue('delai'); // Récupérer le délai du formulaire
-    if (!contratDateDebut || !contratDateFin) {
-      return false;
-    }
-    const currentDateWithDelai = current.clone().add(delai, 'days');
-    return current < contratDateDebut.startOf("day") || currentDateWithDelai > contratDateFin.endOf("day");
-};
-
-  const validateDelai = (e) => {
-    let value = e.target.value;
-    value = value.replace(/,/g, "");
-    if (parseInt(value, 10) < 1) {
-      value = 1;
-    }
-   
-    addForm.setFieldsValue({ delai: value });
-  };
-  
-
-  const fetchContrats = (clientId) => {
-    api
-      .get(`/contrat/getActualByClient/${clientId}`)
-      .then((response) => {
-        if (response.data.contracts) {
-          setContrats([response.data.contracts]);
-        } else {
-          setContrats([]);
-          setContratDelais("");
-
-        }
-      })
-      .catch((error) => {
-        notification.error("Error fetching contrats:", error);
-      });
-  };
-
-  useEffect(() => {
-    fetchClients();
-    addForm.validateFields(["montantEncaisse"]);
-  }, [addForm]);
-
-  const handleClientChange = (value) => {
-    if (value) {
-      setContrats([]);
-      setContratDelais("");
-
-      fetchContrats(value);
-
-    } else {
-      setContrats([]);
-      setContratDelais("");
-    }
-  };
-
-
-
-  const handleContratChange = (value) => {
-    const contrat = contrats.flat().find((contrat) => contrat.id === value);
-    if (contrat) {
-      setContratDevise(contrat.devise);
-      setContratDelais(contrat.delai)
-      setContratDateDebut(moment(contrat.dateDebut));
-      setContratDateFin(moment(contrat.dateFin));
-    }
-  };
-
-  const handleAddFacture = (values) => {
-    const contratId = values.contrat;
-
-    const dataToSend = {
-      ...values,
-      contrat_id: contratId,
-      date: values.date.format("YYYY-MM-DD"),
-    };
-
-    Modal.confirm({
-      title: "Confirmer l'ajout de la facture",
-      content: (
-        <div>
-          <p>
-            <strong>Référence:</strong> {values.numero}
-          </p>
-          <p>
-            <strong>Client:</strong>{" "}
-            {clients.find((client) => client.id === values.client)?.username}
-          </p>
-          <p>
-            <strong>Contrat:</strong>{" "}
-            {
-              contrats.flat().find((contrat) => contrat.id === values.contrat)
-                ?.reference
-            }
-          </p>
-          <p>
-            <strong>Montant:</strong> {values.montant}
-          </p>
-          <p>
-            <strong>Délai de paiement:</strong> {values.delai} jours
-          </p>
-          <p>
-            <strong>Montant encaissé:</strong> {values.montantEncaisse}
-          </p>
-       
-          <p>
-            <strong>Date de facture:</strong> {values.date.format("YYYY-MM-DD")}
-          </p>
-        </div>
-      ),
-      okText: "Confirmer",
-      cancelText: "Annuler",
-      onOk: () => {
-        api
-          .post("/facture/create", dataToSend)
-          .then((response) => {
-            notification.success({ message: "Facture ajoutée avec succès" });
-
-            setShowAddForm(false);
-            handleState({
-              ...response.data.facture,
-              key: response.data.facture.id,
-            });
-            addForm.resetFields();
-          })
-          .catch((error) => {
-            notification.error({
-              description:
-                error?.response?.data?.erreur ||
-                `Une erreur est survenue lors de la création de la facture "${values?.numero}"`,
-            });
-          });
-      },
-      onCancel() {
-        console.log("Ajout de la facture annulé");
-      },
-    });
-  };
-
-  const handleCancel = () => {
-    setShowAddForm(false);
-    addForm.resetFields();
-  };
-
-  const validateMontantEncaisse = () => {
-    const montant = addForm.getFieldValue("montant");
-    const montantEncaisse = addForm.getFieldValue("montantEncaisse");
-
-    if (montantEncaisse > montant) {
-      return Promise.reject(
-        new Error("Le montant encaissé ne doit pas dépasser le montant total!")
-      );
-    }
-    return Promise.resolve();
-  };
-
-  return (
-    <>
-      <Button
-        type="primary"
-        onClick={() => setShowAddForm(true)}
-        icon={<PlusCircleOutlined />}
-      >
-        Ajouter une Facture
-      </Button>
-      <Modal
-        title="Ajouter une nouvelle facture"
-        visible={showAddForm}
-        onCancel={handleCancel}
-        footer={null}
-        style={{ top: 15 }}
-      >
-        <Form
-          layout="vertical"
-          name="addFactureForm"
-          onFinish={handleAddFacture}
-          form={addForm}
-        >
-          <Form.Item
-            name="numero"
-            label="Référence de facture"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir la référence de la facture!",
-              },
-              { min: 3, message: "La référence doit comporter au moins 3 lettres!" },
-              { max: 25, message: "La référence doit comporter au plus 25 lettres!" },
-              {
-                pattern: /^[a-zA-Z0-9]+$/,
-                message: "La référence doit être alphanumérique!",
-              },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <Input />
-          </Form.Item>
-  
-          <Form.Item
-            name="client"
-            label="Client"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez choisir le client!",
-              },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <Select
-              placeholder="Sélectionner un client"
-              allowClear
-              onChange={handleClientChange}
-            >
-              {clients.map((client) => (
-                <Option key={client.id} value={client.id}>
-                  {client.username}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          {contrats.length > 0 && (
-            <Form.Item
-              name="contrat"
-              label="Contrat"
-              rules={[
-                {
-                  required: true,
-                  message: "Veuillez choisir le contrat!",
-                },
-              ]}
-              style={{ marginBottom: "8px" }}
-            >
-              <Select
-                placeholder="Sélectionner un contrat"
-                allowClear
-                onChange={handleContratChange}
-              >
-                {contrats.flat().map((contrat) => (
-                  <Option key={contrat.id} value={contrat.id}>
-                    {contrat.reference}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          )}
- <Form.Item 
-            name="contratDelais" 
-            initialValue={contratDelais} 
-            label={`Délai de paiement (en jours)`}
-            style={{ marginBottom: "8px" }}
-          >
-            <Input     value={contratDelais}
-              type="number"
-              placeholder="Délai de paiement (en jours)"
-              min={1}
-              onChange={validateDelai}
-              onKeyPress={(e) => {
-                if (e.key === ",") {
-                  e.preventDefault();
-                }
-              }}
-            />
-          </Form.Item>
-
-        
-<Form.Item
-            name="date"
-            label="Date d'émission"
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir la date d'émission de la facture!",
-              },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <DatePicker
-              style={{ width: "100%" }}
-              disabledDate={handleDateCreationDisabledDate}
-            />
-          </Form.Item>
-          <Form.Item
-            name="montant"
-            label={`Montant TTC de la facture en : ${contratDevise}`}
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir le montant de la facture!",
-              },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <Input
-              type="number"
-              min={1}
-              step="0.001"
-              placeholder="Montant TTC"
-              onChange={() => addForm.validateFields(["montantEncaisse"])}
-            />
-          </Form.Item>
-          <Form.Item
-            name="montantEncaisse"
-            label={`Montant encaisse de la facture en : ${contratDevise}`}
-            rules={[
-              {
-                required: true,
-                message: "Veuillez saisir le montant encaissé de la facture!",
-              },
-              {
-                validator: validateMontantEncaisse,
-              },
-            ]}
-            style={{ marginBottom: "8px" }}
-          >
-            <Input
-              type="number"
-              min={1}
-              step="0.001"
-              placeholder="Montant encaissé"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                Ajouter
-              </Button>
-              <Button key="cancel" onClick={handleCancel}>
-                Annuler
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </>
-  );
-};
-*/
-
 import {
   Button,
   DatePicker,
@@ -414,15 +30,18 @@ export const AddFactureForm = ({ handleState }) => {
       .then((response) => {
         setClients(
           response.data
-          .filter(client => client.contratsEncours.length > 0)
-          .map(client => ({
-            id: client.id,
-            username: client.username,
-          }))
+            .filter((client) => client.contratsEncours.length > 0)
+            .map((client) => ({
+              id: client.id,
+              username: client.username,
+            }))
         );
       })
       .catch((error) => {
-        notification.error("Error fetching clients:", error);
+        notification.error({
+          message: "Error fetching clients:",
+          description: error.message,
+        });
       });
   };
 
@@ -430,19 +49,11 @@ export const AddFactureForm = ({ handleState }) => {
     if (!contratDateDebut || !contratDateFin) {
       return false;
     }
-    const currentDateWithDelai = current.clone().add(contratDelais, 'days');
-    return current < contratDateDebut.startOf("day") || currentDateWithDelai > contratDateFin.endOf("day");
-  };
-
-  const validateDelai = (e) => {
-    let value = e.target.value;
-    value = value.replace(/,/g, "");
-    if (parseInt(value, 10) < 1) {
-      value = 1;
-    }
-   
-    setContratDelais(value);
-    addForm.setFieldsValue({ contratDelais: value });
+    const currentDateWithDelai = current.clone().add(contratDelais, "days");
+    return (
+      current < contratDateDebut.startOf("day") ||
+      currentDateWithDelai > contratDateFin.endOf("day")
+    );
   };
 
   const fetchContrats = (clientId) => {
@@ -453,27 +64,30 @@ export const AddFactureForm = ({ handleState }) => {
           setContrats([response.data.contracts]);
         } else {
           setContrats([]);
-          setContratDelais("");
+          setContratDelais(null);
         }
       })
       .catch((error) => {
-        notification.error("Error fetching contrats:", error);
+        notification.error({
+          message: "Erreur lors de la récupération des contrats:",
+          description: error.message,
+        });
       });
   };
 
   useEffect(() => {
     fetchClients();
-    addForm.validateFields(["montantEncaisse"]);
+    addForm.validateFields(["montant", "montantEncaisse"]);
   }, [addForm]);
 
   const handleClientChange = (value) => {
     if (value) {
       setContrats([]);
-      setContratDelais("");
+      setContratDelais(null);
       fetchContrats(value);
     } else {
       setContrats([]);
-      setContratDelais("");
+      setContratDelais(null);
     }
   };
 
@@ -525,7 +139,8 @@ export const AddFactureForm = ({ handleState }) => {
             <strong>Délai de paiement:</strong> {values.contratDelais} jours
           </p>
           <p>
-            <strong>Montant encaissé:</strong> {values.montantEncaisse} {contratDevise}
+            <strong>Montant encaissé:</strong> {values.montantEncaisse}{" "}
+            {contratDevise}
           </p>
           <p>
             <strong>Date de facture:</strong> {values.date.format("YYYY-MM-DD")}
@@ -539,7 +154,6 @@ export const AddFactureForm = ({ handleState }) => {
           .post("/facture/create", dataToSend)
           .then((response) => {
             notification.success({ message: "Facture ajoutée avec succès" });
-
             setShowAddForm(false);
             handleState({
               ...response.data.facture,
@@ -564,35 +178,58 @@ export const AddFactureForm = ({ handleState }) => {
   const handleCancel = () => {
     setShowAddForm(false);
     addForm.resetFields();
+    setContratDelais("");
+    setContratDevise("");
+    setContratDateDebut(moment());
+    setContratDateFin(moment());
   };
 
-  /*const validateMontantEncaisse = () => {
-    const montant = addForm.getFieldValue("montant");
+  const validateMontant = (rule, value) => {
     const montantEncaisse = addForm.getFieldValue("montantEncaisse");
 
-    if (montantEncaisse > montant) {
+    const valueStr = value ? value.toString() : "";
+    if (valueStr === "" || montantEncaisse === "") {
+      return Promise.reject("Les montants doivent être des nombres valides!");
+    }
+
+    if (parseFloat(valueStr) < parseFloat(montantEncaisse)) {
       return Promise.reject(
-        new Error("Le montant encaissé ne doit pas dépasser le montant total!")
+        "Le montant ne peut pas être inférieur au montant encaissé!"
       );
     }
+
+    const validPattern =
+      contratDevise === "TND" ? /^\d+\.(\d{3})$/ : /^\d+\.(\d{2})$/;
+    const message =
+      contratDevise === "TND"
+        ? "Le montant doit comporter exactement 3 décimales pour TND!"
+        : "Le montant doit comporter exactement 2 décimales pour EUR ou USD!";
+
+    if (!validPattern.test(valueStr)) {
+      return Promise.reject(message);
+    }
+
     return Promise.resolve();
-  };*/
-  const validateMontantEncaisse = () => {
-    const montant = parseFloat(addForm.getFieldValue("montant"));
-    const montantEncaisse = parseFloat(addForm.getFieldValue("montantEncaisse"));
-  
-    if (isNaN(montant) || isNaN(montantEncaisse)) {
-      return Promise.reject(new Error("Les montants doivent être des nombres valides!"));
-    }
-  
-    if (montantEncaisse > montant) {
+  };
+
+  const validateMontantEncaisse = (rule, value) => {
+    const montant = addForm.getFieldValue("montant");
+    if (value > montant) {
       return Promise.reject(
-        new Error("Le montant encaissé ne doit pas dépasser le montant total!")
+        "Le montant encaissé ne peut pas être supérieur au montant total!"
       );
+    }
+    const validPattern =
+      contratDevise === "TND" ? /^\d+\.\d{3}$/ : /^\d+\.\d{2}$/;
+    const message =
+      contratDevise === "TND"
+        ? "Le montant encaissé doit comporter exactement 3 décimales pour TND!"
+        : "Le montant encaissé doit comporter exactement 2 décimales pour EUR ou USD!";
+    if (!validPattern.test(value)) {
+      return Promise.reject(message);
     }
     return Promise.resolve();
   };
-  
 
   return (
     <>
@@ -624,8 +261,14 @@ export const AddFactureForm = ({ handleState }) => {
                 required: true,
                 message: "Veuillez saisir la référence de la facture!",
               },
-              { min: 3, message: "La référence doit comporter au moins 3 lettres!" },
-              { max: 25, message: "La référence doit comporter au plus 25 lettres!" },
+              {
+                min: 3,
+                message: "La référence doit comporter au moins 3 lettres!",
+              },
+              {
+                max: 25,
+                message: "La référence doit comporter au plus 25 lettres!",
+              },
               {
                 pattern: /^[a-zA-Z0-9]+$/,
                 message: "La référence doit être alphanumérique!",
@@ -635,23 +278,16 @@ export const AddFactureForm = ({ handleState }) => {
           >
             <Input />
           </Form.Item>
-  
+
           <Form.Item
             name="client"
             label="Client"
             rules={[
-              {
-                required: true,
-                message: "Veuillez choisir le client!",
-              },
+              { required: true, message: "Veuillez sélectionner un client!" },
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Select
-              placeholder="Sélectionner un client"
-              allowClear
-              onChange={handleClientChange}
-            >
+            <Select onChange={handleClientChange}>
               {clients.map((client) => (
                 <Option key={client.id} value={client.id}>
                   {client.username}
@@ -666,16 +302,12 @@ export const AddFactureForm = ({ handleState }) => {
               rules={[
                 {
                   required: true,
-                  message: "Veuillez choisir le contrat!",
+                  message: "Veuillez sélectionner un contrat!",
                 },
               ]}
               style={{ marginBottom: "8px" }}
             >
-              <Select
-                placeholder="Sélectionner un contrat"
-                allowClear
-                onChange={handleContratChange}
-              >
+              <Select onChange={handleContratChange}>
                 {contrats.flat().map((contrat) => (
                   <Option key={contrat.id} value={contrat.id}>
                     {contrat.reference}
@@ -684,9 +316,10 @@ export const AddFactureForm = ({ handleState }) => {
               </Select>
             </Form.Item>
           )}
-          <Form.Item 
-            name="contratDelais" 
-            initialValue={contratDelais} 
+
+          <Form.Item
+            name="contratDelais"
+            initialValue={contratDelais}
             label={`Délai de paiement (en jours)`}
             rules={[
               {
@@ -696,77 +329,76 @@ export const AddFactureForm = ({ handleState }) => {
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Input disabled
+            <Input
+              disabled
               type="number"
               placeholder="-"
               value={contratDelais}
-              onChange={validateDelai}
             />
           </Form.Item>
 
           <Form.Item
             name="montant"
-            label="Montant (EUR)"
+            label={`Montant TTC de la facture ( ${contratDevise} )`}
             rules={[
               {
                 required: true,
                 message: "Veuillez saisir le montant!",
               },
-              {
-                pattern: /^\d+(\.\d{1,2})?$/,
-                message: "Le montant doit comporter jusqu'à 2 décimales!",
-              },
+              { validator: validateMontant },
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Input placeholder="0.00" type="number" step="0.01" />
+            <Input
+              step={contratDevise === "TND" ? "0.001" : "0.01"}
+              min={1}
+              placeholder={contratDevise === "TND" ? "1.000" : "1.00"}
+              onChange={(e) => e.target.value.replace(/,/g, "")}
+            />
           </Form.Item>
 
           <Form.Item
             name="montantEncaisse"
-            label="Montant encaissé (EUR)"
+            label={`Montant encaissé de la facture ( ${contratDevise} )`}
             rules={[
               {
                 required: true,
                 message: "Veuillez saisir le montant encaissé!",
               },
-              {
-                validator: validateMontantEncaisse,
-              },
-              {
-                pattern: /^\d+(\.\d{1,2})?$/,
-                message: "Le montant doit comporter jusqu'à 2 décimales!",
-              },
+              { validator: validateMontantEncaisse },
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Input placeholder="0.00" type="number" step="0.01" />
+            <Input
+              step={contratDevise === "TND" ? "0.001" : "0.01"}
+              min={1}
+              placeholder={contratDevise === "TND" ? "1.000" : "1.00"}
+              onChange={(e) => e.target.value.replace(/,/g, "")}
+            />
           </Form.Item>
 
           <Form.Item
             name="date"
-            label="Date de la facture"
+            label="Date de Facture"
             rules={[
               {
                 required: true,
-                message: "Veuillez choisir la date de la facture!",
+                message: "Veuillez sélectionner la date de la facture!",
               },
             ]}
             style={{ marginBottom: "8px" }}
           >
             <DatePicker
-              format="YYYY-MM-DD"
+              format="YYYY/MM/DD"
               disabledDate={handleDateCreationDisabledDate}
             />
           </Form.Item>
 
           <Form.Item>
-            <Space>
+            <Space style={{ display: "flex", justifyContent: "flex-end" }}>
+              <Button onClick={handleCancel}>Annuler</Button>
               <Button type="primary" htmlType="submit">
-                Ajouter
-              </Button>
-              <Button htmlType="button" onClick={handleCancel}>
-                Annuler
+                Ajouter la Facture
               </Button>
             </Space>
           </Form.Item>

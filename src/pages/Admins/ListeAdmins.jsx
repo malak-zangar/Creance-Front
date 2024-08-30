@@ -1,16 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import {
-  SearchOutlined,UserSwitchOutlined,
-  
-} from "@ant-design/icons";
-import {
-  Button,
-  Input,
-  Space,
-  Table,
-  Typography,
-  notification,
-} from "antd";
+import { SearchOutlined, UserSwitchOutlined } from "@ant-design/icons";
+import { Button, Input, Space, Table, Typography, notification } from "antd";
 import Highlighter from "react-highlight-words";
 import { AddAdminForm } from "../../components/Modals/Admins/AddAdminForm";
 import api from "../../utils/axios";
@@ -189,7 +179,6 @@ const Listeadmins = () => {
     try {
       const response = await api.get("/auth/getAll");
       const admins = response.data;
-console.log(admins)
       const updatedadmins = await Promise.all(
         admins.map(async (admin) => {
           return {
@@ -202,7 +191,6 @@ console.log(admins)
 
       setData(updatedadmins);
       setLoading(false);
-
     } catch (error) {
       notification.error({
         message: "Une erreur lors de la récupération des admins!",
@@ -215,12 +203,10 @@ console.log(admins)
     fetchData();
   }, []);
 
- 
   const handleAddadminstate = (record) => {
     setData([record, ...data]);
   };
 
-  
   const columns = [
     {
       title: "Nom d'utilisateur",
@@ -231,34 +217,36 @@ console.log(admins)
       title: "Email",
       dataIndex: "email",
       ...getColumnSearchProps("email"),
-
     },
   ];
 
   return (
     <div>
       <Typography.Title level={4}>
-      <span> <UserSwitchOutlined/> </span>
-
-        Liste des administrateurs</Typography.Title>
+        <span>
+          {" "}
+          <UserSwitchOutlined />{" "}
+        </span>
+        Liste des administrateurs
+      </Typography.Title>
       <Space className="mb-4">
         <AddAdminForm handleState={handleAddadminstate} />
       </Space>
       <Table
-       scroll={{
-        x: "max-content"
-      }}
-      loading={loading}
+        scroll={{
+          x: "max-content",
+        }}
+        loading={loading}
         size="small"
         columns={columns}
         dataSource={data}
         pagination={{
-              total: data.length, 
-              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
-              pageSize: 10,
-            }} 
+          total: data.length,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} de ${total} éléments`,
+          pageSize: 10,
+        }}
         showSorterTooltip={{ target: "sorter-icon" }}
-
       />
     </div>
   );

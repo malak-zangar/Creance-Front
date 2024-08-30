@@ -25,7 +25,7 @@ export const AddContratForm = ({ handleState }) => {
   const [typeFrequenceFacturation, setTypeFrequenceFacturation] =
     useState(null);
   const { TextArea } = Input;
-  const [currency, setCurrency] = useState('EUR'); // Dévise initiale
+  const [currency, setCurrency] = useState("EUR"); // Dévise initiale
 
   const fetchClients = () => {
     api
@@ -48,7 +48,25 @@ export const AddContratForm = ({ handleState }) => {
 
   useEffect(() => {
     fetchClients();
+    addForm.validateFields(["total", "prixJourHomme", "montantParMois"]);
   }, []);
+
+  const validateNumber = (rule, value) => {
+    if (value <= 0) {
+      return Promise.reject(
+        "Le montant ne peut pas être inférieur ou égal à 0!"
+      );
+    }
+    const validPattern = currency === "TND" ? /^\d+\.\d{3}$/ : /^\d+\.\d{2}$/;
+    const message =
+      currency === "TND"
+        ? "Le montant  doit comporter exactement 3 décimales pour TND!"
+        : "Le montant  doit comporter exactement 2 décimales pour EUR ou USD!";
+    if (!validPattern.test(value)) {
+      return Promise.reject(message);
+    }
+    return Promise.resolve();
+  };
 
   const generateContractRef = (clientUsername, contratType) => {
     const randomNumber = Math.floor(Math.random() * 10000); // Generates a random number between 0 and 9999
@@ -261,16 +279,6 @@ export const AddContratForm = ({ handleState }) => {
     return isPDF || Upload.LIST_IGNORE;
   };
 
-  const validateDecimals = (value, currency) => {
-    if (!value) {
-      return '';
-    }
-  
-    const decimalPlaces = currency === 'TND' ? 3 : 2;
-    const regex = new RegExp(`^\\d+\\.\\d{0,${decimalPlaces}}$`);    
-    return regex.test(value) ? '' : `Le montant doit avoir ${decimalPlaces} chiffres après la virgule pour ${currency}.`;
-  };
-
   return (
     <>
       <Button
@@ -410,7 +418,11 @@ export const AddContratForm = ({ handleState }) => {
             ]}
             style={{ marginBottom: "8px" }}
           >
-            <Select placeholder="Sélectionner la devise" value={currency} onChange={(value) => setCurrency(value)}>
+            <Select
+              placeholder="Sélectionner la devise"
+              value={currency}
+              onChange={(value) => setCurrency(value)}
+            >
               <Option value="USD">USD</Option>
               <Option value="EUR">EUR</Option>
               <Option value="TND">TND</Option>
@@ -421,23 +433,28 @@ export const AddContratForm = ({ handleState }) => {
               name="total"
               label="Montant TTC du contrat"
               rules={[
-                { required: true, message: "Veuillez saisir le montant total du contrat!" },
-                { validator: (_, value) => {
-                  const error = validateDecimals(value, currency);
-                  return error ? Promise.reject(new Error(error)) : Promise.resolve();
-                }},
+                {
+                  required: true,
+                  message: "Veuillez saisir le montant total du contrat!",
+                },
+
+                { validator: validateNumber },
               ]}
               style={{ marginBottom: "8px" }}
             >
-              <Input type="number" min={1}     
-                    step={currency === 'TND' ? '0.001' : '0.01'} placeholder="Montant (TTC)" 
-                    onBlur={(e) => {
-                      // Formate la valeur pour avoir 2 décimales pour USD/EUR et 3 pour TND
-                      const formattedValue = currency === 'TND' 
-                        ? parseFloat(e.target.value).toFixed(3) 
-                        : parseFloat(e.target.value).toFixed(2);
-                      e.target.value = formattedValue;
-                    }}/> 
+              <Input
+                min={1}
+                step={currency === "TND" ? "0.001" : "0.01"}
+                placeholder="Montant (TTC)"
+                onBlur={(e) => {
+                  // Formate la valeur pour avoir 2 décimales pour USD/EUR et 3 pour TND
+                  const formattedValue =
+                    currency === "TND"
+                      ? parseFloat(e.target.value).toFixed(3)
+                      : parseFloat(e.target.value).toFixed(2);
+                  e.target.value = formattedValue;
+                }}
+              />
             </Form.Item>
           )}
           {type === "Jour Homme" && (
@@ -445,11 +462,19 @@ export const AddContratForm = ({ handleState }) => {
               name="prixJourHomme"
               label="Prix du jour/homme"
               rules={[
-                { required: true, message: "Veuillez saisir le prix du jour/homme!" },
+                {
+                  required: true,
+                  message: "Veuillez saisir le prix du jour/homme!",
+                },
+                { validator: validateNumber },
               ]}
               style={{ marginBottom: "8px" }}
             >
-              <Input type="number" min={1} step="0.001" placeholder="Prix du jour/homme" />
+              <Input
+                min={1}
+                step={currency === "TND" ? "0.001" : "0.01"}
+                placeholder="Prix du jour/homme"
+              />
             </Form.Item>
           )}
           {type === "Mix" && (
@@ -458,25 +483,33 @@ export const AddContratForm = ({ handleState }) => {
                 name="total"
                 label="Montant TTC du contrat"
                 rules={[
-                  { required: true, message: "Veuillez saisir le montant total du contrat!" },
+                  {
+                    required: true,
+                    message: "Veuillez saisir le montant total du contrat!",
+                  },
+                  { validator: validateNumber },
                 ]}
                 style={{ marginBottom: "8px" }}
               >
-                <Input type="number" min={1} step="0.001" placeholder="Montant TTC" />
+                <Input min={1} step="0.001" placeholder="Montant TTC" />
               </Form.Item>
               <Form.Item
                 name="prixJourHomme"
                 label="Prix du jour/homme"
                 rules={[
-                  { required: true, message: "Veuillez saisir le prix du jour/homme!" },
+                  {
+                    required: true,
+                    message: "Veuillez saisir le prix du jour/homme!",
+                  },
+                  { validator: validateNumber },
                 ]}
                 style={{ marginBottom: "8px" }}
               >
-                <Input type="number" step="0.001" min={1} placeholder="Prix du jour/homme" />
+                <Input step="0.001" min={1} placeholder="Prix du jour/homme" />
               </Form.Item>
             </>
           )}
-            
+
           <Form.Item
             name="typeFrequenceFacturation"
             label="Fréquence de facturation"
@@ -505,15 +538,11 @@ export const AddContratForm = ({ handleState }) => {
                   required: true,
                   message: "Veuillez saisir le montant à facturer par mois!",
                 },
+                { validator: validateNumber },
               ]}
               style={{ marginBottom: "8px" }}
             >
-              <Input
-                type="number"
-                min={1}
-                step="0.001"
-                placeholder="Montant par mois"
-              />
+              <Input min={1} step="0.001" placeholder="Montant par mois" />
             </Form.Item>
           )}
           {typeFrequenceFacturation === "Spécifique" && (
@@ -554,7 +583,6 @@ export const AddContratForm = ({ handleState }) => {
             <Upload
               name="contratFile"
               listType="text"
-              //beforeUpload={() => false}
               beforeUpload={beforeUpload}
               onChange={handleFileChange}
             >

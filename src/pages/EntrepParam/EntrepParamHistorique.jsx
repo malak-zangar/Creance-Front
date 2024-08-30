@@ -1,21 +1,23 @@
-import { useState,useRef, useEffect } from "react";
-import { SearchOutlined, ControlOutlined,SettingOutlined } from '@ant-design/icons';
-import { Button, Input, Space, Table, Typography, notification } from 'antd';
-import Highlighter from 'react-highlight-words';
+import { useState, useRef, useEffect } from "react";
+import {
+  SearchOutlined,
+  ControlOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
+import { Button, Input, Space, Table, Typography, notification } from "antd";
+import Highlighter from "react-highlight-words";
 import { useNavigate } from "react-router-dom";
 import UpdateParamForm from "../../components/Modals/Params/UpdateParamForm";
 import api from "../../utils/axios";
 import moment from "moment";
 
 const EntrepParamHistorique = () => {
-
-
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
-  const [searchText, setSearchText] = useState('');
-  const [searchedColumn, setSearchedColumn] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [searchedColumn, setSearchedColumn] = useState("");
   const searchInput = useRef(null);
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -24,10 +26,16 @@ const EntrepParamHistorique = () => {
   };
   const handleReset = (clearFilters) => {
     clearFilters();
-    setSearchText('');
+    setSearchText("");
   };
   const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+    filterDropdown: ({
+      setSelectedKeys,
+      selectedKeys,
+      confirm,
+      clearFilters,
+      close,
+    }) => (
       <div
         style={{
           padding: 8,
@@ -38,11 +46,13 @@ const EntrepParamHistorique = () => {
           ref={searchInput}
           placeholder={`Rechercher ${dataIndex}`}
           value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onChange={(e) =>
+            setSelectedKeys(e.target.value ? [e.target.value] : [])
+          }
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
             marginBottom: 8,
-            display: 'block',
+            display: "block",
           }}
         />
         <Space>
@@ -94,7 +104,7 @@ const EntrepParamHistorique = () => {
     filterIcon: (filtered) => (
       <SearchOutlined
         style={{
-          color: filtered ? '#1677ff' : undefined,
+          color: filtered ? "#1677ff" : undefined,
         }}
       />
     ),
@@ -109,12 +119,12 @@ const EntrepParamHistorique = () => {
       searchedColumn === dataIndex ? (
         <Highlighter
           highlightStyle={{
-            backgroundColor: '#ffc069',
+            backgroundColor: "#ffc069",
             padding: 0,
           }}
           searchWords={[searchText]}
           autoEscape
-          textToHighlight={text ? text.toString() : ''}
+          textToHighlight={text ? text.toString() : ""}
         />
       ) : (
         text
@@ -133,18 +143,18 @@ const EntrepParamHistorique = () => {
             dateInsertion: moment(param.dateInsertion).format("YYYY-MM-DD"),
             phone: param.phone,
             adresse: param.adresse,
-            identifiantFiscal : param.identifiantFiscal,
-            tauxTndEur:param.tauxTndEur,
-            tauxUsdEur:param.tauxUsdEur
+            identifiantFiscal: param.identifiantFiscal,
+            tauxTndEur: param.tauxTndEur,
+            tauxUsdEur: param.tauxUsdEur,
           }))
         );
         setLoading(false);
-
-      }
-    
-    )
+      })
       .catch((error) => {
-        notification.error("Erreur lors de la récupération des paramètres!", error);
+        notification.error(
+          "Erreur lors de la récupération des paramètres!",
+          error
+        );
       });
   };
 
@@ -156,9 +166,7 @@ const EntrepParamHistorique = () => {
     fetchData();
   };
 
-
   const ToLatestParam = () => {
-    console.log("Button toLatestParam clicked");
     navigate("/parametres/actuels");
   };
 
@@ -166,23 +174,24 @@ const EntrepParamHistorique = () => {
     {
       title: "ID",
       dataIndex: "key",
-      ...getColumnSearchProps('key'),
+      ...getColumnSearchProps("key"),
     },
     {
       title: "Date insertion",
       dataIndex: "dateInsertion",
       render: (text) => moment(text).format("DD/MM/YYYY"),
-      sorter: (a, b) => moment(a.dateInsertion).unix() - moment(b.dateInsertion).unix(),
+      sorter: (a, b) =>
+        moment(a.dateInsertion).unix() - moment(b.dateInsertion).unix(),
     },
     {
       title: "Raison sociale",
       dataIndex: "raisonSociale",
-      ...getColumnSearchProps('raisonSociale'),
+      ...getColumnSearchProps("raisonSociale"),
     },
     {
       title: "Email",
       dataIndex: "email",
-      ...getColumnSearchProps('email'),
+      ...getColumnSearchProps("email"),
     },
     {
       title: "Téléphone",
@@ -205,7 +214,6 @@ const EntrepParamHistorique = () => {
       dataIndex: "tauxUsdEur",
     },
 
- 
     {
       title: "Action(s)",
       dataIndex: "action",
@@ -219,36 +227,34 @@ const EntrepParamHistorique = () => {
 
   return (
     <div>
-      
-        <Typography.Title level={4}>
-        <span> <SettingOutlined/> </span>
+      <Typography.Title level={4}>
+        <span>
+          {" "}
+          <SettingOutlined />{" "}
+        </span>
+        Historique des paramètres{" "}
+      </Typography.Title>
 
-          Historique des paramètres </Typography.Title>
-    
       <Space className="mb-4">
-        <Button  onClick={ToLatestParam} icon={<ControlOutlined />}>
+        <Button onClick={ToLatestParam} icon={<ControlOutlined />}>
           Paramètres actuels
         </Button>
       </Space>
       <Table
-           scroll={{
-            x: "max-content"
-          }}
-          loading={loading}
-
-      size="small"
+        scroll={{
+          x: "max-content",
+        }}
+        loading={loading}
+        size="small"
         columns={columns}
         dataSource={data}
         pagination={{
-              total: data.length, 
-              showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} éléments`,
-              pageSize: 10,
-            }}
-
+          total: data.length,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} de ${total} éléments`,
+          pageSize: 10,
+        }}
       />
-
-      
-
     </div>
   );
 };

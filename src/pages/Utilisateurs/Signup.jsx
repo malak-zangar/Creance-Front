@@ -15,7 +15,6 @@ const Signup = () => {
 
   const onFinish = async (values) => {
     try {
-      console.log(values);
       const response = await api.post("/auth/create", values);
       console.log(response.data);
       message.success("Inscription réussie");

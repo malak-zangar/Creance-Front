@@ -1,10 +1,45 @@
-import React, { useState } from "react";
-import { Modal, Button, Descriptions, Card, Avatar, Tooltip, Tag } from "antd";
-import { InfoCircleOutlined, FileDoneOutlined,FileTextOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import {
+  Modal,
+  Button,
+  Descriptions,
+  Avatar,
+  notification,
+  Tooltip,
+  Tag,
+} from "antd";
+import {
+  InfoCircleOutlined,
+  FileTextOutlined,
+} from "@ant-design/icons";
 import moment from "moment";
+import HistoriqueRelance from "../Emails/HistoriqueRelance";
+import api from "../../../utils/axios";
 
-const DetailsFactureForm = ({ record }) => {
+const DetailsFactureForm = ({ record1 }) => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
+  const [record, setRecord] = useState(null);
+
+  const fetchFacture = (factureId) => {
+    api
+      .get(`/facture/getByIDSerializedForEmail/${factureId}`)
+      .then((response) => {
+        if (response.data) {
+          setRecord(response.data.facture);
+        } else {
+          setRecord(null);
+        }
+      })
+      .catch((error) => {
+        notification.error(
+          "Erreur lors de la récupération de la facture:",
+          error
+        );
+      });
+  };
+  useEffect(() => {
+    fetchFacture(record1?.key);
+  }, []);
 
   const handleDetails = () => {
     setIsDetailsModalVisible(true);
@@ -37,9 +72,82 @@ const DetailsFactureForm = ({ record }) => {
     } else return moment(date).format("DD/MM/YYYY");
   };
 
+  const currentDateNow = moment();
+
+  const calculateRelanceDates = (
+    dateEcheance,
+    delaiRelance,
+    maxRelance,
+    dateFinalisation
+  ) => {
+    let relanceDates = [];
+    let currentDate = moment(dateEcheance);
+
+    for (let i = 1; i <= maxRelance; i++) {
+      currentDate = currentDate.add(delaiRelance, "days");
+      if (currentDate < currentDateNow) {
+        relanceDates.push(currentDate.clone());
+      }
+    }
+
+    return relanceDates;
+  };
+  const isRelanceDisabled =
+    record?.delaiRelance === 0 && record?.maxRelance === 0;
+
+  const renderHistoriqueRelance = () => {
+    const relanceDates = calculateRelanceDates(
+      record?.echeance,
+      record?.delaiRelance,
+      record?.maxRelance,
+      record?.dateFinalisation
+    );
+  
+    if (isRelanceDisabled) {
+      return "Relance désactivée pour le client associé";
+    } else if (record?.actifRelance === false) {
+      return "Relance désactivée pour cette facture";
+    } else if (
+      record?.statut === "Payée" &&
+      record?.dateFinalisation <= record?.echeance
+    ) {
+      return "Payée au délai";
+    } else if (record?.statut === "Payée" && relanceDates.length === 0) {
+      return "Payée au délai";
+    } else if (
+      relanceDates.length === 0 &&
+      (record?.statut === "Non échue" || record?.statut === "Échue")
+    ) {
+      return "Pas encore";
+    } else {
+      return <HistoriqueRelance record={record} />;
+    }
+  };
+
+  const formatMontant = (value, devise) => {
+    if (value === 0) {
+      return new Intl.NumberFormat("fr-FR", {
+        style: "currency",
+        currency: devise || "EUR",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(0);
+    }
+    if (!value || !devise) return "";
+
+    // Liste des devises supportées
+    const supportedCurrencies = ["EUR", "USD", "TND"];
+    const currency = supportedCurrencies.includes(devise) ? devise : "";
+    return new Intl.NumberFormat("fr-FR", {
+      currency: currency,
+      style: "currency",
+      minimumFractionDigits: devise === "TND" ? 3 : 2,
+      maximumFractionDigits: devise === "TND" ? 3 : 2,
+    }).format(value);
+  };
+
   return (
     <>
-     
       <Tooltip title="Détails">
         <Button
           icon={<InfoCircleOutlined />}
@@ -58,9 +166,11 @@ const DetailsFactureForm = ({ record }) => {
           </Button>,
         ]}
         style={{ top: 20 }}
-      > 
-<hr style={{ backgroundColor: '#CCCCCC', height: '1px', border: 'none' }}/>    
-    <div
+      >
+        <hr
+          style={{ backgroundColor: "#CCCCCC", height: "1px", border: "none" }}
+        />
+        <div
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -68,7 +178,14 @@ const DetailsFactureForm = ({ record }) => {
           }}
         >
           <span>
-            <div style={{ position: "relative", display: "inline-block", marginRight: 10 , marginTop:5}}>
+            <div
+              style={{
+                position: "relative",
+                display: "inline-block",
+                marginRight: 10,
+                marginTop: 5,
+              }}
+            >
               <Avatar icon={<FileTextOutlined />} />
             </div>
             {`Référence : ${record?.numero}`}
@@ -86,19 +203,24 @@ const DetailsFactureForm = ({ record }) => {
           <Descriptions.Item label="Date d'échéance">
             {formatDate(record?.echeance)}
           </Descriptions.Item>
-          <Descriptions.Item label="Délai de paiement (en jours)">
-            {record?.delai}
+          <Descriptions.Item label="Délai de paiement">
+            {record?.delai} jours
           </Descriptions.Item>
-    
-          <Descriptions.Item label="Retard">{record?.retard}</Descriptions.Item>
+
+          <Descriptions.Item label="Retard">
+            {record?.retard} jours
+          </Descriptions.Item>
           <Descriptions.Item label="Montant TTC de la facture">
-            {record?.montant} {record?.devise}
+            {formatMontant(record?.montant, record?.devise)}
           </Descriptions.Item>
           <Descriptions.Item label="Montant encaissé">
-            {record?.montantEncaisse} {record?.devise}
+            {formatMontant(record?.montantEncaisse, record?.devise)}
           </Descriptions.Item>
           <Descriptions.Item label="Solde restant">
-            {record?.solde} {record?.devise}
+            {formatMontant(record?.solde, record?.devise)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Historique de relances">
+            {renderHistoriqueRelance()}
           </Descriptions.Item>
           <Descriptions.Item label="Date de finalisation">
             {formatDate(record?.dateFinalisation)}

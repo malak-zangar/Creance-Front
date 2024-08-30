@@ -115,7 +115,6 @@ function App() {
             type="primary"
             icon={themeCode === "light" ? <BulbFilled /> : <BulbOutlined />}
             onClick={() => {
-              console.log(themeCode === "light" ? "dark" : "light")
               setThemeCode(themeCode === "light" ? "dark" : "light");
             }}
             style={{
